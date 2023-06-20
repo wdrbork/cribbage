@@ -42,4 +42,4 @@ will repeat this process for the crib, with all points present going towards
 their own total for the game.
 
 The game continues until a player reaches 121 points, signaling that they have
-won. Full rules can be seen {here}(https://en.wikipedia.org/wiki/Cribbage).
+won. Full rules can be seen [here](https://en.wikipedia.org/wiki/Cribbage).
