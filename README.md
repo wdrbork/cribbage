@@ -1,4 +1,4 @@
-# cribbage
+# Personal Project (Summer 2023): Cribbage
 
 ## Project Description
 This repository will contain code for a cribbage application. Both the 
