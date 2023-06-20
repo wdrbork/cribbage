@@ -1,5 +1,8 @@
 package logic.deck;
 
+/**
+ * Represents a single card in a standard 52-card deck
+ */
 public class Card {
     private final Suit suit;
     private final Rank rank;
