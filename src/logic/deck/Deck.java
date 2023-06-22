@@ -10,9 +10,9 @@ import java.util.Random;
  */
 public class Deck {
     private static final int DECK_SIZE = 52;
+    private static final int TOP_CARD = 0;
 
     private final List<Card> cards;
-    private int topCard;
 
     /**
      * Creates a new deck of cards. The deck is unshuffled by default
@@ -23,14 +23,25 @@ public class Deck {
 
     public Deck(boolean shuffle) {
         cards = new ArrayList<Card>(DECK_SIZE);
+        resetDeck();
+        if (shuffle) shuffle();
+    }
+
+    /** 
+     * Puts all cards back into the deck. Note that the returned deck is 
+     * unshuffled.
+     */
+    public void resetDeck() {
+        cards.clear();
         for (Suit suit : Suit.values()) {
             for (Rank rank : Rank.values()) {
                 cards.add(new Card(suit, rank));
             }
         }
-        if (shuffle) Collections.shuffle(cards);
+    }
 
-        topCard = 0;
+    public int remainingCards() {
+        return cards.size();
     }
 
     /**
@@ -38,7 +49,6 @@ public class Deck {
      */
     public void shuffle() {
         Collections.shuffle(cards);
-        topCard = 0;
     }
 
     /**
@@ -49,35 +59,45 @@ public class Deck {
      * will always return a unique card. If null is returned, the caller is 
      * expected to call shuffle() so that the deck is restored.
      * 
-     * @return the top card of the deck, or null if there are no more cards in
-     * the deck. 
+     * @return the top card of the deck, or null if the deck is empty
      */
     public Card takeTopCard() {
-        if (topCard == DECK_SIZE) {
-            return null;
-        }
-
-        Card nextCard = cards.get(topCard);
-        topCard++;
-        return nextCard;
+        return pickCard(TOP_CARD);
     }
 
     /**
      * Returns a random card from the remaining cards in this deck, or null if 
      * there are no more cards.
-     * @return
+     * 
+     * @return a random card from the deck, or null if the deck is empty
      */
     public Card pickRandomCard() {
-        if (topCard == DECK_SIZE) {
+        if (cards.isEmpty()) {
             return null;
         }
 
         Random r = new Random();
-        int remainingCards = DECK_SIZE - topCard - 1;
-        int index = topCard + 
-                (int) Math.round(r.nextDouble() * remainingCards);
-        assert(index < DECK_SIZE) : "Index in pickRandomCard is an invalid value";
-        
-        return cards.get(index);
+        int offset = (int) Math.round(r.nextDouble() * (cards.size() - 1));
+        return pickCard(offset);
+    }
+
+    /**
+     * Picks out a card from the deck using the given offset. An offset of 0 
+     * indicates the top card
+     * 
+     * @param offset the location of the card to choose from
+     * @return the card at the given offset, or null if the deck is emprty
+     */
+    public Card pickCard(int offset) {
+        if (offset < 0 || offset > cards.size()) {
+            throw new IllegalArgumentException("Card offset is invalid");
+        }
+
+        if (cards.isEmpty()) {
+            return null;
+        }
+
+        Card nextCard = cards.remove(offset);
+        return nextCard;
     }
 }
