@@ -15,16 +15,20 @@ public class Deck {
     private int topCard;
 
     /**
-     * Creates a new shuffled deck of cards.
+     * Creates a new deck of cards. The deck is unshuffled by default
      */
     public Deck() {
+        this(false);
+    }
+
+    public Deck(boolean shuffle) {
         cards = new ArrayList<Card>(DECK_SIZE);
         for (Suit suit : Suit.values()) {
             for (Rank rank : Rank.values()) {
                 cards.add(new Card(suit, rank));
             }
         }
-        Collections.shuffle(cards);
+        if (shuffle) Collections.shuffle(cards);
 
         topCard = 0;
     }
