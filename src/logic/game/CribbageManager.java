@@ -108,14 +108,19 @@ public class CribbageManager {
             throw new IllegalArgumentException("Invalid player ID");
         } else if (card == null) {
             throw new IllegalArgumentException("Card is null");
+        } else if (!hands.get(pid).contains(card)) {
+            throw new IllegalArgumentException("Player does not have this card");
         } else if (crib.size() == 4) {
             throw new IllegalStateException("Crib is full");
         }
 
+        hands.get(pid).remove(card);
         crib.add(card);
     }
 
     public Card getStarterCard() {
+        // All hands and the crib must be finalized before the starter 
+        // card is drawn
         checkFullHands();
 
         Card starter = deck.takeTopCard();
@@ -127,6 +132,27 @@ public class CribbageManager {
     /**************************************************************************
     * Second Stage (Play)
     **************************************************************************/
+    public void playCard(int pid, Card card) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IllegalArgumentException("Invalid player ID");
+        } else if (card == null) {
+            throw new IllegalArgumentException("Card is null");
+        } else if (!hands.get(pid).contains(card)) {
+            throw new IllegalArgumentException("Player does not have this card");
+        }
+
+
+    }
+
+    private boolean playOver() {
+        for (List<Card> hand : hands) {
+            if (!hand.isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**************************************************************************
     * Third Stage (Show)
