@@ -27,25 +27,24 @@ public class Card {
     }
 
     /**
-     * Returns the value of this card based on its rank. If the rank is a 
-     * number, that number is returned. Otherwise, aces return a value of 1, 
-     * and face cards (jacks, queens, and kings) return a value of 10.
+     * Returns the value of this card. If the rank is a number, that number 
+     * is returned. Otherwise, aces return a value of 1, and face cards (jacks, 
+     * queens, and kings) return a value of 10.
+     * 
+     * @return the value of this card
+     */
+    public int getValue() {
+        return Math.min(rank.ordinal() + 1, 10);
+    }
+
+    /**
+     * Returns the value of this card based on its rank. Unlike the above 
+     * method, this one gives face cards unique values
      * 
      * @return the value of this card based on its rank
      */
-    public int getValue() {
-        switch (rank) {
-            case ACE: return 1;
-            case TWO: return 2;
-            case THREE: return 3;
-            case FOUR: return 4;
-            case FIVE: return 5;
-            case SIX: return 6;
-            case SEVEN: return 7;
-            case EIGHT: return 8;
-            case NINE: return 9;
-            default: return 10;
-        }
+    public int getRankValue() {
+        return rank.ordinal() + 1;
     }
 
     @Override
@@ -64,14 +63,7 @@ public class Card {
 
     @Override
     public int hashCode() {
-        int base = this.getValue();
-        if (rank == Rank.JACK) {
-            base = 11;
-        } else if (rank == Rank.QUEEN) {
-            base = 12;
-        } else if (rank == Rank.KING) {
-            base = 13;
-        }
+        int base = this.getRankValue();
 
         int shift = 0;
         if (suit == Suit.DIAMOND) {
