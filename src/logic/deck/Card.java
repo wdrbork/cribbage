@@ -47,4 +47,41 @@ public class Card {
             default: return 10;
         }
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (other == null || !(other instanceof Card)) {
+            return false;
+        }
+
+        Card otherCard = (Card) other;
+        return this.suit == otherCard.suit && this.rank == otherCard.rank;
+    }
+
+    @Override
+    public int hashCode() {
+        int base = this.getValue();
+        if (rank == Rank.JACK) {
+            base = 11;
+        } else if (rank == Rank.QUEEN) {
+            base = 12;
+        } else if (rank == Rank.KING) {
+            base = 13;
+        }
+
+        int shift = 0;
+        if (suit == Suit.DIAMOND) {
+            shift = 8;
+        } else if (suit == Suit.HEART) {
+            shift = 16;
+        } else if (suit == Suit.SPADE) {
+            shift = 24;
+        }
+
+        return base << shift;
+    }
 }
