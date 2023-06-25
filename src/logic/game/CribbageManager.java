@@ -1,6 +1,8 @@
 package logic.game;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
@@ -13,6 +15,7 @@ import logic.deck.Deck;
 public class CribbageManager {
     private static final int MAX_COUNT = 31;
     private static final int MAX_SCORE = 121;
+    private static final int CARDS_PER_RANK = 4;
     private static final int TWO_PLAYER_START_SIZE = 6;
     private static final int THREE_PLAYER_START_SIZE = 5;
     private static final int HAND_SIZE = 4;
@@ -23,7 +26,8 @@ public class CribbageManager {
     private final int[] gameScores;
     private final List<List<Card>> hands;
     private final List<Card> crib;
-    private final Stack<Card> playedCards;
+    private final List<Card> cardStack;
+    private final List<List<Card>> playedCardsByPlayer;
 
     // The starter card drawn at the end of the first stage
     private Card starterCard;  
@@ -60,12 +64,21 @@ public class CribbageManager {
         }
 
         hands = new ArrayList<List<Card>>(numPlayers);
+        playedCardsByPlayer = new ArrayList<List<Card>>(numPlayers);
         for (int i = 0; i < numPlayers; i++) {
             hands.add(new ArrayList<Card>(startSize));
+            playedCardsByPlayer.add(new ArrayList<Card>(HAND_SIZE));
         }
 
         crib = new ArrayList<Card>(HAND_SIZE);
-        playedCards = new Stack<Card>();
+        cardStack = new ArrayList<Card>();
+    }
+
+    /**************************************************************************
+    * Setup Stage
+    **************************************************************************/
+    public Card pickCardForDealer(int idx) {
+        return deck.pickCard(idx);
     }
 
     public void setDealer(int pid) {
@@ -75,10 +88,14 @@ public class CribbageManager {
     /**************************************************************************
     * First Stage (Deal)
     **************************************************************************/
-    public Card pickCardForDealer(int idx) {
-        return deck.pickCard(idx);
-    }
-
+    /**
+     * Shuffles the deck and deals out hands to each player in the game. 
+     * Returns each player's hand
+     * 
+     * @return each player's hand
+     * @throws IllegalArgumentException if players still have cards, the crib 
+     *                                  still has cards, or there's no dealer
+     */
     public List<List<Card>> dealHands() {
         if (!checkEmptyHands()) {
             throw new IllegalArgumentException("Players still have cards in their hands");
@@ -88,8 +105,6 @@ public class CribbageManager {
             throw new IllegalArgumentException("Dealer not decided");
         }
 
-        // Cards will get shuffled here, although I may consider having a 
-        // separate function for this so that the caller has more control
         deck.shuffle();
 
         int handSize = TWO_PLAYER_START_SIZE;
@@ -117,6 +132,16 @@ public class CribbageManager {
         return hands;
     }
 
+    /**
+     * Removes the card from the player's hand and puts it in the crib. 
+     * 
+     * @param pid a player ID
+     * @param card a card held by the player with the above ID
+     * @throws IllegalArgumentException if the ID is invalid or the player 
+     *                                  does not have the passed-in card
+     * @throws NullPointerException     if the card is null
+     * @throws IllegalStateException    if the crib is full
+     */
     public void sendCardToCrib(int pid, Card card) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID");
@@ -137,9 +162,7 @@ public class CribbageManager {
         // card is drawn
         if (!checkStartingHands()) {
             throw new IllegalArgumentException("Not all hands have been finalized");
-        }
-
-        if (idx < 0 || idx >= deck.remainingCards()) {
+        } else if (idx < 0 || idx >= deck.remainingCards()) {
             throw new IllegalArgumentException("Deck index is invalid");
         }
 
@@ -198,7 +221,10 @@ public class CribbageManager {
         count += cardValue;
         hands.get(pid).remove(card);
         int pointsEarned = calculatePeg(card);
-        playedCards.add(card);
+        cardStack.add(card);
+        playedCardsByPlayer.get(pid).add(card);
+        
+        if (count == 31) resetCount();
         return pointsEarned;
     }
 
@@ -210,13 +236,18 @@ public class CribbageManager {
         // This implementation separates the last played card from those 
         // already in the stack to make it easier to count points. Therefore, 
         // it is important that this card wasn't already put in the stack.
-        assert(!playedCards.contains(lastPlayed)) : "lastPlayed already in playedCards";
+        assert(!cardStack.contains(lastPlayed)) : "lastPlayed already in cardStack";
 
         int points = 0;
+        points += countPegPairs(lastPlayed);
+        points += countPegRuns(lastPlayed);
+        points += countIs15Or31();
+        return points;
+    }
 
-        // Count pairs
+    private int countPegPairs(Card lastPlayed) {
         int occurrences = 1;
-        for (Card prev : playedCards) {
+        for (Card prev : cardStack) {
             if (prev.getRank() != lastPlayed.getRank()) {
                 break;
             }
@@ -224,25 +255,47 @@ public class CribbageManager {
         }
         // 1 occurence = 0 pts, 2 occurrences = 2 pts, 
         // 3 occurences = 6 pts, 4 occurrences = 12 pts
-        assert(occurrences <= 4) : "Duplicate cards in playedCards stack";
-        points += occurrences * (occurrences - 1);
+        assert(occurrences <= CARDS_PER_RANK) : "More than 4 occurrences of a specific rank";
+        return occurrences * (occurrences - 1);
+    }
 
-        // Count runs
-        int min = lastPlayed.getRankValue();
-        int max = min;
-        for (Card prev : playedCards) {
-            int prevValue = prev.getRankValue();
-            if (prevValue == min - 1) {
-                min = prevValue;
-            } else if (prevValue == max + 1) {
-                max = prevValue;
-            } else {
-                break;
+    private int countPegRuns(Card lastPlayed) {
+        int totalCardsPlayed = cardStack.size();
+        int longestRun = 0;
+        int testRunLength = 3;
+        
+        while (testRunLength - 1 <= totalCardsPlayed) {
+            // Get the last (testRunLength - 1) cards played
+            List<Card> subList = 
+                    cardStack.subList(totalCardsPlayed - testRunLength, 
+                            totalCardsPlayed);
+
+            // Add the most recently played cart to this list and sort it
+            subList.add(lastPlayed);
+            Collections.sort(subList);
+
+            // Determine if a run is present in this sub list
+            int i = 0;
+            for (; i < subList.size() - 1; i++) {
+                if (subList.get(i).getRankValue() + 1 
+                        != subList.get(i + 1).getRankValue()) break;
             }
+
+            // If all the numbers are consecutive, mark this as the longest run
+            if (i == subList.size() - 1) {
+                longestRun = testRunLength;
+            }
+            testRunLength++;
         }
-        if (max - min >= 2) {
-            points += max - min + 1;
+
+        return longestRun;
+    }
+
+    private int countIs15Or31() {
+        if (count == 15 || count == 31) {
+            return 2;
         }
+        return 0;
     }
 
     private boolean inPlay() {
@@ -253,6 +306,11 @@ public class CribbageManager {
         }
 
         return false;
+    }
+
+    public void resetCount() {
+        count = 0;
+        cardStack.clear();
     }
 
     /**************************************************************************
@@ -294,7 +352,7 @@ public class CribbageManager {
     }
 
     public boolean isWinner(int pid) {
-
+        return false;
     }
 
     /* Checks to see if all hands are empty */
