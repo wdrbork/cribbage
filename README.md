@@ -14,7 +14,7 @@ trying to create a program that can run it. I also plan on using it as a warmup
 for a chess program that I want to create later on.
 
 ## How Cribbage Works
-Cribbage is a board/card game with either two or three players. A standard game 
+Cribbage is a card game with either two or three players. A standard game 
 consists of multiple rounds where 6 cards (or 5 cards if there are three 
 players) are dealt to each player at the beginning of each round. Each round 
 consists of three stages:
