@@ -3,7 +3,7 @@ package logic.deck;
 /**
  * Represents a single card in a standard 52-card deck.
  */
-public class Card {
+public class Card implements Comparable<Card> {
     private final Suit suit;
     private final Rank rank;
 
@@ -75,5 +75,14 @@ public class Card {
         }
 
         return base << shift;
+    }
+
+    @Override
+    public int compareTo(Card other) {
+        // Compare ranks first. If they are equal, compare suits
+        if (this.rank != other.rank) {
+            return Integer.compare(this.rank.ordinal(), other.rank.ordinal());
+        }
+        return Integer.compare(this.suit.ordinal(), other.suit.ordinal());
     }
 }
