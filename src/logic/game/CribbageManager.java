@@ -2,15 +2,18 @@ package logic.game;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 import logic.deck.Card;
 import logic.deck.Deck;
+import logic.deck.Rank;
 
 /**
- * Manages a game of cribbage
+ * Manages a game of cribbage. For smooth management of the object, the caller 
+ * is expected to keep track of which "player" (whether that be a human or AI)
+ * is assigned to which player ID which must be a number between 0 (inclusive) 
+ * and the number of players in the game (exclusive)
  */
 public class CribbageManager {
     private static final int MAX_COUNT = 31;
@@ -22,11 +25,10 @@ public class CribbageManager {
 
     private final int numPlayers;
     private final Deck deck;
-    // private final int[] matchScores;  // Note: to be implemented later (only doing a single match at a time for now)
     private final int[] gameScores;
     private final List<List<Card>> hands;
     private final List<Card> crib;
-    private final List<Card> cardStack;
+    private final LinkedList<Card> cardStack;
     private final List<List<Card>> playedCardsByPlayer;
 
     // The starter card drawn at the end of the first stage
@@ -51,7 +53,6 @@ public class CribbageManager {
 
         this.numPlayers = numPlayers;
         deck = new Deck();
-        // matchScores = new int[numPlayers - 1];
         gameScores = new int[numPlayers - 1];
         this.dealerId = -1;
 
@@ -71,7 +72,7 @@ public class CribbageManager {
         }
 
         crib = new ArrayList<Card>(HAND_SIZE);
-        cardStack = new ArrayList<Card>();
+        cardStack = new LinkedList<Card>();
     }
 
     /**************************************************************************
@@ -133,7 +134,9 @@ public class CribbageManager {
     }
 
     /**
-     * Removes the card from the player's hand and puts it in the crib. 
+     * Removes the card from the player's hand and puts it in the crib. The 
+     * caller must have already dealt cards to each player, and the crib must 
+     * not already be full
      * 
      * @param pid a player ID
      * @param card a card held by the player with the above ID
@@ -166,193 +169,14 @@ public class CribbageManager {
             throw new IllegalArgumentException("Deck index is invalid");
         }
 
-        Card starter = deck.pickCard(idx);
-        starterCard = starter;
-        return starter;
-    }
+        starterCard = deck.pickCard(idx);
 
-    /**************************************************************************
-    * Second Stage (Play)
-    **************************************************************************/
-    public boolean hasPlayableCard(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
+        // If the starter card is a jack, the dealer gets two points (heels)
+        if (starterCard.getRank() == Rank.JACK) {
+            addPoints(dealerId, 2);
         }
 
-        for (Card card : hands.get(pid)) {
-            int cardValue = card.getValue();
-            if (cardValue + count <= MAX_COUNT) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Play the passed-in card assuming that it is in the player's hand. If 
-     * not, an exception is thrown. If the value of the card causes the count 
-     * to go above MAX_COUNT (31), -1 is returned. Otherwise, the number of 
-     * points earned from playing that card is returned
-     * 
-     * @param pid the player's ID
-     * @param card the card to be played
-     * @return the points earned from playing that card, or -1 if the card 
-     *         can't be played
-     * @throws IllegalArgumentException if this player doesn't have the card in
-     *                                  their hand
-     * @throws NullPointerException if the card is null
-     * @throws IndexOutOfBoundsException if the player ID is invalid
-     */
-    public int playCard(int pid, Card card) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        } else if (card == null) {
-           throw new NullPointerException("Card is null");
-        } else if (!hands.get(pid).contains(card)) {
-            throw new IllegalArgumentException("Player does not have this card");
-        }
-
-        int cardValue = card.getValue();
-        if (count + cardValue > MAX_COUNT) {
-            return -1;
-        }
-
-        count += cardValue;
-        hands.get(pid).remove(card);
-        int pointsEarned = calculatePeg(card);
-        cardStack.add(card);
-        playedCardsByPlayer.get(pid).add(card);
-        
-        if (count == 31) resetCount();
-        return pointsEarned;
-    }
-
-    private int calculatePeg(Card lastPlayed) {
-        if (lastPlayed == null) {
-            throw new NullPointerException("Card is null");
-        }
-
-        // This implementation separates the last played card from those 
-        // already in the stack to make it easier to count points. Therefore, 
-        // it is important that this card wasn't already put in the stack.
-        assert(!cardStack.contains(lastPlayed)) : "lastPlayed already in cardStack";
-
-        int points = 0;
-        points += countPegPairs(lastPlayed);
-        points += countPegRuns(lastPlayed);
-        points += countIs15Or31();
-        return points;
-    }
-
-    private int countPegPairs(Card lastPlayed) {
-        int occurrences = 1;
-        for (Card prev : cardStack) {
-            if (prev.getRank() != lastPlayed.getRank()) {
-                break;
-            }
-            occurrences++;
-        }
-        // 1 occurence = 0 pts, 2 occurrences = 2 pts, 
-        // 3 occurences = 6 pts, 4 occurrences = 12 pts
-        assert(occurrences <= CARDS_PER_RANK) : "More than 4 occurrences of a specific rank";
-        return occurrences * (occurrences - 1);
-    }
-
-    private int countPegRuns(Card lastPlayed) {
-        int totalCardsPlayed = cardStack.size();
-        int longestRun = 0;
-        int testRunLength = 3;
-        
-        while (testRunLength - 1 <= totalCardsPlayed) {
-            // Get the last (testRunLength - 1) cards played
-            List<Card> subList = 
-                    cardStack.subList(totalCardsPlayed - testRunLength, 
-                            totalCardsPlayed);
-
-            // Add the most recently played cart to this list and sort it
-            subList.add(lastPlayed);
-            Collections.sort(subList);
-
-            // Determine if a run is present in this sub list
-            int i = 0;
-            for (; i < subList.size() - 1; i++) {
-                if (subList.get(i).getRankValue() + 1 
-                        != subList.get(i + 1).getRankValue()) break;
-            }
-
-            // If all the numbers are consecutive, mark this as the longest run
-            if (i == subList.size() - 1) {
-                longestRun = testRunLength;
-            }
-            testRunLength++;
-        }
-
-        return longestRun;
-    }
-
-    private int countIs15Or31() {
-        if (count == 15 || count == 31) {
-            return 2;
-        }
-        return 0;
-    }
-
-    private boolean inPlay() {
-        for (List<Card> hand : hands) {
-            if (!hand.isEmpty()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public void resetCount() {
-        count = 0;
-        cardStack.clear();
-    }
-
-    /**************************************************************************
-    * Third Stage (Show)
-    **************************************************************************/
-    public int countHand(List<Card> hand) {
-        int score = count15Combos(hand);
-        score += countRuns(hand);
-        score += countPairs(hand);
-        score += countFlush(hand);
-        score += countNobs(hand);
-        return score;
-    }
-
-    private int count15Combos(List<Card> hand) {
-        return -1;
-    }
-
-    private int countRuns(List<Card> hand) {
-        return -1;
-    }
-
-    private int countPairs(List<Card> hand) {
-        return -1;
-    }
-
-    private int countFlush(List<Card> hand) {
-        return -1;
-    }
-
-    private int countNobs(List<Card> hand) {
-        return -1;
-    }
-
-    public void addPoints(int pid, int total) {
-        gameScores[pid] += total;
-
-        // 
-    }
-
-    public boolean isWinner(int pid) {
-        return false;
+        return starterCard;
     }
 
     /* Checks to see if all hands are empty */
@@ -378,5 +202,240 @@ public class CribbageManager {
         }
 
         return true;
+    }
+
+    /**************************************************************************
+    * Second Stage (Play)
+    **************************************************************************/
+    public boolean hasPlayableCard(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        }
+
+        List<Card> playedCards = playedCardsByPlayer.get(pid);
+        if (playedCards.size() == HAND_SIZE) {
+            // All cards have been played, so return false
+            return false;
+        }
+
+        for (Card card : hands.get(pid)) {
+            int cardValue = card.getValue();
+            if (!playedCards.contains(card) && cardValue + count <= MAX_COUNT) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Play the passed-in card assuming that it is in the player's hand. If 
+     * not, an exception is thrown. If the value of the card causes the count 
+     * to go above MAX_COUNT (31), false is returned. Otherwise, the card is 
+     * played and true is returned.
+     * 
+     * @param pid the player's ID
+     * @param card the card to be played
+     * @return the points earned from playing that card, or -1 if the card 
+     *         can't be played
+     * @throws IllegalArgumentException if this player doesn't have the card in
+     *                                  their hand, has already played the 
+     *                                  card, or the count is already 31
+     * @throws NullPointerException if the card is null
+     * @throws IndexOutOfBoundsException if the player ID is invalid
+     */
+    public boolean playCard(int pid, Card card) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        } else if (card == null) {
+           throw new NullPointerException("Card is null");
+        } else if (!hands.get(pid).contains(card)) {
+            throw new IllegalArgumentException("Player does not have this card");
+        } else if (playedCardsByPlayer.get(pid).contains(card)) {
+            throw new IllegalArgumentException("Player has already played this card");
+        } else if (count == MAX_COUNT) {
+            throw new IllegalArgumentException("Count is already at 31");
+        }
+
+        int cardValue = card.getValue();
+        if (count + cardValue > MAX_COUNT) {
+            return false;
+        }
+
+        count += cardValue;
+        
+        // Gonna avoid removing cards from the hand for now; might come back to this
+        // hands.get(pid).remove(card);
+
+        cardStack.addFirst(card);
+        playedCardsByPlayer.get(pid).add(card);
+        
+        return true;
+    }
+
+    /**
+     * Counts and returns the number of points earned via pairs from playing 
+     * the most recently played card.
+     * @return
+     */
+    public int countPegPairs() {
+        if (cardStack.isEmpty()) {
+            return 0;
+        }
+
+        Card mostRecentlyPlayed = cardStack.getFirst();
+        int occurrences = 0;
+
+        // Since new cards are added to the front of the list, we can iterate 
+        // through the list starting from the front in the same way we would 
+        // with a stack
+        for (Card prev : cardStack) {
+            if (prev.getRank() != mostRecentlyPlayed.getRank()) {
+                break;
+            }
+            occurrences++;
+        }
+        // 1 occurence = 0 pts, 2 occurrences = 2 pts, 
+        // 3 occurences = 6 pts, 4 occurrences = 12 pts
+        assert(occurrences <= CARDS_PER_RANK) : "More than 4 occurrences of a specific rank";
+        assert(occurrences != 0) : "Most recently played card not counted";
+        return occurrences * (occurrences - 1);
+    }
+
+    public int countPegRuns() {
+        int totalCardsPlayed = cardStack.size();
+        int longestRun = 0;
+        int testRunLength = 3;
+        
+        while (testRunLength <= totalCardsPlayed) {
+            // Get the last (testRunLength - 1) cards played
+            List<Card> subList = 
+                    cardStack.subList(totalCardsPlayed - testRunLength, 
+                            totalCardsPlayed);
+
+            // Add the most recently played cart to this list and sort it
+            Collections.sort(subList);
+
+            // Determine if a run is present in this sub list
+            int i = 0;
+            for (; i < subList.size() - 1; i++) {
+                if (subList.get(i).getRankValue() + 1 
+                        != subList.get(i + 1).getRankValue()) break;
+            }
+
+            // If we reached the end of the sub list, then all the numbers are
+            // consecutive, so set the longest run to this value
+            if (i == subList.size() - 1) {
+                longestRun = testRunLength;
+            }
+            testRunLength++;
+        }
+
+        return longestRun;
+    }
+
+    public int countIs15() {
+        if (count == 15) {
+            return 2;
+        }
+        return 0;
+    }
+
+    public boolean countIs31() {
+        if (count == MAX_COUNT) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean inPlay() {
+        for (int i = 0; i < numPlayers; i++) {
+            if (hasPlayableCard(i)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void resetCount() {
+        count = 0;
+        cardStack.clear();
+    }
+
+    /**************************************************************************
+    * Third Stage (Show)
+    **************************************************************************/
+    /**
+     * Counts 
+     * @param hand
+     * @return
+     */
+    public int countHand(int pid) {
+        int score = count15Combos(pid);
+        score += countRuns(pid);
+        score += countPairs(pid);
+        score += countFlush(pid);
+        score += countNobs(pid);
+        return score;
+    }
+
+    public int count15Combos(int pid) {
+        return -1;
+    }
+
+    public int countRuns(int pid) {
+        return -1;
+    }
+
+    public int countPairs(int pid) {
+        return -1;
+    }
+
+    public int countFlush(int pid) {
+        return -1;
+    }
+
+    public int countNobs(int pid) {
+        for (Card card : hands.get(pid)) {
+            if (card.getRank() == Rank.JACK 
+                    && starterCard.getSuit() == card.getSuit()) {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Adds points to the designated player's total. Caps out at 121.
+     * 
+     * @param pid   the player's ID
+     * @param total the number of points to be added
+     */
+    public void addPoints(int pid, int total) {
+        gameScores[pid] = Math.min(MAX_SCORE, gameScores[pid] + total);
+    }
+
+    public boolean isWinner(int pid) {
+        return gameScores[pid] == MAX_SCORE;
+    }
+
+    /**
+     * Resets all state from a round, including hands, the crib, and played 
+     * cards.
+     */
+    public void clearRoundState() {
+        resetCount();
+
+        for (List<Card> hand : hands) {
+            hand.clear();
+        }
+
+        for (List<Card> playedCards : playedCardsByPlayer) {
+            playedCards.clear();
+        }
+
+        crib.clear();
     }
 }
