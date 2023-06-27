@@ -2,18 +2,21 @@ package logic.game;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import logic.deck.Card;
 import logic.deck.Deck;
 import logic.deck.Rank;
 
 /**
- * Manages a game of cribbage. For smooth management of the object, the caller 
- * is expected to keep track of which "player" (whether that be a human or AI)
- * is assigned to which player ID which must be a number between 0 (inclusive) 
- * and the number of players in the game (exclusive)
+ * Manages a game of cribbage. The caller is largely in charge of maintaining 
+ * the correct order of operations for a cribbage game (e.g. they should not 
+ * be adding points in a hand until after the second stage). The caller should 
+ * also keep track of which player is assigned to which ID so that points are
+ * not being added to the wrong player.
  */
 public class CribbageManager {
     private static final int MAX_COUNT = 31;
@@ -263,10 +266,6 @@ public class CribbageManager {
         }
 
         count += cardValue;
-        
-        // Gonna avoid removing cards from the hand for now; might come back to this
-        // hands.get(pid).remove(card);
-
         cardStack.addFirst(card);
         playedCardsByPlayer.get(pid).add(card);
         
@@ -275,10 +274,18 @@ public class CribbageManager {
 
     /**
      * Counts and returns the number of points earned via pairs from playing 
-     * the most recently played card.
-     * @return
+     * the most recently played card. Points earned are added to the passed-in
+     * player's total
+     * 
+     * @param pid the ID of the player who we will give points to
+     * @return the number of points earned via pairs from playing the most 
+     *         recently played card
      */
-    public int countPegPairs() {
+    public int countPegPairs(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        }
+
         if (cardStack.isEmpty()) {
             return 0;
         }
@@ -295,14 +302,30 @@ public class CribbageManager {
             }
             occurrences++;
         }
-        // 1 occurence = 0 pts, 2 occurrences = 2 pts, 
-        // 3 occurences = 6 pts, 4 occurrences = 12 pts
         assert(occurrences <= CARDS_PER_RANK) : "More than 4 occurrences of a specific rank";
         assert(occurrences != 0) : "Most recently played card not counted";
-        return occurrences * (occurrences - 1);
+
+        // 1 occurence = 0 pts, 2 occurrences = 2 pts, 
+        // 3 occurences = 6 pts, 4 occurrences = 12 pts
+        int pointsEarned = occurrences * (occurrences - 1);
+        addPoints(pid, pointsEarned);
+        return pointsEarned;
     }
 
-    public int countPegRuns() {
+    /**
+     * Counts and returns the number of points earned via runs from playing 
+     * the most recently played card. Points earned are added to the passed-in
+     * player's total
+     * 
+     * @param pid the ID of the player who we will give points to
+     * @return the number of points earned via runs from playing the most 
+     *         recently played card
+     */
+    public int countPegRuns(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        }
+
         int totalCardsPlayed = cardStack.size();
         int longestRun = 0;
         int testRunLength = 3;
@@ -331,18 +354,46 @@ public class CribbageManager {
             testRunLength++;
         }
 
+        addPoints(pid, longestRun);
         return longestRun;
     }
 
-    public int countIs15() {
-        if (count == 15) {
-            return 2;
+    /**
+     * If the count is currently 15, the player with the passed-in ID is given 
+     * 2 points and true is returned. Otherwise, no points are given and false 
+     * is returned
+     * 
+     * @param pid the ID of the player who we will give points to
+     * @return true if the count is currently 15, false otherwise
+     */
+    public boolean countIs15(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
         }
-        return 0;
+
+        if (count == 15) {
+            addPoints(pid, 2);
+            return true;
+        }
+        return false;
     }
 
-    public boolean countIs31() {
+    /**
+     * If the count is currently 31, the player with the passed-in ID is given 
+     * 2 points and true is returned. Otherwise, no points are given and false 
+     * is returned. It is expected that if true is returned, the caller will 
+     * subsequently call resetCount()
+     * 
+     * @param pid the ID of the player who we will give points to
+     * @return true if the count is currently 31, false otherwise
+     */
+    public boolean countIs31(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        }
+
         if (count == MAX_COUNT) {
+            addPoints(pid, 2);
             return true;
         }
         return false;
@@ -367,9 +418,11 @@ public class CribbageManager {
     * Third Stage (Show)
     **************************************************************************/
     /**
-     * Counts 
-     * @param hand
-     * @return
+     * Counts and returns the number of points present in the player's hand in 
+     * combination with the starter card.
+     * 
+     * @param pid the ID of the player whose hand we will use for the count
+     * @return the number of points present in the given player's hand
      */
     public int countHand(int pid) {
         int score = count15Combos(pid);
@@ -380,23 +433,60 @@ public class CribbageManager {
         return score;
     }
 
+    /**
+     * Counts and returns the number of points earned from combinations of 
+     * cards that add up to 15 in a given player's hand along with the starter
+     * card.
+     * 
+     * @param pid the ID of the player whose hand we will use for the count
+     * @return the number of points present in the given player's hand
+     */
     public int count15Combos(int pid) {
-        return -1;
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        } else if (hands.get(pid).isEmpty()) {
+            throw new IllegalStateException("Player has no cards in their hand");
+        } else if (starterCard == null) {
+            throw new IllegalStateException("No starter card");
+        }
+
+        hands.get(pid).add(starterCard);
+
+        // TODO: Create algorihtm for finding all combos
+
+        hands.get(pid).remove(starterCard);
+        return count * 2;
     }
 
     public int countRuns(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        }
+
         return -1;
     }
 
     public int countPairs(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        }
+
         return -1;
     }
 
     public int countFlush(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        }
+
         return -1;
     }
 
     public int countNobs(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        }
+
         for (Card card : hands.get(pid)) {
             if (card.getRank() == Rank.JACK 
                     && starterCard.getSuit() == card.getSuit()) {
@@ -408,12 +498,17 @@ public class CribbageManager {
     }
 
     /**
-     * Adds points to the designated player's total. Caps out at 121.
+     * Adds points to the designated player's total and returns the new total. 
+     * Caps out at 121. It is expected that points earned from either pegging 
+     * or the hand are added to a player's total in order to maintain the 
+     * integrity of the cribbage game. It is the duty of the caller to ensure 
+     * that points are added in the correct fashion (i.e. to the right player 
+     * with the correct amount)
      * 
      * @param pid   the player's ID
      * @param total the number of points to be added
      */
-    public void addPoints(int pid, int total) {
+    private void addPoints(int pid, int total) {
         gameScores[pid] = Math.min(MAX_SCORE, gameScores[pid] + total);
     }
 
