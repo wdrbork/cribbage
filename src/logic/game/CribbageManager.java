@@ -458,13 +458,15 @@ public class CribbageManager {
 
     // Starting from the given idx, recursively searches through the given hand
     // in search of a subset that adds up to 15. Returns the number of such 
-    // subsets
+    // subsets. Note that this algorithm has a max runtime of O(2^n), but n  
+    // should never be more than 6 (the starting hand size for a two-player 
+    // game).
     private int getCombos(List<Card> hand, int idx, int soFar) {
         if (soFar == 15) {
             return 1;
         }
 
-        if (idx == hand.size()) {
+        if (idx == hand.size() || soFar > 15) {
             return 0;
         }
 
@@ -483,7 +485,19 @@ public class CribbageManager {
             throw new IllegalStateException("No starter card");
         }
 
-        return -1;
+        hands.get(pid).add(starterCard);
+        Collections.sort(hands.get(pid));
+        int totalPoints = getRuns()
+        hands.get(pid).remove(starterCard);
+    }
+
+    private int getRuns(List<Card> hand, int idx, int prevValue, int currentRun) {
+        int currentValue = hand.get(idx).getRankValue();
+        if (idx == hand.size()) {
+            return (currentRun >= 3) ? currentRun : 0;
+        }
+
+
     }
 
     public int countPairs(int pid) {
