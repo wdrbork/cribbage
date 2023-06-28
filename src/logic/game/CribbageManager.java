@@ -22,6 +22,7 @@ public class CribbageManager {
     private static final int MAX_COUNT = 31;
     private static final int MAX_SCORE = 121;
     private static final int CARDS_PER_RANK = 4;
+    private static final int CARDS_PER_SUIT = 13;
     private static final int TWO_PLAYER_START_SIZE = 6;
     private static final int THREE_PLAYER_START_SIZE = 5;
     private static final int HAND_SIZE = 4;
@@ -418,49 +419,45 @@ public class CribbageManager {
     * Third Stage (Show)
     **************************************************************************/
     /**
-     * Counts and returns the number of points present in the player's hand in 
+     * Counts and returns the number of points present in the given hand in 
      * combination with the starter card.
      * 
-     * @param pid the ID of the player whose hand we will use for the count
-     * @return the number of points present in the given player's hand
+     * @param hand the hand we will count up
+     * @return the number of points present in the given hand
      */
-    public int countHand(int pid) {
-        int score = count15Combos(pid);
-        score += countRuns(pid);
-        score += countPairs(pid);
-        score += countFlush(pid);
-        score += countNobs(pid);
+    public int countHand(List<Card> hand) {
+        int score = count15Combos(hand);
+        score += countRuns(hand);
+        score += countPairs(hand);
+        score += countFlush(hand);
+        score += countNobs(hand);
         return score;
     }
 
     /**
      * Counts and returns the number of points earned from combinations of 
-     * cards that add up to 15 in a given player's hand along with the starter
-     * card.
+     * cards that add up to 15 in a given hand along with the starter card.
      * 
-     * @param pid the ID of the player whose hand we will use for the count
+     * @param hand the hand we will count up
      * @return the number of points present in the given player's hand
      */
-    public int count15Combos(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        } else if (hands.get(pid).isEmpty()) {
+    public int count15Combos(List<Card> hand) {
+        if (hand.isEmpty()) {
             throw new IllegalStateException("Player has no cards in their hand");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
         }
 
-        hands.get(pid).add(starterCard);
-        int count = getCombos(hands.get(pid), 0, 0);
-        hands.get(pid).remove(starterCard);
+        hand.add(starterCard);
+        int count = getCombos(hand, 0, 0);
+        hand.remove(starterCard);
         return count * 2;
     }
 
     // Starting from the given idx, recursively searches through the given hand
     // in search of a subset that adds up to 15. Returns the number of such 
     // subsets. Note that this algorithm has a max runtime of O(2^n), but n  
-    // should never be more than 6 (the starting hand size for a two-player 
-    // game).
+    // should never be more than 5
     private int getCombos(List<Card> hand, int idx, int soFar) {
         if (soFar == 15) {
             return 1;
@@ -476,36 +473,56 @@ public class CribbageManager {
                 + getCombos(hand, idx + 1, soFar);
     }
 
-    public int countRuns(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        } else if (hands.get(pid).isEmpty()) {
+    /**
+     * Counts all points earned through runs in the given hand. A run is a 
+     * sequence of consecutive numbers irrespective of suit (e.g. a 5 of clubs, 
+     * 6 of spades, and 7 of diamonds form a run of three). The given hand 
+     * must not be empty, and there must be a starter card to reference
+     * 
+     * @param hand the hand we will count up
+     * @return the number of points earned through runs in the given hand
+     */
+    public int countRuns(List<Card> hand) {
+        if (hand.isEmpty()) {
             throw new IllegalStateException("Player has no cards in their hand");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
         }
 
-        List<Card> hand = hands.get(pid);
         hand.add(starterCard);
         Collections.sort(hand);
         
-        Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
+        // Count the number of times each number appears in this hand
+        int[] occurrences = new int[CARDS_PER_SUIT];
         for (Card card : hand) {
             int value = card.getRankValue();
-            occurrences.put(value, occurrences.getOrDefault(value, 0) + 1);
+            occurrences[value]++;
         }
 
         int totalPoints = 0;
         int currentRun = 0;
-        int multiplier = 1;
         int prevValue = -1;
+
+        // Used for situations in which a number appears
+        // more than once in a single run (e.g. 7, 7, 8, 
+        // 9 would produce a multiplier of 2 since 7 
+        // appears twice)
+        int multiplier = 1;  
+
+        // Loop through the hand in search of runs
         int i = 0;
         while (i < hand.size()) {
             int currentValue = hand.get(i).getRankValue();
             assert(currentValue != prevValue) : "Incorrect traversal of hand for countRuns";
+
+            // If the currentValue equals the previous value + 1, increase the 
+            // counter for the current run
             if (currentValue == prevValue + 1) {
                 currentRun++;
             } else {
+                // Since the hand is sorted, this value must be greater than 
+                // the previous value + 1, so determine if we had a valid run 
+                // and reset the appropriate variables
                 if (currentRun >= 3) {
                     totalPoints += currentRun * multiplier;
                 }
@@ -514,23 +531,56 @@ public class CribbageManager {
                 multiplier = 1;
             }
 
-            multiplier *= occurrences.get(currentValue);
+            multiplier *= occurrences[currentValue];
             prevValue = currentValue;
-            i += occurrences.get(currentValue);
+            i += occurrences[currentValue];
         }
 
+        // If we had a run at the end of the hand, make sure this is counted
         if (currentRun >= 3) {
             totalPoints += currentRun * multiplier;
         }
 
-        hands.get(pid).remove(starterCard);
+        hand.remove(starterCard);
         return totalPoints;
     }
 
-    public int countPairs(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        } else if (hands.get(pid).isEmpty()) {
+    /**
+     * 
+     * @param hand the hand we will count up
+     * @return
+     */
+    public int countPairs(List<Card> hand) {
+        if (hand.isEmpty()) {
+            throw new IllegalStateException("Player has no cards in their hand");
+        } else if (starterCard == null) {
+            throw new IllegalStateException("No starter card");
+        }
+
+        List<Card> hand = hands.get(pid);
+        hand.add(starterCard);
+        Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
+        for (Card card : hand) {
+            int value = card.getRankValue();
+            occurrences.put(value, occurrences.getOrDefault(value, 0) + 1);
+        }
+
+        int totalPoints = 0;
+        for (int valueOccurrence : occurrences.keySet()) {
+            totalPoints += valueOccurrence * (valueOccurrence - 1);
+        }
+
+        hand.remove(starterCard);
+        return totalPoints;
+    }
+
+    /**
+     * 
+     * @param hand the hand we will count up
+     * @return
+     */
+    public int countFlush(List<Card> hand) {
+        if (hand.isEmpty()) {
             throw new IllegalStateException("Player has no cards in their hand");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
@@ -539,28 +589,19 @@ public class CribbageManager {
         return -1;
     }
 
-    public int countFlush(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        } else if (hands.get(pid).isEmpty()) {
+    /**
+     * 
+     * @param hand the hand we will count up
+     * @return
+     */
+    public int countNobs(List<Card> hand) {
+        if (hand.isEmpty()) {
             throw new IllegalStateException("Player has no cards in their hand");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
         }
 
-        return -1;
-    }
-
-    public int countNobs(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        } else if (hands.get(pid).isEmpty()) {
-            throw new IllegalStateException("Player has no cards in their hand");
-        } else if (starterCard == null) {
-            throw new IllegalStateException("No starter card");
-        }
-
-        for (Card card : hands.get(pid)) {
+        for (Card card : hand) {
             if (card.getRank() == Rank.JACK 
                     && starterCard.getSuit() == card.getSuit()) {
                 return 1;
