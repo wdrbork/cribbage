@@ -485,19 +485,46 @@ public class CribbageManager {
             throw new IllegalStateException("No starter card");
         }
 
-        hands.get(pid).add(starterCard);
-        Collections.sort(hands.get(pid));
-        int totalPoints = getRuns()
-        hands.get(pid).remove(starterCard);
-    }
-
-    private int getRuns(List<Card> hand, int idx, int prevValue, int currentRun) {
-        int currentValue = hand.get(idx).getRankValue();
-        if (idx == hand.size()) {
-            return (currentRun >= 3) ? currentRun : 0;
+        List<Card> hand = hands.get(pid);
+        hand.add(starterCard);
+        Collections.sort(hand);
+        
+        Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
+        for (Card card : hand) {
+            int value = card.getRankValue();
+            occurrences.put(value, occurrences.getOrDefault(value, 0) + 1);
         }
 
+        int totalPoints = 0;
+        int currentRun = 0;
+        int multiplier = 1;
+        int prevValue = -1;
+        int i = 0;
+        while (i < hand.size()) {
+            int currentValue = hand.get(i).getRankValue();
+            assert(currentValue != prevValue) : "Incorrect traversal of hand for countRuns";
+            if (currentValue == prevValue + 1) {
+                currentRun++;
+            } else {
+                if (currentRun >= 3) {
+                    totalPoints += currentRun * multiplier;
+                }
+                
+                currentRun = 1;
+                multiplier = 1;
+            }
 
+            multiplier *= occurrences.get(currentValue);
+            prevValue = currentValue;
+            i += occurrences.get(currentValue);
+        }
+
+        if (currentRun >= 3) {
+            totalPoints += currentRun * multiplier;
+        }
+
+        hands.get(pid).remove(starterCard);
+        return totalPoints;
     }
 
     public int countPairs(int pid) {
