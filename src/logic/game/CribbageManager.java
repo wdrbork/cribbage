@@ -451,16 +451,36 @@ public class CribbageManager {
         }
 
         hands.get(pid).add(starterCard);
-
-        // TODO: Create algorihtm for finding all combos
-
+        int count = getCombos(hands.get(pid), 0, 0);
         hands.get(pid).remove(starterCard);
         return count * 2;
+    }
+
+    // Starting from the given idx, recursively searches through the given hand
+    // in search of a subset that adds up to 15. Returns the number of such 
+    // subsets
+    private int getCombos(List<Card> hand, int idx, int soFar) {
+        if (soFar == 15) {
+            return 1;
+        }
+
+        if (idx == hand.size()) {
+            return 0;
+        }
+
+        // Ends up looking like a binary search tree, with one child including 
+        // the value of the current card in soFar and the other skipping it
+        return getCombos(hand, idx + 1, soFar + hand.get(idx).getValue())
+                + getCombos(hand, idx + 1, soFar);
     }
 
     public int countRuns(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID");
+        } else if (hands.get(pid).isEmpty()) {
+            throw new IllegalStateException("Player has no cards in their hand");
+        } else if (starterCard == null) {
+            throw new IllegalStateException("No starter card");
         }
 
         return -1;
@@ -469,6 +489,10 @@ public class CribbageManager {
     public int countPairs(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID");
+        } else if (hands.get(pid).isEmpty()) {
+            throw new IllegalStateException("Player has no cards in their hand");
+        } else if (starterCard == null) {
+            throw new IllegalStateException("No starter card");
         }
 
         return -1;
@@ -477,6 +501,10 @@ public class CribbageManager {
     public int countFlush(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID");
+        } else if (hands.get(pid).isEmpty()) {
+            throw new IllegalStateException("Player has no cards in their hand");
+        } else if (starterCard == null) {
+            throw new IllegalStateException("No starter card");
         }
 
         return -1;
@@ -485,6 +513,10 @@ public class CribbageManager {
     public int countNobs(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID");
+        } else if (hands.get(pid).isEmpty()) {
+            throw new IllegalStateException("Player has no cards in their hand");
+        } else if (starterCard == null) {
+            throw new IllegalStateException("No starter card");
         }
 
         for (Card card : hands.get(pid)) {
