@@ -48,6 +48,11 @@ public class Card implements Comparable<Card> {
     }
 
     @Override
+    public String toString() {
+        return rank.toString() + " of " + suit.toString();
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (this == other) {
             return true;
