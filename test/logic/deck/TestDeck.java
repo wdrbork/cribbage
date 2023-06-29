@@ -4,6 +4,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -74,17 +75,13 @@ public class TestDeck {
     @Test
     public void testInvalidOffsets() {
         Deck deck = new Deck();
-        try {
+        assertThrows(IllegalArgumentException.class, () -> {
             deck.pickCard(-1);
-        } catch (Exception e) {
-            System.out.println("Caught exception for negative input");
-        }
+        });
 
-        try {
+        assertThrows(IllegalArgumentException.class, () -> {
             deck.pickCard(100);
-        } catch (Exception e) {
-            System.out.println("Caught exception for high input");
-        }
+        });
 
         assertEquals(deck.remainingCards(), DECK_SIZE);
         for (int i = 0; i < 5; i++) {
