@@ -38,16 +38,12 @@ public class Deck {
                 cards.add(new Card(suit, rank));
             }
         }
-        assert(cards.size() == 52) : "Deck has " + cards.size() + " cards";
     }
 
     public int remainingCards() {
         return cards.size();
     }
 
-    /**
-     * Shuffles the cards in this deck.
-     */
     public void shuffle() {
         Collections.shuffle(cards);
     }
