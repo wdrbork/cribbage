@@ -422,7 +422,7 @@ public class CribbageManager {
      * Counts and returns the number of points present in the given hand in 
      * combination with the starter card.
      * 
-     * @param hand the hand we will count up
+     * @param hand the hand that will be counted up
      * @return the number of points present in the given hand
      */
     public int countHand(List<Card> hand) {
@@ -438,7 +438,7 @@ public class CribbageManager {
      * Counts and returns the number of points earned from combinations of 
      * cards that add up to 15 in a given hand along with the starter card.
      * 
-     * @param hand the hand we will count up
+     * @param hand the hand that will be searched
      * @return the number of points present in the given player's hand
      */
     public int count15Combos(List<Card> hand) {
@@ -479,7 +479,7 @@ public class CribbageManager {
      * 6 of spades, and 7 of diamonds form a run of three). The given hand 
      * must not be empty, and there must be a starter card to reference
      * 
-     * @param hand the hand we will count up
+     * @param hand the hand that will be searched
      * @return the number of points earned through runs in the given hand
      */
     public int countRuns(List<Card> hand) {
@@ -546,9 +546,11 @@ public class CribbageManager {
     }
 
     /**
+     * Counts all points earned through pairs in the given hand. A pair is 
+     * worth 2 points.
      * 
-     * @param hand the hand we will count up
-     * @return
+     * @param hand the hand that will be searched
+     * @return the number of points earned through pairs
      */
     public int countPairs(List<Card> hand) {
         if (hand.isEmpty()) {
@@ -556,8 +558,6 @@ public class CribbageManager {
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
         }
-
-        List<Card> hand = hands.get(pid);
         hand.add(starterCard);
         Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
         for (Card card : hand) {
@@ -575,9 +575,13 @@ public class CribbageManager {
     }
 
     /**
+     * Counts and returns points earned through flush. A flush is a hand in 
+     * which all cards are of the same suit. If all four cards in a player's  
+     * hand share the same suit, 4 points are earned. If the starter card is  
+     * the same suit as these four cards, 5 points are earned.
      * 
-     * @param hand the hand we will count up
-     * @return
+     * @param hand the hand that will be searched
+     * @return the number of points earned through flush
      */
     public int countFlush(List<Card> hand) {
         if (hand.isEmpty()) {
@@ -586,12 +590,23 @@ public class CribbageManager {
             throw new IllegalStateException("No starter card");
         }
 
-        return -1;
+        for (int i = 1; i < hand.size(); i++) {
+            if (hand.get(i).getSuit() != hand.get(i - 1).getSuit()) {
+                return 0;
+            }
+        }
+
+        if (starterCard.getSuit() == hand.get(0).getSuit()) {
+            return 5;
+        }
+        return 4;
     }
 
     /**
+     * Returns 1 if this hand contains a jack that has the same suit as the 
+     * starter card (formally called "one for his nob").
      * 
-     * @param hand the hand we will count up
+     * @param hand the hand that will be searched
      * @return
      */
     public int countNobs(List<Card> hand) {
@@ -622,7 +637,7 @@ public class CribbageManager {
      * @param pid   the player's ID
      * @param total the number of points to be added
      */
-    private void addPoints(int pid, int total) {
+    public void addPoints(int pid, int total) {
         gameScores[pid] = Math.min(MAX_SCORE, gameScores[pid] + total);
     }
 
