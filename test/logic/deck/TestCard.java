@@ -8,7 +8,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.sql.Array;
 import java.util.ArrayList;
 import logic.deck.Card;
 import logic.deck.Rank;
@@ -31,7 +30,6 @@ public class TestCard {
     private static final Card QUEEN_CLUB = new Card(Suit.CLUB, Rank.QUEEN);
     private static final Card KING_HEART = new Card(Suit.HEART, Rank.KING);
     private static final Card NULL_CARD = null;
-
 
     @Before
     public void initializeSample() throws Exception {

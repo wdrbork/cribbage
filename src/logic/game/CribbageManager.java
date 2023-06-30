@@ -49,7 +49,7 @@ public class CribbageManager {
      * @param numPlayers the number of players in the game (can only be 2 or 3)
      */
     public CribbageManager(int numPlayers) {
-        if (numPlayers != 2 || numPlayers != 3) {
+        if (numPlayers != 2 && numPlayers != 3) {
             throw new IllegalArgumentException("Must have either 2 or 3 players");
         } else if (dealerId < 0 || dealerId >= numPlayers) {
             throw new IllegalArgumentException("Invalid ID for the dealer");
@@ -57,7 +57,7 @@ public class CribbageManager {
 
         this.numPlayers = numPlayers;
         deck = new Deck();
-        gameScores = new int[numPlayers - 1];
+        gameScores = new int[numPlayers];
         this.dealerId = -1;
 
         /* Initialize the hands. The size of the starting hand is dependent on 
@@ -87,6 +87,10 @@ public class CribbageManager {
     }
 
     public void setDealer(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IllegalArgumentException("Invalid player ID");
+        } 
+        
         this.dealerId = pid;
     }
 
@@ -97,9 +101,9 @@ public class CribbageManager {
      * Shuffles the deck and deals out hands to each player in the game. 
      * Returns each player's hand
      * 
-     * @return each player's hand
-     * @throws IllegalArgumentException if players still have cards, the crib 
-     *                                  still has cards, or there's no dealer
+     * @return each player's hand (cannot be modified)
+     * @throws IllegalArgumentException if a player or the crib still has cards
+     * @throws IllegalStateException if no dealer has been declared
      */
     public List<List<Card>> dealHands() {
         if (!checkEmptyHands()) {
@@ -107,9 +111,10 @@ public class CribbageManager {
         } else if (!crib.isEmpty()) {
             throw new IllegalArgumentException("Crib still contains cards");
         } else if (this.dealerId == -1) {
-            throw new IllegalArgumentException("Dealer not decided");
+            throw new IllegalStateException("Dealer not decided");
         }
 
+        deck.resetDeck();
         deck.shuffle();
 
         int handSize = TWO_PLAYER_START_SIZE;
@@ -134,7 +139,11 @@ public class CribbageManager {
             crib.add(next);
         }
 
-        return hands;
+        return Collections.unmodifiableList(hands);
+    }
+
+    public List<Card> getCrib() {
+        return Collections.unmodifiableList(crib);
     }
 
     /**
