@@ -8,32 +8,78 @@ import logic.game.CribbageManager;
 import logic.deck.*;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
 public class TestSecondStage {
     private static final int NUM_PLAYERS = 2;
-    private final CribbageManager man = new CribbageManager(NUM_PLAYERS);
+
+    private CribbageManagerTest man;
 
     private class CribbageManagerTest extends CribbageManager {
         public CribbageManagerTest(int numPlayers) {
             super(numPlayers);
         }
 
-        
+        public void setHand(int pid, List<Card> hand) {
+            hands.set(pid, hand);
+        }
+
+        public int playCardByIndex(int pid, int idx) { 
+            return playCard(pid, hands.get(pid).get(idx));
+        }
+
+        public int getCount() { return count; }
+
+        public LinkedList<Card> getCardStack() { return cardStack; }
+
+        public List<List<Card>> getPlayedCards() { 
+            return playedCardsByPlayer; 
+        }
+
+        public int[] getGameScores() { return gameScores; }
     }
 
     @Test
-    public void testSingleRound() {
-        List<List<Card>> hands = setupHands(0);
-        int currentPlayer = 0;
-        while (man.inPlay()) {
-            if (man.hasPlayableCard(currentPlayer)) {
+    public void testSingleRoundTwoPlayers() {
+        man = new CribbageManagerTest(2);
+        setupHands(0);
 
-            }
+        List<Card> playerOneHand = new ArrayList<Card>();
+        playerOneHand.add(new Card(Suit.SPADE, Rank.EIGHT));
+        playerOneHand.add(new Card(Suit.HEART, Rank.EIGHT));
+        playerOneHand.add(new Card(Suit.SPADE, Rank.SEVEN));
+        playerOneHand.add(new Card(Suit.SPADE, Rank.SIX));
+        man.setHand(0, playerOneHand);
 
-            currentPlayer = (currentPlayer + 1) % NUM_PLAYERS;
-        }
+        List<Card> playerTwoHand = new ArrayList<Card>();
+        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.KING));
+        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.SEVEN));
+        playerTwoHand.add(new Card(Suit.CLUB, Rank.FOUR));
+        playerTwoHand.add(new Card(Suit.SPADE, Rank.FIVE));
+        man.setHand(1, playerTwoHand);
+
+        assertTrue(man.inPlay());
+
+        assertTrue(man.hasPlayableCard(0));
+        int count = man.playCardByIndex(0, 0);
+        int currentCount = man.getCount();
+        assertNotEquals(count, -1);
+        assertEquals(currentCount, 8);
+        assertEquals(man.getPlayedCards().get(0).size(), 1);
+        assertEquals(man.getCardStack().size(), 1);
+        assertEquals(man.countPegPairs(), 0);
+        assertEquals(man.countPegRuns(), 0);
+        assertEquals(man.getGameScores()[0], 0);
+
+        assertTrue(man.hasPlayableCard(1));
+        count = man.playCardByIndex(1, 1);
+        currentCount = man.getCount();
+        assertNotEquals(count, 2);
+        assertEquals(currentCount, 15);
+        assertEquals(man.getPlayedCards().get(0).size(), 1);
+        assertEquals(man.getCardStack().size(), 1);
     }
 
     // Assumes that all tests in TestGameSetup are passing
