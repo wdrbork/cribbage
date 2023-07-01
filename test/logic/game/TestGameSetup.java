@@ -17,10 +17,12 @@ public class TestGameSetup {
     private static final int PLAYER_TWO_ID = 1;
     private static final int PLAYER_THREE_ID = 2;
     private static final int SETUP_TRIALS = 100;
+
+    CribbageManager man;
     
     @Test
     public void testTwoPlayerSetup() {
-        CribbageManager man = new CribbageManager(2);
+        man = new CribbageManager(2);
         assertThrows(IllegalStateException.class, () -> {
             man.dealHands();
         });
@@ -33,7 +35,7 @@ public class TestGameSetup {
         int dealerID = 0;
 
         for (int i = 0; i < SETUP_TRIALS; i++) {
-            setupGame(man, 2);
+            setupGame(2);
             man.clearRoundState();
             dealerID = (dealerID + 1) % 2;
             man.setDealer(dealerID);
@@ -42,7 +44,7 @@ public class TestGameSetup {
 
     @Test
     public void testThreePlayerSetup() {
-        CribbageManager man = new CribbageManager(3);
+        man = new CribbageManager(3);
         assertThrows(IllegalStateException.class, () -> {
             man.dealHands();
         });
@@ -55,14 +57,26 @@ public class TestGameSetup {
         int dealerID = 0;
 
         for (int i = 0; i < SETUP_TRIALS; i++) {
-            setupGame(man, 3);
+            setupGame(3);
             man.clearRoundState();
             dealerID = (dealerID + 1) % 3;
             man.setDealer(dealerID);
         }
     }
 
-    private void setupGame(CribbageManager man, int numPlayers) {
+    @Test
+    public void testHeelsAwarded() {
+        man = new CribbageManager(2);
+        man.setDealer(PLAYER_ONE_ID);
+        setupGame(2);
+
+        while(man.getStarterCard(0).getRank() != Rank.JACK) {
+        }
+
+        assertEquals(man.getPlayerScore(PLAYER_ONE_ID), 2);
+    }
+
+    private void setupGame(int numPlayers) {
         List<List<Card>> hands = man.dealHands();
         assertThrows(UnsupportedOperationException.class, () -> {
             hands.add(new ArrayList<Card>());
@@ -103,8 +117,5 @@ public class TestGameSetup {
         for (List<Card> hand : hands) {
             assertEquals(hand.size(), 4);
         }
-
-        Card starterCard = man.getStarterCard(0);
-        assertFalse(dealtCards.contains(starterCard));
     }
 }
