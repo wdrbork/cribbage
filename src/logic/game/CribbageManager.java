@@ -27,22 +27,22 @@ public class CribbageManager {
     private static final int THREE_PLAYER_START_SIZE = 5;
     private static final int HAND_SIZE = 4;
 
-    private final int numPlayers;
-    private final Deck deck;
-    private final int[] gameScores;
-    private final List<List<Card>> hands;
-    private final List<Card> crib;
-    private final LinkedList<Card> cardStack;
-    private final List<List<Card>> playedCardsByPlayer;
+    protected final int numPlayers;
+    protected final Deck deck;
+    protected final int[] gameScores;
+    protected final List<List<Card>> hands;
+    protected final List<Card> crib;
+    protected final LinkedList<Card> cardStack;
+    protected final List<List<Card>> playedCardsByPlayer;
 
     // The starter card drawn at the end of the first stage
-    private Card starterCard;  
+    protected Card starterCard;  
 
     // Represents a player's ID (between 0 and numPlayers exclusive)
-    private int dealerId; 
+    protected int dealerId; 
     
     // Count for the second stage of play
-    private int count;         
+    protected int count;         
 
     /**
      * Sets up a cribbage game using the given number of players
