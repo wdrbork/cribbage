@@ -220,44 +220,22 @@ public class CribbageManager {
     /**************************************************************************
     * Second Stage (Play)
     **************************************************************************/
-    public boolean hasPlayableCard(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        }
-
-        List<Card> playedCards = playedCardsByPlayer.get(pid);
-        if (playedCards.size() == HAND_SIZE) {
-            // All cards have been played, so return false
-            return false;
-        }
-
-        for (Card card : hands.get(pid)) {
-            int cardValue = card.getValue();
-            if (!playedCards.contains(card) && cardValue + count <= MAX_COUNT) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /**
-     * Play the passed-in card assuming that it is in the player's hand. If 
-     * not, an exception is thrown. If the value of the card causes the count 
-     * to go above MAX_COUNT (31), false is returned. Otherwise, the card is 
-     * played and true is returned.
+     * Plays the passed-in card (if possible) and removes it from the player's 
+     * hand. If the card cannot be played (i.e. if it causes the count to go 
+     * above 31), -1 is returned. Otherwise, the total points earned from 
+     * playing that card is added to the player's game score and returned.
      * 
      * @param pid the player's ID
      * @param card the card to be played
-     * @return the points earned from playing that card, or -1 if the card 
-     *         can't be played
+     * @return the total points earned from playing the card
      * @throws IllegalArgumentException if this player doesn't have the card in
      *                                  their hand, has already played the 
      *                                  card, or the count is already 31
      * @throws NullPointerException if the card is null
      * @throws IndexOutOfBoundsException if the player ID is invalid
      */
-    public boolean playCard(int pid, Card card) {
+    public int playCard(int pid, Card card) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID");
         } else if (card == null) {
@@ -272,30 +250,34 @@ public class CribbageManager {
 
         int cardValue = card.getValue();
         if (count + cardValue > MAX_COUNT) {
-            return false;
+            return -1;
         }
 
         count += cardValue;
         cardStack.addFirst(card);
         playedCardsByPlayer.get(pid).add(card);
+
+        int totalPoints = 0;
+        if (count == 15 || count == 31) {
+            totalPoints += 2;
+        } else if (!inPlay()) {
+            // Given the player a point for playing the last card
+            totalPoints++;
+        }
+        totalPoints += countPegPairs() + countPegRuns();
+        addPoints(pid, totalPoints);
         
-        return true;
+        return totalPoints;
     }
 
     /**
      * Counts and returns the number of points earned via pairs from playing 
-     * the most recently played card. Points earned are added to the passed-in
-     * player's total
+     * the most recently played card.
      * 
-     * @param pid the ID of the player who we will give points to
      * @return the number of points earned via pairs from playing the most 
      *         recently played card
      */
-    public int countPegPairs(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        }
-
+    public int countPegPairs() {
         if (cardStack.isEmpty()) {
             return 0;
         }
@@ -317,25 +299,17 @@ public class CribbageManager {
 
         // 1 occurence = 0 pts, 2 occurrences = 2 pts, 
         // 3 occurences = 6 pts, 4 occurrences = 12 pts
-        int pointsEarned = occurrences * (occurrences - 1);
-        addPoints(pid, pointsEarned);
-        return pointsEarned;
+        return occurrences * (occurrences - 1);
     }
 
     /**
      * Counts and returns the number of points earned via runs from playing 
-     * the most recently played card. Points earned are added to the passed-in
-     * player's total
+     * the most recently played card.
      * 
-     * @param pid the ID of the player who we will give points to
      * @return the number of points earned via runs from playing the most 
      *         recently played card
      */
-    public int countPegRuns(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        }
-
+    public int countPegRuns() {
         int totalCardsPlayed = cardStack.size();
         int longestRun = 0;
         int testRunLength = 3;
@@ -364,49 +338,18 @@ public class CribbageManager {
             testRunLength++;
         }
 
-        addPoints(pid, longestRun);
         return longestRun;
     }
 
     /**
-     * If the count is currently 15, the player with the passed-in ID is given 
-     * 2 points and true is returned. Otherwise, no points are given and false 
-     * is returned
+     * Returns true if the count is currently 31, false otherwise. It is 
+     * expected that if true is returned, the caller will subsequently call 
+     * resetCount()
      * 
-     * @param pid the ID of the player who we will give points to
-     * @return true if the count is currently 15, false otherwise
-     */
-    public boolean countIs15(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        }
-
-        if (count == 15) {
-            addPoints(pid, 2);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * If the count is currently 31, the player with the passed-in ID is given 
-     * 2 points and true is returned. Otherwise, no points are given and false 
-     * is returned. It is expected that if true is returned, the caller will 
-     * subsequently call resetCount()
-     * 
-     * @param pid the ID of the player who we will give points to
      * @return true if the count is currently 31, false otherwise
      */
-    public boolean countIs31(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID");
-        }
-
-        if (count == MAX_COUNT) {
-            addPoints(pid, 2);
-            return true;
-        }
-        return false;
+    public boolean countIs31() {
+        return count == MAX_COUNT;
     }
 
     public boolean inPlay() {
@@ -417,6 +360,53 @@ public class CribbageManager {
         }
 
         return false;
+    }
+
+    /**
+     * Returns true if the given player can play a card for the current round. 
+     * If all their cards have been played, or they have no card that can be 
+     * legally played, false is returned.
+     * 
+     * @param pid the player whose hand will be checked
+     * @return true if the given player can currently play a card, false 
+     *         otherwise
+     */
+    public boolean hasPlayableCard(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID");
+        }
+
+        List<Card> playedCards = playedCardsByPlayer.get(pid);
+        if (playedCards.size() == HAND_SIZE) {
+            // All cards have been played, so return false
+            return false;
+        }
+
+        for (Card card : hands.get(pid)) {
+            int cardValue = card.getValue();
+            if (!playedCards.contains(card) && cardValue + count <= MAX_COUNT) {
+                return true;
+            }
+        }
+
+        return false;
+    }   
+
+    /**
+     * Returns true if every player in the game has played their entire hand 
+     * for the second stage, false otherwise. 
+     * 
+     * @return true if all cards have been played in the second stage, false 
+     *         otherwise
+     */
+    public boolean allCardsPlayed() {
+        for (List<Card> playedCards : playedCardsByPlayer) {
+            if (playedCards.size() < HAND_SIZE) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public void resetCount() {
@@ -646,13 +636,15 @@ public class CribbageManager {
      * @param pid   the player's ID
      * @param total the number of points to be added
      */
-    public void addPoints(int pid, int total) {
+    private void addPoints(int pid, int total) {
         gameScores[pid] = Math.min(MAX_SCORE, gameScores[pid] + total);
     }
 
     public boolean isWinner(int pid) {
         return gameScores[pid] == MAX_SCORE;
     }
+
+    public int getPlayerScore(int pid) { return gameScores[pid]; }
 
     /**
      * Resets all state from a round, including hands, the crib, and played 
