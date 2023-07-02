@@ -34,6 +34,7 @@ public class CribbageManager {
     protected final List<Card> crib;
     protected final LinkedList<Card> cardStack;
     protected final List<List<Card>> playedCardsByPlayer;
+    protected int lastToPlayCard;
 
     // The starter card drawn at the end of the first stage
     protected Card starterCard;  
@@ -58,7 +59,8 @@ public class CribbageManager {
         this.numPlayers = numPlayers;
         deck = new Deck();
         gameScores = new int[numPlayers];
-        this.dealerId = -1;
+        lastToPlayCard = -1;
+        dealerId = -1;
 
         /* Initialize the hands. The size of the starting hand is dependent on 
         the number of players in the game. 3 players = 5 cards,
@@ -246,7 +248,12 @@ public class CribbageManager {
             throw new IllegalArgumentException("Player has already played this card");
         } else if (count == MAX_COUNT) {
             throw new IllegalArgumentException("Count is already at 31");
+        } else if (lastToPlayCard == pid && (hasPlayableCard((pid + 1) % numPlayers) 
+                || numPlayers == 3 && hasPlayableCard((pid + 2) % numPlayers))) {
+            throw new IllegalArgumentException("This player played the last card" + 
+                    " while other players can still play a card");
         }
+        
 
         int cardValue = card.getValue();
         if (count + cardValue > MAX_COUNT) {
@@ -260,9 +267,6 @@ public class CribbageManager {
         int totalPoints = 0;
         if (count == 15 || count == 31) {
             totalPoints += 2;
-        } else if (!inPlay()) {
-            // Given the player a point for playing the last card
-            totalPoints++;
         }
         totalPoints += countPegPairs() + countPegRuns();
         addPoints(pid, totalPoints);
@@ -339,6 +343,22 @@ public class CribbageManager {
         }
 
         return longestRun;
+    }
+
+    /**
+     * If no more cards can be played for the current round, the last player 
+     * to play a card is awarded a point and true is returned. Otherwise, 
+     * no points are given out and false is returned.
+     * 
+     * @return true if no more cards can be played in the current round, false 
+     *         otherwise
+     */
+    public boolean awardPointsForGo() {
+        if (!inPlay()) {
+            return false;
+        }
+        addPoints(lastToPlayCard, 1);
+        return true;
     }
 
     /**
