@@ -70,7 +70,7 @@ public class TestGameSetup {
         man.setDealer(PLAYER_ONE_ID);
         setupGame(2);
 
-        while(man.getStarterCard(0).getRank() != Rank.JACK) {
+        while(man.getStarterCard().getRank() != Rank.JACK) {
         }
 
         assertEquals(man.getPlayerScore(PLAYER_ONE_ID), 2);
