@@ -399,13 +399,245 @@ public class TestSecondStage {
         assertEquals(man.getGameScores()[PLAYER_THREE_ID], 3);
     }
 
+    @Test
+    public void testPairs() {
+        man = new CribbageManagerTest(2);
+        setupHands(PLAYER_TWO_ID, 2);
+
+        List<Card> playerOneHand = new ArrayList<Card>();
+        playerOneHand.add(new Card(Suit.DIAMOND, Rank.ACE)); //
+        playerOneHand.add(new Card(Suit.CLUB, Rank.ACE)); //
+        man.setHand(PLAYER_ONE_ID, playerOneHand);
+
+        List<Card> playerTwoHand = new ArrayList<Card>();
+        playerTwoHand.add(new Card(Suit.HEART, Rank.ACE)); //
+        playerTwoHand.add(new Card(Suit.SPADE, Rank.ACE)); //
+        man.setHand(PLAYER_TWO_ID, playerTwoHand);
+
+        // Player 1 plays the ace of diamonds
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        int points = man.playCardByIndex(PLAYER_ONE_ID, 0);
+        int currentCount = man.getCount();
+        assertEquals(points, 0);
+        assertEquals(currentCount, 1);
+        assertEquals(man.countPegPairs(), 0);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 0);
+
+        // Player 2 plays the ace of hearts
+        assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
+        points = man.playCardByIndex(PLAYER_TWO_ID, 0);
+        currentCount = man.getCount();
+        assertEquals(points, 2);
+        assertEquals(currentCount, 2);
+        assertEquals(man.countPegPairs(), 2);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 2);
+
+        // Player 1 plays the ace of clubs
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        points = man.playCardByIndex(PLAYER_ONE_ID, 1);
+        currentCount = man.getCount();
+        assertEquals(points, 6);
+        assertEquals(currentCount, 3);
+        assertEquals(man.countPegPairs(), 6);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 6);
+
+        // Player 2 plays the ace of spades
+        assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
+        points = man.playCardByIndex(PLAYER_TWO_ID, 1);
+        currentCount = man.getCount();
+        assertEquals(points, 12);
+        assertEquals(currentCount, 4);
+        assertEquals(man.countPegPairs(), 12);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 14);
+    }
+
+    @Test
+    public void testRunOf7() {
+        man = new CribbageManagerTest(2);
+        setupHands(PLAYER_TWO_ID, 2);
+
+        List<Card> playerOneHand = new ArrayList<Card>();
+        playerOneHand.add(new Card(Suit.DIAMOND, Rank.TWO));
+        playerOneHand.add(new Card(Suit.CLUB, Rank.THREE));
+        playerOneHand.add(new Card(Suit.HEART, Rank.SIX));
+        playerOneHand.add(new Card(Suit.HEART, Rank.SEVEN));
+        man.setHand(PLAYER_ONE_ID, playerOneHand);
+
+        List<Card> playerTwoHand = new ArrayList<Card>();
+        playerTwoHand.add(new Card(Suit.HEART, Rank.FOUR));
+        playerTwoHand.add(new Card(Suit.SPADE, Rank.ACE));
+        playerTwoHand.add(new Card(Suit.SPADE, Rank.FIVE));
+        man.setHand(PLAYER_TWO_ID, playerTwoHand);
+
+        // Player 1 plays the two of diamonds
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        int points = man.playCardByIndex(PLAYER_ONE_ID, 0);
+        int currentCount = man.getCount();
+        assertEquals(points, 0);
+        assertEquals(currentCount, 2);
+        assertEquals(man.countPegRuns(), 0);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 0);
+
+        // Player 2 plays the four of hearts
+        assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
+        points = man.playCardByIndex(PLAYER_TWO_ID, 0);
+        currentCount = man.getCount();
+        assertEquals(points, 0);
+        assertEquals(currentCount, 6);
+        assertEquals(man.countPegRuns(), 0);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 0);
+
+        // Player 1 plays the six of hearts
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        points = man.playCardByIndex(PLAYER_ONE_ID, 2);
+        currentCount = man.getCount();
+        assertEquals(points, 0);
+        assertEquals(currentCount, 12);
+        assertEquals(man.countPegRuns(), 0);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 0);
+
+        // Player 2 plays the ace of spades
+        assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
+        points = man.playCardByIndex(PLAYER_TWO_ID, 1);
+        currentCount = man.getCount();
+        assertEquals(points, 0);
+        assertEquals(currentCount, 13);
+        assertEquals(man.countPegRuns(), 0);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 0);
+
+        // Player 1 plays the three of clubs
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        points = man.playCardByIndex(PLAYER_ONE_ID, 1);
+        currentCount = man.getCount();
+        assertEquals(points, 0);
+        assertEquals(currentCount, 16);
+        assertEquals(man.countPegRuns(), 0);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 0);
+
+        // Player 2 plays the five of spades
+        assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
+        points = man.playCardByIndex(PLAYER_TWO_ID, 2);
+        currentCount = man.getCount();
+        assertEquals(points, 6);
+        assertEquals(currentCount, 21);
+        assertEquals(man.countPegRuns(), 6);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 6);
+
+        // Player 1 plays the seven of hearts
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        points = man.playCardByIndex(PLAYER_ONE_ID, 3);
+        currentCount = man.getCount();
+        assertEquals(points, 7);
+        assertEquals(currentCount, 28);
+        assertEquals(man.countPegRuns(), 7);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 7);
+    }
+
+    @Test
+    public void testRepeatedRuns() {
+        man = new CribbageManagerTest(2);
+        setupHands(PLAYER_TWO_ID, 2);
+
+        List<Card> playerOneHand = new ArrayList<Card>();
+        playerOneHand.add(new Card(Suit.DIAMOND, Rank.TWO));
+        playerOneHand.add(new Card(Suit.CLUB, Rank.THREE));
+        playerOneHand.add(new Card(Suit.HEART, Rank.SIX));
+        playerOneHand.add(new Card(Suit.HEART, Rank.SEVEN));
+        man.setHand(PLAYER_ONE_ID, playerOneHand);
+
+        List<Card> playerTwoHand = new ArrayList<Card>();
+        playerTwoHand.add(new Card(Suit.HEART, Rank.FOUR));
+        playerTwoHand.add(new Card(Suit.SPADE, Rank.ACE));
+        playerTwoHand.add(new Card(Suit.SPADE, Rank.FIVE));
+        man.setHand(PLAYER_TWO_ID, playerTwoHand);
+
+        // Player 1 plays the two of diamonds
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        int points = man.playCardByIndex(PLAYER_ONE_ID, 0);
+        int currentCount = man.getCount();
+        assertEquals(points, 0);
+        assertEquals(currentCount, 2);
+        assertEquals(man.countPegRuns(), 0);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 0);
+
+        // Player 2 plays the four of hearts
+        assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
+        points = man.playCardByIndex(PLAYER_TWO_ID, 0);
+        currentCount = man.getCount();
+        assertEquals(points, 0);
+        assertEquals(currentCount, 6);
+        assertEquals(man.countPegRuns(), 0);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 0);
+
+        // Player 1 plays the three of clubs
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        points = man.playCardByIndex(PLAYER_ONE_ID, 1);
+        currentCount = man.getCount();
+        assertEquals(points, 3);
+        assertEquals(currentCount, 9);
+        assertEquals(man.countPegRuns(), 3);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 3);
+
+        // Player 2 plays the five of spades
+        assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
+        points = man.playCardByIndex(PLAYER_TWO_ID, 2);
+        currentCount = man.getCount();
+        assertEquals(points, 4);
+        assertEquals(currentCount, 14);
+        assertEquals(man.countPegRuns(), 4);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 4);
+
+        // Player 1 plays the six of hearts
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        points = man.playCardByIndex(PLAYER_ONE_ID, 2);
+        currentCount = man.getCount();
+        assertEquals(points, 5);
+        assertEquals(currentCount, 20);
+        assertEquals(man.countPegRuns(), 5);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 8);
+
+        // Player 2 plays the ace of spades
+        assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
+        points = man.playCardByIndex(PLAYER_TWO_ID, 1);
+        currentCount = man.getCount();
+        assertEquals(points, 6);
+        assertEquals(currentCount, 21);
+        assertEquals(man.countPegRuns(), 6);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 10);
+
+        // Player 1 plays the seven of hearts
+        assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
+        points = man.playCardByIndex(PLAYER_ONE_ID, 3);
+        currentCount = man.getCount();
+        assertEquals(points, 7);
+        assertEquals(currentCount, 28);
+        assertEquals(man.countPegRuns(), 7);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 15);
+    }
+
+    @Test
+    public void testWinnerFromPegging() {
+        man = new CribbageManagerTest(2);
+        setupHands(PLAYER_TWO_ID, 2);
+
+        List<Card> playerOneHand = new ArrayList<Card>();
+        playerOneHand.add(new Card(Suit.DIAMOND, Rank.TWO));
+        man.setHand(PLAYER_ONE_ID, playerOneHand);
+
+        man.setGameScore(PLAYER_ONE_ID, 120);
+        man.setCount(13);
+
+        assertFalse(man.isWinner(PLAYER_ONE_ID));
+        man.playCardByIndex(PLAYER_ONE_ID, 0);
+        assertTrue(man.isWinner(PLAYER_ONE_ID));
+    }
+
     // Assumes that all tests in TestGameSetup are passing
     private List<List<Card>> setupHands(int dealerId, int numPlayers) {
         man.setDealer(dealerId);
         List<List<Card>> hands = man.dealHands();
         List<Card> crib = man.getCrib();
         while (crib.size() < 4) {
-            System.out.println(crib.size());
             for (int i = 0; i < numPlayers; i++) {
                 man.sendCardToCrib(i, hands.get(i).get(0));
             }
