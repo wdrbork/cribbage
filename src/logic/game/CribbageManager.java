@@ -90,7 +90,8 @@ public class CribbageManager {
 
     public void setDealer(int pid) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IllegalArgumentException("Invalid player ID of " + pid);
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
         } 
         
         this.dealerId = pid;
@@ -163,7 +164,8 @@ public class CribbageManager {
      */
     public void sendCardToCrib(int pid, Card card) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IllegalArgumentException("Invalid player ID of " + pid);
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
         } else if (card == null) {
             throw new NullPointerException("Card is null");
         } else if (!hands.get(pid).contains(card)) {
@@ -238,7 +240,8 @@ public class CribbageManager {
      */
     public int playCard(int pid, Card card) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + pid);
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
         } else if (card == null) {
            throw new NullPointerException("Card is null");
         } else if (!hands.get(pid).contains(card)) {
@@ -381,7 +384,8 @@ public class CribbageManager {
      */
     public boolean hasPlayableCard(int pid) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + pid);
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
         }
 
         List<Card> playedCards = playedCardsByPlayer.get(pid);
@@ -660,7 +664,12 @@ public class CribbageManager {
     }
 
     public boolean isWinner(int pid) {
-        return gameScores[pid] == MAX_SCORE;
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+        }
+
+        return gameScores[pid] >= MAX_SCORE;
     }
 
     public int getPlayerScore(int pid) { return gameScores[pid]; }
