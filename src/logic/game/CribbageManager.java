@@ -447,12 +447,13 @@ public class CribbageManager {
      * @param hand the hand that will be counted up
      * @return the number of points present in the given hand
      */
-    public int countHand(List<Card> hand) {
-        int score = count15Combos(hand);
-        score += countRuns(hand);
-        score += countPairs(hand);
-        score += countFlush(hand);
-        score += countNobs(hand);
+    public int countHand(int pid) {
+        int score = count15Combos(pid);
+        score += countRuns(pid);
+        score += countPairs(pid);
+        score += countFlush(pid);
+        score += countNobs(pid);
+        addPoints(pid, score);
         return score;
     }
 
@@ -463,13 +464,17 @@ public class CribbageManager {
      * @param hand the hand that will be searched
      * @return the number of points present in the given player's hand
      */
-    public int count15Combos(List<Card> hand) {
-        if (hand.isEmpty()) {
-            throw new IllegalStateException("Player has no cards in their hand");
+    public int count15Combos(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+        } else if (hands.get(pid).size() != HAND_SIZE) {
+            throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
         }
 
+        List<Card> hand = hands.get(pid);
         hand.add(starterCard);
         int count = getCombos(hand, 0, 0);
         hand.remove(starterCard);
@@ -504,13 +509,17 @@ public class CribbageManager {
      * @param hand the hand that will be searched
      * @return the number of points earned through runs in the given hand
      */
-    public int countRuns(List<Card> hand) {
-        if (hand.isEmpty()) {
-            throw new IllegalStateException("Player has no cards in their hand");
+    public int countRuns(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+        } else if (hands.get(pid).size() != HAND_SIZE) {
+            throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
         }
 
+        List<Card> hand = hands.get(pid);
         hand.add(starterCard);
         Collections.sort(hand);
         
@@ -574,12 +583,17 @@ public class CribbageManager {
      * @param hand the hand that will be searched
      * @return the number of points earned through pairs
      */
-    public int countPairs(List<Card> hand) {
-        if (hand.isEmpty()) {
-            throw new IllegalStateException("Player has no cards in their hand");
+    public int countPairs(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+        } else if (hands.get(pid).size() != HAND_SIZE) {
+            throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
         }
+
+        List<Card> hand = hands.get(pid);
         hand.add(starterCard);
         Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
         for (Card card : hand) {
@@ -605,13 +619,17 @@ public class CribbageManager {
      * @param hand the hand that will be searched
      * @return the number of points earned through flush
      */
-    public int countFlush(List<Card> hand) {
-        if (hand.isEmpty()) {
-            throw new IllegalStateException("Player has no cards in their hand");
+    public int countFlush(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+        } else if (hands.get(pid).size() != HAND_SIZE) {
+            throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
         }
 
+        List<Card> hand = hands.get(pid);
         for (int i = 1; i < hand.size(); i++) {
             if (hand.get(i).getSuit() != hand.get(i - 1).getSuit()) {
                 return 0;
@@ -631,13 +649,17 @@ public class CribbageManager {
      * @param hand the hand that will be searched
      * @return
      */
-    public int countNobs(List<Card> hand) {
-        if (hand.isEmpty()) {
-            throw new IllegalStateException("Player has no cards in their hand");
+    public int countNobs(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+        } else if (hands.get(pid).size() != HAND_SIZE) {
+            throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
         }
 
+        List<Card> hand = hands.get(pid);
         for (Card card : hand) {
             if (card.getRank() == Rank.JACK 
                     && starterCard.getSuit() == card.getSuit()) {
@@ -652,9 +674,7 @@ public class CribbageManager {
      * Adds points to the designated player's total and returns the new total. 
      * Caps out at 121. It is expected that points earned from either pegging 
      * or the hand are added to a player's total in order to maintain the 
-     * integrity of the cribbage game. It is the duty of the caller to ensure 
-     * that points are added in the correct fashion (i.e. to the right player 
-     * with the correct amount)
+     * integrity of the cribbage game
      * 
      * @param pid   the player's ID
      * @param total the number of points to be added
