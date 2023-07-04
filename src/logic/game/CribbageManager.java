@@ -442,7 +442,8 @@ public class CribbageManager {
     **************************************************************************/
     /**
      * Counts and returns the number of points present in the given hand in 
-     * combination with the starter card.
+     * combination with the starter card. A pid equal to the number of players 
+     * counts up the crib.
      * 
      * @param hand the hand that will be counted up
      * @return the number of points present in the given hand
@@ -453,7 +454,13 @@ public class CribbageManager {
         score += countPairs(pid);
         score += countFlush(pid);
         score += countNobs(pid);
-        addPoints(pid, score);
+
+        if (pid == numPlayers) {
+            addPoints(dealerId, score);
+        } else {
+            addPoints(pid, score);
+        }
+        
         return score;
     }
 
@@ -465,7 +472,7 @@ public class CribbageManager {
      * @return the number of points present in the given player's hand
      */
     public int count15Combos(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
+        if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + "exclusive");
         } else if (hands.get(pid).size() != HAND_SIZE) {
@@ -474,7 +481,13 @@ public class CribbageManager {
             throw new IllegalStateException("No starter card");
         }
 
-        List<Card> hand = hands.get(pid);
+        List<Card> hand;
+        if (pid == numPlayers) {
+            hand = crib;
+        } else {
+            hand = hands.get(pid);
+        }
+        
         hand.add(starterCard);
         int count = getCombos(hand, 0, 0);
         hand.remove(starterCard);
@@ -510,7 +523,7 @@ public class CribbageManager {
      * @return the number of points earned through runs in the given hand
      */
     public int countRuns(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
+        if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + "exclusive");
         } else if (hands.get(pid).size() != HAND_SIZE) {
@@ -519,12 +532,18 @@ public class CribbageManager {
             throw new IllegalStateException("No starter card");
         }
 
-        List<Card> hand = hands.get(pid);
+        List<Card> hand;
+        if (pid == numPlayers) {
+            hand = crib;
+        } else {
+            hand = hands.get(pid);
+        }
+
         hand.add(starterCard);
         Collections.sort(hand);
         
         // Count the number of times each number appears in this hand
-        int[] occurrences = new int[CARDS_PER_SUIT];
+        int[] occurrences = new int[CARDS_PER_SUIT + 1];
         for (Card card : hand) {
             int value = card.getRankValue();
             occurrences[value]++;
@@ -584,7 +603,7 @@ public class CribbageManager {
      * @return the number of points earned through pairs
      */
     public int countPairs(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
+        if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + "exclusive");
         } else if (hands.get(pid).size() != HAND_SIZE) {
@@ -593,7 +612,13 @@ public class CribbageManager {
             throw new IllegalStateException("No starter card");
         }
 
-        List<Card> hand = hands.get(pid);
+        List<Card> hand;
+        if (pid == numPlayers) {
+            hand = crib;
+        } else {
+            hand = hands.get(pid);
+        }
+
         hand.add(starterCard);
         Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
         for (Card card : hand) {
@@ -602,8 +627,8 @@ public class CribbageManager {
         }
 
         int totalPoints = 0;
-        for (int valueOccurrence : occurrences.keySet()) {
-            totalPoints += valueOccurrence * (valueOccurrence - 1);
+        for (int value : occurrences.keySet()) {
+            totalPoints += occurrences.get(value) * (occurrences.get(value) - 1);
         }
 
         hand.remove(starterCard);
@@ -620,7 +645,7 @@ public class CribbageManager {
      * @return the number of points earned through flush
      */
     public int countFlush(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
+        if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + "exclusive");
         } else if (hands.get(pid).size() != HAND_SIZE) {
@@ -629,7 +654,13 @@ public class CribbageManager {
             throw new IllegalStateException("No starter card");
         }
 
-        List<Card> hand = hands.get(pid);
+        List<Card> hand;
+        if (pid == numPlayers) {
+            hand = crib;
+        } else {
+            hand = hands.get(pid);
+        }
+
         for (int i = 1; i < hand.size(); i++) {
             if (hand.get(i).getSuit() != hand.get(i - 1).getSuit()) {
                 return 0;
@@ -650,7 +681,7 @@ public class CribbageManager {
      * @return
      */
     public int countNobs(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
+        if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + "exclusive");
         } else if (hands.get(pid).size() != HAND_SIZE) {
@@ -659,7 +690,13 @@ public class CribbageManager {
             throw new IllegalStateException("No starter card");
         }
 
-        List<Card> hand = hands.get(pid);
+        List<Card> hand;
+        if (pid == numPlayers) {
+            hand = crib;
+        } else {
+            hand = hands.get(pid);
+        }
+        
         for (Card card : hand) {
             if (card.getRank() == Rank.JACK 
                     && starterCard.getSuit() == card.getSuit()) {
