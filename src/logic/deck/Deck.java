@@ -9,7 +9,9 @@ import java.util.Random;
  * Represents a standard 52-card deck.
  */
 public class Deck {
-    private static final int DECK_SIZE = 52;
+    public static final int DECK_SIZE = 52;
+    public static final int CARDS_PER_RANK = 4;
+    public static final int CARDS_PER_SUIT = 13;
     private static final int TOP_CARD = 0;
 
     private final List<Card> cards;
