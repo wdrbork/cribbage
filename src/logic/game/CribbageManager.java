@@ -2,10 +2,8 @@ package logic.game;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import logic.deck.Card;
 import logic.deck.Deck;
@@ -441,18 +439,21 @@ public class CribbageManager {
     /**
      * Counts and returns the number of points present in the given player's 
      * hand in combination with the starter card. The number of points earned 
-     * will be added to the player's total for this game.
+     * will be added to the player's total for this game if true is passed in.
      * 
      * @param pid the ID of the player whose hand will be counted up
      * @return the number of points present in the given player's hand
      */
-    public int countHand(int pid) {
+    public int countHand(int pid, boolean addToScore) {
         int score = count15Combos(pid);
         score += countRuns(pid);
         score += countPairs(pid);
         score += countFlush(pid);
         score += countNobs(pid);
-        addPoints(pid, score);
+
+        if (addToScore) {
+            addPoints(pid, score);
+        }
         
         return score;
     }
