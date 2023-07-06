@@ -24,21 +24,42 @@ public class CribbageAI {
     }
 
     public List<Card> getOptimalHand() {
-        hand = maximizePoints();
+        hand = maximizePoints(hand, new ArrayList<Card>(), 0, new HashMap<>());
         return hand;
     }
 
     private List<Card> maximizePoints(List<Card> original, 
             List<Card> soFar, int idx, Map<List<Card>, Double> savedCounts) {
+        // If soFar represents a full hand, determine the expected number of 
+        // points and save this information
         if (soFar.size() == HAND_SIZE) {
             double bestExpected = findBestPossibleCount(soFar);
             savedCounts.put(soFar, bestExpected);
             return soFar;
         }
 
-        if (idx == START_SIZE || START_SIZE - idx < HAND_SIZE - soFar.size()) {
-
+        // If we have traversed the entire original hand, or if soFar won't be
+        // able to reach a size of 4, create and save an empty list with a 
+        // negative point value so that it always fails comparisons to other
+        // lists (as seen below)
+        if (idx == START_SIZE 
+                || idx - soFar.size() > START_SIZE - HAND_SIZE) {
+            List<Card> notApplicable = new ArrayList<Card>();
+            savedCounts.put(notApplicable, -1.0);
+            return notApplicable;
         }
+
+        // Compare the expected points from including the card at this idx with
+        // the expected points from ignoring it
+        soFar.add(original.get(idx));
+        List<Card> includeIdx = 
+                maximizePoints(original, soFar, idx + 1, savedCounts);
+        soFar.remove(original.get(idx));
+        List<Card> excludeIdx = 
+                maximizePoints(original, soFar, idx + 1, savedCounts);
+
+        return savedCounts.get(includeIdx) >= savedCounts.get(excludeIdx) ?
+                includeIdx : excludeIdx;
     }
 
     private double findBestPossibleCount(List<Card> hand) {
