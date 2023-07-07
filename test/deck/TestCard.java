@@ -1,4 +1,4 @@
-package test.logic.deck;
+package test.deck;
 
 import org.junit.Before;
 import org.junit.Test;
