@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Random;
+
 
 import logic.deck.*;
 
@@ -13,11 +15,13 @@ public class CribbageAI {
     private int startSize;
     private List<Card> hand;
     private Deck personalDeck;
+    private Random randomizer;
     
     public CribbageAI(int startSize) {
         this.startSize = startSize;
         hand = new ArrayList<Card>();
         personalDeck = new Deck();
+        randomizer = new Random();
     }
 
     public void setHand(List<Card> hand) {
@@ -66,7 +70,8 @@ public class CribbageAI {
 
         System.out.println(includeIdx + " (expected = " + savedCounts.get(includeIdx) + 
                 ") vs. " + excludeIdx + " (expected = " + savedCounts.get(excludeIdx) + 
-                ")");
+                ")");      
+        
         return savedCounts.get(includeIdx) >= savedCounts.get(excludeIdx) ?
                 includeIdx : excludeIdx;
     }
@@ -80,23 +85,27 @@ public class CribbageAI {
         }
 
         int totalPoints = 0;
-        while (personalDeck.remainingCards() > 0) {
-            Card next = personalDeck.takeTopCard();
-            if (!this.hand.contains(next)) {
-                int points = CribbageScoring.count15Combos(hand, next);
-                points += CribbageScoring.countPairs(hand, next);
-                points += CribbageScoring.countRuns(hand, next);
-                points += CribbageScoring.countFlush(hand, next);
-                points += CribbageScoring.countNobs(hand, next);
-                totalPoints += points;
-
-                if (ownsCrib) {
-                    totalPoints += findBestCribScore(sentToCrib, next);
-                } else {
-                    totalPoints -= findBestCribScore(sentToCrib, next);
-                }
-            }
+        for (int i = 1; i < Deck.CARDS_PER_SUIT; i++) {
+            Card next = new Card(Suit.GENERIC, Card.getRankBasedOnValue(i));
+            
         }
+        // while (personalDeck.remainingCards() > 0) {
+        //     Card next = personalDeck.takeTopCard();
+        //     if (!this.hand.contains(next)) {
+        //         int points = CribbageScoring.count15Combos(hand, next);
+        //         points += CribbageScoring.countPairs(hand, next);
+        //         points += CribbageScoring.countRuns(hand, next);
+        //         points += CribbageScoring.countFlush(hand, next);
+        //         points += CribbageScoring.countNobs(hand, next);
+        //         totalPoints += points;
+
+        //         if (ownsCrib) {
+        //             totalPoints += findBestCribScore(sentToCrib, next);
+        //         } else {
+        //             totalPoints -= findBestCribScore(sentToCrib, next);
+        //         }
+        //     }
+        // }
 
         personalDeck.resetDeck();
         double expected = 

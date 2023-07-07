@@ -47,6 +47,18 @@ public class Card implements Comparable<Card> {
         return rank.ordinal() + 1;
     }
 
+    /**
+     * Returns a rank that corresponds to the given number. For example, the 
+     * number 1 would return the rank ACE, while the number 13 would return 
+     * the rank KING.
+     * 
+     * @param rankValue a value that corresponds to the rank of a card 
+     * @return the rank that corresponds to the passed-in value
+     */
+    public static Rank getRankBasedOnValue(int rankValue) {
+        return Rank.values()[rankValue - 1];
+    }
+
     @Override
     public String toString() {
         return rank.toString() + " of " + suit.toString() + "S";

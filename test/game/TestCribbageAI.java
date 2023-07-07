@@ -18,12 +18,12 @@ public class TestCribbageAI {
     @Test
     public void analyzeRecommendedHands() {
         List<Card> hand = new ArrayList<Card>();
-        hand.add(new Card(Suit.HEART, Rank.ACE));
-        hand.add(new Card(Suit.DIAMOND, Rank.FIVE));
-        hand.add(new Card(Suit.HEART, Rank.SEVEN));
-        hand.add(new Card(Suit.CLUB, Rank.SEVEN));
+        hand.add(new Card(Suit.DIAMOND, Rank.TWO));
+        hand.add(new Card(Suit.SPADE, Rank.TWO));
         hand.add(new Card(Suit.SPADE, Rank.TEN));
-        hand.add(new Card(Suit.CLUB, Rank.TEN));
+        hand.add(new Card(Suit.DIAMOND, Rank.TEN));
+        hand.add(new Card(Suit.SPADE, Rank.FOUR));
+        hand.add(new Card(Suit.CLUB, Rank.SIX));
 
         ai.setHand(hand);
         List<Card> optimal = ai.getOptimalHand(false);
