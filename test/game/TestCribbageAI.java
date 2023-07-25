@@ -12,9 +12,9 @@ import java.util.List;
 
 public class TestCribbageAI {
     private static final int PID = 1;
-    private static final int START_SIZE = 6;
+    private static final int NUM_PLAYERS = 2;
 
-    CribbageAI ai = new CribbageAI(PID, START_SIZE);
+    CribbageAI ai = new CribbageAI(PID, NUM_PLAYERS);
 
     @Test
     public void analyzeRecommendedHands() {
@@ -28,6 +28,6 @@ public class TestCribbageAI {
 
         ai.setHand(hand);
         List<Card> optimal = ai.getOptimalHand(true);
-        System.out.println(optimal);
+        // System.out.println(optimal);
     }
 }

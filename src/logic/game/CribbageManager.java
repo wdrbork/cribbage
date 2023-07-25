@@ -48,8 +48,6 @@ public class CribbageManager {
     public CribbageManager(int numPlayers) {
         if (numPlayers != 2 && numPlayers != 3) {
             throw new IllegalArgumentException("Must have either 2 or 3 players");
-        } else if (dealerId < 0 || dealerId >= numPlayers) {
-            throw new IllegalArgumentException("Invalid ID for the dealer");
         }
 
         this.numPlayers = numPlayers;
@@ -264,7 +262,7 @@ public class CribbageManager {
         }
         totalPoints += CribbagePegging.countPegPairs(cardStack) + 
                 CribbagePegging.countPegRuns(cardStack);
-        addPoints(pid, totalPoints);
+        // addPoints(pid, totalPoints);
         determineNextPlayer();
         
         return totalPoints;

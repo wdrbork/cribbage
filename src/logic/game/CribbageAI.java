@@ -14,14 +14,16 @@ import logic.deck.*;
  * of the game and suggests that option. Currently supports two-player cribbage
  */
 public class CribbageAI {
+    private static final int TWO_PLAYER_START_SIZE = 6;
+    private static final int THREE_PLAYER_START_SIZE = 5;
     private static final int HAND_SIZE = 4;
     private static final int MAX_COUNT = 31;
     private static final int ITERATIONS = 1000;
 
     private int pid;
+    private int numPlayers;
     private int startSize;
     private List<Card> hand;
-    private Deck personalDeck;
 
     // Represents a node in a Monte Carlo search tree. Used when deciding what
     // card to play during the second stage of Cribbage
@@ -44,7 +46,7 @@ public class CribbageAI {
 
         public MCTSNode(MCTSNode parent, List<Card> currentHand) {
             this.parent = parent;
-            hand = currentHand;
+            this.hand = currentHand;
         }
 
         public double getUCTValue() {
@@ -57,11 +59,23 @@ public class CribbageAI {
         }
     }
     
-    public CribbageAI(int pid, int startSize) {
+    public CribbageAI(int pid, int numPlayers) {
+        if (numPlayers != 2 && numPlayers != 3) {
+            throw new IllegalArgumentException("Must have either 2 or 3 players");
+        } else if (pid < 0 || pid >= numPlayers) {
+            throw new IllegalArgumentException("PID is invalid, must be between 0 and " + numPlayers);
+        }
+
         this.pid = pid;
-        this.startSize = startSize;
+        this.numPlayers = numPlayers;
+
+        if (numPlayers == 2) {
+            startSize = TWO_PLAYER_START_SIZE;
+        } else if (numPlayers == 3) {
+            startSize = THREE_PLAYER_START_SIZE;
+        }
+
         hand = new ArrayList<Card>();
-        personalDeck = new Deck();
     }
 
     public void setHand(List<Card> hand) {
@@ -75,8 +89,12 @@ public class CribbageAI {
         return hand;
     }
 
-    // Total runtime: 15 possible combos of 4 cards * 46 possible starter cards
-    // * 1980 (45 * 44) possible cribs = 1,366,200 iterations
+    // Recursively finds the 4-card hand with the most expected points given 
+    // a 6-card hand (6 choose 4). NOTE: Ignores suits in the calculation
+    // Total long runtime: 15 possible combos of 4 cards * 46 possible starter
+    // cards * 1980 (45 * 44) possible cribs = 1,366,200 iterations
+    // Total short runtime: 15 possible combos * 13 possible starter cards
+    // * 169 possible cribs (13 * 13) = 32,955 iterations
     private List<Card> maximizePoints(List<Card> original, boolean isDealer,
             List<Card> soFar, int idx, Map<List<Card>, Double> savedCounts) {
         // If soFar represents a full hand, determine the expected number of 
@@ -108,9 +126,10 @@ public class CribbageAI {
         List<Card> excludeIdx = 
                 maximizePoints(original, isDealer, soFar, idx + 1, savedCounts);
 
-        System.out.println(includeIdx + " (expected = " + savedCounts.get(includeIdx) + 
-                ") vs. " + excludeIdx + " (expected = " + savedCounts.get(excludeIdx) + 
-                ")");      
+        // Debug statements
+        // System.out.println(includeIdx + " (expected = " + savedCounts.get(includeIdx) + 
+        //         ") vs. " + excludeIdx + " (expected = " + savedCounts.get(excludeIdx) + 
+        //         ")");      
         
         return savedCounts.get(includeIdx) >= savedCounts.get(excludeIdx) ?
                 includeIdx : excludeIdx;
@@ -129,7 +148,7 @@ public class CribbageAI {
         double expected = 0.0;
         int[] counts = rankCounts();
 
-        // Quick computation
+        // Quick computation (ignores suits)
         for (int i = 1; i <= Deck.CARDS_PER_SUIT; i++) {
             Card next = new Card(Suit.SPADE, Card.getRankBasedOnValue(i));
             int points = CribbageScoring.count15Combos(hand, next);
@@ -147,36 +166,6 @@ public class CribbageAI {
             }
         }
 
-        // // Go through every card in the deck and determine potential starter 
-        // // cards
-        // while (personalDeck.remainingCards() > 0) {
-        //     Card next = personalDeck.takeTopCard();
-
-        //     // If our hand contains this card, it cannot be a starter card
-        //     if (!this.hand.contains(next)) {
-        //         int points = CribbageScoring.count15Combos(hand, next);
-        //         points += CribbageScoring.countPairs(hand, next);
-        //         points += CribbageScoring.countRuns(hand, next);
-        //         points += CribbageScoring.countFlush(hand, next);
-        //         points += CribbageScoring.countNobs(hand, next);
-        //         totalPoints += points;
-
-        //         // Adjust the total points based on who owns the crib. If this 
-        //         // AI owns the crib, it will earn whatever points were put in 
-        //         // there. Otherwise, we want to minimize the number of points
-        //         // provided to the opponent if they own the crib
-        //         if (ownsCrib) {
-        //             totalPoints += findBestCribScore(sentToCrib, next);
-        //         } else {
-        //             totalPoints -= findBestCribScore(sentToCrib, next);
-        //         }
-        //     }
-        // }
-
-        // personalDeck.resetDeck();
-        // double expected = 
-        //         (double) totalPoints / (Deck.DECK_SIZE - this.hand.size());
-
         return expected;
     }
 
@@ -185,109 +174,100 @@ public class CribbageAI {
         int[] counts = rankCounts();
         counts[starterCard.getRankValue()]--;
 
-        // Quick computation
+        // Quick computation (ignores suits)
         for (int i = 1; i <= Deck.CARDS_PER_SUIT; i++) {
-            Card next1 = new Card(Suit.SPADE, Card.getRankBasedOnValue(i));
-            double firstProbability = (double) counts[i] / 
-                    (Deck.DECK_SIZE - this.hand.size() - 1);
-            counts[i]--;
-            sentToCrib.add(next1);
-            for (int j = 1; j <= Deck.CARDS_PER_SUIT; j++) {
-                Card next2 = new Card(Suit.SPADE, Card.getRankBasedOnValue(j));
+            Card thirdCard = new Card(Suit.SPADE, Card.getRankBasedOnValue(i));
 
-                sentToCrib.add(next2);
+            // Find the probability of a card of this rank ending up in the 
+            // crib (e.g. if our 6-card hand contains 4 aces, we should not 
+            // expect there to be another ace in the crib, so the probability 
+            // would be zero)
+            double thirdCardRankProbability = (double) counts[i] / 
+                    (Deck.DECK_SIZE - this.hand.size() - 1);
+
+            // Temporarily decrement the count for this rank
+            counts[i]--;
+
+            sentToCrib.add(thirdCard);
+            for (int j = 1; j <= Deck.CARDS_PER_SUIT; j++) {
+                Card fourthCard = new Card(Suit.SPADE, Card.getRankBasedOnValue(j));
+                sentToCrib.add(fourthCard);
+
+                // Find the expected points from this crib
                 int points = CribbageScoring.count15Combos(sentToCrib, starterCard);
                 points += CribbageScoring.countPairs(sentToCrib, starterCard);
                 points += CribbageScoring.countRuns(sentToCrib, starterCard);
-                double secondProbability = (double) counts[j] / 
-                        (Deck.DECK_SIZE - this.hand.size() - 2);
-                expected += (double) points * firstProbability * secondProbability;
 
-                sentToCrib.remove(next2);
+                // Find the probability of a card of this rank ending up in the
+                // crib
+                double fourthCardRankProbability = (double) counts[j] / 
+                        (Deck.DECK_SIZE - this.hand.size() - 2);
+
+                // Add the expected points from this crib to the overall total
+                // (with respect to the probability of this crib occurring)
+                expected += (double) points * 
+                        thirdCardRankProbability * fourthCardRankProbability;
+
+                sentToCrib.remove(fourthCard);
             }
 
             counts[i]++;
-            sentToCrib.remove(next1);
+            sentToCrib.remove(thirdCard);
+        }
+
+        // If the two cards in the crib are of the same suit, a flush is 
+        // possible, so increase the expected point total of the crib based 
+        // on the probability of the flush occurring
+        if (sentToCrib.get(0).getSuit() == sentToCrib.get(1).getSuit()) {
+            Suit sharedSuit = sentToCrib.get(0).getSuit();
+            int cardsOfSuitAvailable = Deck.CARDS_PER_SUIT;
+            for (Card card : hand) {
+                if (card.getSuit() == sharedSuit) {
+                    cardsOfSuitAvailable--;
+                }
+            }
+
+            double numerator = (double) cardsOfSuitAvailable * 
+                    (cardsOfSuitAvailable - 1);
+            double denominator = (Deck.DECK_SIZE - this.hand.size() - 1) * 
+                    (Deck.DECK_SIZE - this.hand.size() - 2);
+            double flushProbability = numerator / denominator;
+                                    
+            expected += 4 * flushProbability;
         }
 
         return expected;
-
-        // Deck firstDeck = new Deck();
-        // Deck secondDeck = new Deck();
-
-        // while (firstDeck.remainingCards() > 0) {
-        //     Card next1 = firstDeck.takeTopCard();
-        //     if (next1.equals(starterCard) || this.hand.contains(next1)) continue;
-
-        //     sentToCrib.add(next1);
-        //     int subPoints = 0;
-        //     while (secondDeck.remainingCards() > 0) {
-        //         Card next2 = secondDeck.takeTopCard();
-        //         if (next2.equals(next1) || next2.equals(starterCard) 
-        //                 || this.hand.contains(next1)) continue;
-
-        //         sentToCrib.add(next2);
-        //         int points = CribbageScoring.count15Combos(sentToCrib, starterCard);
-        //         points += CribbageScoring.countPairs(sentToCrib, starterCard);
-        //         points += CribbageScoring.countRuns(sentToCrib, starterCard);
-        //         points += CribbageScoring.countFlush(sentToCrib, starterCard);
-        //         points += CribbageScoring.countNobs(sentToCrib, starterCard);
-        //         subPoints += points;
-
-        //         sentToCrib.remove(next2);
-        //     }
-
-        //     totalPoints += 
-        //             (double) subPoints / (Deck.DECK_SIZE - this.hand.size() + 1);
-
-        //     secondDeck.resetDeck();
-        //     sentToCrib.remove(next1);
-        // }
     }
 
-    public Card getOptimalCard(int count, LinkedList<Card> cardStack, 
-            List<List<Card>> playedCardsByPlayer) {
-        if (hand.size() > HAND_SIZE) {
-            throw new IllegalStateException("Must send cards to crib first");
-        }
+    // public Card getOptimalCard(int count, LinkedList<Card> cardStack, 
+    //         List<List<Card>> playedCardsByPlayer) {
+    //     if (hand.size() > HAND_SIZE) {
+    //         throw new IllegalStateException("Must send cards to crib first");
+    //     }
 
-        MCTSNode root = new MCTSNode(null, new ArrayList<Card>(hand));
-        root.count = count;
-        root.cardStack = cardStack;
-        root.remainingCards = new int[playedCardsByPlayer.size()];
-        Arrays.fill(root.remainingCards, HAND_SIZE);
-        root.rankCounts = rankCounts();
-        for (int i = 0; i < playedCardsByPlayer.size(); i++) {
-            List<Card> playedCards = playedCardsByPlayer.get(i);
-            root.remainingCards[i] = HAND_SIZE - playedCards.size();
-            if (i == pid) continue;
+    //     MCTSNode root = new MCTSNode(null, new ArrayList<Card>(hand));
+    //     root.count = count;
+    //     root.cardStack = cardStack;
+    //     root.remainingCards = new int[playedCardsByPlayer.size()];
+    //     Arrays.fill(root.remainingCards, HAND_SIZE);
+    //     root.rankCounts = rankCounts();
+    //     for (int i = 0; i < playedCardsByPlayer.size(); i++) {
+    //         List<Card> playedCards = playedCardsByPlayer.get(i);
+    //         root.remainingCards[i] = HAND_SIZE - playedCards.size();
+    //         if (i == pid) continue;
 
-            for (Card card : playedCards) {
-                root.rankCounts[card.getRankValue()]--;
-            }
-        }
-        root.hand = hand;
-        root.pidTurn = pid;
+    //         for (Card card : playedCards) {
+    //             root.rankCounts[card.getRankValue()]--;
+    //         }
+    //     }
+    //     root.hand = hand;
+    //     root.pidTurn = pid;
 
-        for (int i = 0; i < ITERATIONS; i++) {
-            MCTSNode rolloutRoot = expand(root);
-        }
-        return null;
-    }
-
-    private MCTSNode expand(MCTSNode curr) {
-        if (curr.numRollouts == 0) {
-            if (curr.pidTurn == pid) {
-
-            }
-        }
-    }
-
-    private Map<Card, MCTSNode> createChildrenForSelf(List<Card> hand, int count) {
-        for (Card card : hand) {
-            
-        }
-    }
+    //     for (int i = 0; i < ITERATIONS; i++) {
+    //         MCTSNode rolloutRoot = expand(root);
+    //     }
+    //     return null;
+    // }
 
     private int[] rankCounts() {
         int[] counts = new int[Deck.CARDS_PER_SUIT + 1];
