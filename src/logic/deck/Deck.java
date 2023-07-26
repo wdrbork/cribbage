@@ -99,4 +99,21 @@ public class Deck {
         Card nextCard = cards.remove(offset);
         return nextCard;
     }
+
+    /**
+     * Returns a random card. The returned card is not bound to any instance 
+     * of the Deck class.
+     * 
+     * @return a random card
+     */
+    public static Card getRandomCard() {
+        Random r = new Random();
+        int idx = (int) Math.floor(r.nextDouble() * Deck.CARDS_PER_RANK);
+        Suit suit = Suit.values()[idx];
+
+        idx = (int) Math.floor(r.nextDouble() * Deck.CARDS_PER_SUIT);
+        Rank rank = Rank.values()[idx];
+
+        return new Card(suit, rank);
+    }
 }
