@@ -92,6 +92,15 @@ public class CribbageManager {
         nextToPlayCard = (dealerId + 1) % numPlayers;
     }
 
+    public List<Card> getHand(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IllegalArgumentException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+        }
+
+        return hands.get(pid);
+    }
+
     /**************************************************************************
     * First Stage (Deal)
     **************************************************************************/

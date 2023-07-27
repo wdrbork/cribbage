@@ -28,6 +28,6 @@ public class TestCribbageAI {
 
         ai.setHand(hand);
         List<Card> optimal = ai.getOptimalHand(true);
-        // System.out.println(optimal);
+        System.out.println(optimal);
     }
 }

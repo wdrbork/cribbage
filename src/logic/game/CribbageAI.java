@@ -20,23 +20,43 @@ public class CribbageAI {
     private static final int MAX_COUNT = 31;
     private static final int ITERATIONS = 1000;
 
+    private CribbageManager gameState;
     private int pid;
     private int numPlayers;
     private int startSize;
     private List<Card> hand;
+
+    // Makes decisions for the AI using Monte Carlo tree search (for more 
+    // information on this algorithm, see the following link: 
+    // https://en.wikipedia.org/wiki/Monte_Carlo_tree_search). Currently used 
+    // for making decisions during the second stage of play, but may eventually
+    // be used for the first stage as well
+    private class MCTSAgent {
+        private CribbageManager simulator;
+        private MCTSNode root;
+
+        public MCTSAgent(CribbageManager currentState) {
+            this.simulator = currentState;
+            root = new MCTSNode();
+        }
+
+
+    }
 
     // Represents a node in a Monte Carlo search tree. Used when deciding what
     // card to play during the second stage of Cribbage
     private class MCTSNode {
         private static final double CONSTANT = .5;
 
-        // State fields
-        public List<Card> hand;
-        public int[] remainingCards;
-        public int[] rankCounts;
-        public int count;
-        public LinkedList<Card> cardStack;
-        public int pidTurn;
+        // // State fields
+        // public List<Card> hand;
+        // public int[] remainingCards;
+        // public int[] rankCounts;
+        // public int count;
+        // public LinkedList<Card> cardStack;
+        // public int pidTurn;
+
+        public CribbageManager gameState;
 
         // Node fields
         public int pointsEarned = 0;
@@ -44,9 +64,12 @@ public class CribbageAI {
         public MCTSNode parent;
         public Map<Card, MCTSNode> children;
 
-        public MCTSNode(MCTSNode parent, List<Card> currentHand) {
+        public MCTSNode() {
+            this(null);
+        }
+
+        public MCTSNode(MCTSNode parent) {
             this.parent = parent;
-            this.hand = currentHand;
         }
 
         public double getUCTValue() {
@@ -59,13 +82,14 @@ public class CribbageAI {
         }
     }
     
-    public CribbageAI(int pid, int numPlayers) {
+    public CribbageAI(CribbageManager gameState, int pid, int numPlayers) {
         if (numPlayers != 2 && numPlayers != 3) {
             throw new IllegalArgumentException("Must have either 2 or 3 players");
         } else if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("PID is invalid, must be between 0 and " + numPlayers);
         }
 
+        this.gameState = gameState;
         this.pid = pid;
         this.numPlayers = numPlayers;
 
@@ -75,7 +99,7 @@ public class CribbageAI {
             startSize = THREE_PLAYER_START_SIZE;
         }
 
-        hand = new ArrayList<Card>();
+        hand = gameState.getHand(pid);
     }
 
     public void setHand(List<Card> hand) {
