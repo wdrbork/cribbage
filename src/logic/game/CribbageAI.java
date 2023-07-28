@@ -99,7 +99,7 @@ public class CribbageAI {
             startSize = THREE_PLAYER_START_SIZE;
         }
 
-        hand = gameState.getHand(pid);
+        this.hand = gameState.getHand(pid);
     }
 
     public void setHand(List<Card> hand) {
@@ -115,9 +115,10 @@ public class CribbageAI {
 
     // Recursively finds the 4-card hand with the most expected points given 
     // a 6-card hand (6 choose 4). NOTE: Ignores suits in the calculation
+    //
     // Total long runtime: 15 possible combos of 4 cards * 46 possible starter
     // cards * 1980 (45 * 44) possible cribs = 1,366,200 iterations
-    // Total short runtime: 15 possible combos * 13 possible starter cards
+    // Total short runtime: 15 possible combos * 13 possible starter ranks
     // * 169 possible cribs (13 * 13) = 32,955 iterations
     private List<Card> maximizePoints(List<Card> original, boolean isDealer,
             List<Card> soFar, int idx, Map<List<Card>, Double> savedCounts) {
