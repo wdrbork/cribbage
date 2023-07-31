@@ -43,6 +43,7 @@ public class CribbageManager {
 
     /**
      * Sets up a cribbage game using the given number of players
+     * 
      * @param numPlayers the number of players in the game (can only be 2 or 3)
      */
     public CribbageManager(int numPlayers) {
@@ -73,6 +74,28 @@ public class CribbageManager {
 
         crib = new ArrayList<Card>(HAND_SIZE);
         cardStack = new LinkedList<Card>();
+    }
+
+    /**
+     * Creates a deep copy of an existing game
+     * 
+     * @param copy the CribbageManager that will be copied over
+     */
+    public CribbageManager(CribbageManager copy) {
+        if (copy == null) {
+            throw new NullPointerException();
+        }
+
+        this.numPlayers = copy.numPlayers;
+        this.deck = copy.deck;
+        this.gameScores = copy.gameScores.clone();
+        this.nextToPlayCard = copy.nextToPlayCard;
+        this.dealerId = copy.dealerId;
+        this.hands = new ArrayList<List<Card>>(copy.hands);
+        this.playedCardsByPlayer = 
+                new ArrayList<List<Card>>(copy.playedCardsByPlayer);
+        this.crib = new ArrayList<Card>(copy.crib);
+        this.cardStack = new LinkedList<Card>(copy.cardStack);
     }
 
     /**************************************************************************

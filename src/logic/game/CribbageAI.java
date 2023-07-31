@@ -19,6 +19,7 @@ public class CribbageAI {
     private static final int HAND_SIZE = 4;
     private static final int MAX_COUNT = 31;
     private static final int ITERATIONS = 1000;
+    private static final double UCT_CONSTANT = .5;
 
     private CribbageManager gameState;
     private int pid;
@@ -36,18 +37,40 @@ public class CribbageAI {
         private MCTSNode root;
 
         public MCTSAgent(CribbageManager currentState) {
-            this.simulator = currentState;
+            this.simulator = new CribbageManager(currentState);
             root = new MCTSNode();
         }
 
+        public MCTSNode nodeSelection() {
+            MCTSNode curr = root;
+            CribbageManager currState = simulator;
 
+            while (!curr.children.isEmpty()) {
+                double maxValue = 0;
+                List<MCTSNode> selections = new LinkedList<MCTSNode>();
+
+                // Find node(s) with the highest UCT value
+                for (MCTSNode child : curr.children.values()) {
+                    double value = child.getUCTValue(UCT_CONSTANT);
+                    if (value > maxValue) {
+                        selections.clear();
+                        selections.add(child);
+                        maxValue = value;
+                    } else if (value == maxValue) {
+                        selections.add(child);
+                    }
+                }
+
+                // Pick a random node from all the nodes that have the max 
+                // value
+                MCTSNode next = 
+            }
+        }
     }
 
     // Represents a node in a Monte Carlo search tree. Used when deciding what
     // card to play during the second stage of Cribbage
     private class MCTSNode {
-        private static final double CONSTANT = .5;
-
         // // State fields
         // public List<Card> hand;
         // public int[] remainingCards;
@@ -62,7 +85,10 @@ public class CribbageAI {
         public int pointsEarned = 0;
         public int numRollouts = 0;
         public MCTSNode parent;
-        public Map<Card, MCTSNode> children;
+
+        // Maps a card rank to the game state (i.e. the node) that follows from 
+        // the playing of a card of that rank 
+        public Map<Integer, MCTSNode> children;
 
         public MCTSNode() {
             this(null);
@@ -72,12 +98,19 @@ public class CribbageAI {
             this.parent = parent;
         }
 
-        public double getUCTValue() {
-            if (numRollouts == 0 || parent == null) {
-                return 0;
+        public void addChildren(Map<Integer, MCTSNode> children) {
+            for (int rank : children.keySet()) {
+                this.children.put(rank, children.get(rank));
+            }
+        }
+
+        public double getUCTValue(double constant) {
+            if (numRollouts == 0) {
+                // If the constant is 0
+                return constant == 0 ? 0 : Double.MAX_VALUE;
             }
 
-            return pointsEarned / numRollouts + CONSTANT * 
+            return pointsEarned / numRollouts + constant * 
                     Math.sqrt(Math.log(parent.numRollouts) / numRollouts);
         }
     }
@@ -151,7 +184,7 @@ public class CribbageAI {
         List<Card> excludeIdx = 
                 maximizePoints(original, isDealer, soFar, idx + 1, savedCounts);
 
-        // Debug statements
+        // Print the expected scores of the hands to be compared
         // System.out.println(includeIdx + " (expected = " + savedCounts.get(includeIdx) + 
         //         ") vs. " + excludeIdx + " (expected = " + savedCounts.get(excludeIdx) + 
         //         ")");      
