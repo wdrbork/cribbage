@@ -15,7 +15,7 @@ public class TestCribbageAI {
     private static final int NUM_PLAYERS = 2;
 
     CribbageManager state = new CribbageManager(NUM_PLAYERS);
-    CribbageAI ai = new CribbageAI(state, PID, NUM_PLAYERS);
+    CribbageAI ai = new CribbageAI(state, PID);
 
     @Test
     public void analyzeRecommendedHands() {

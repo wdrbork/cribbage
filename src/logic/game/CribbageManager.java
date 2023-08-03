@@ -272,7 +272,7 @@ public class CribbageManager {
            throw new NullPointerException("Card is null");
         } else if (!hands.get(pid).contains(card)) {
             throw new IllegalArgumentException("Player does not have this card");
-        } else if (playedCardsByPlayer.get(pid).contains(card)) {
+        } else if (cardAlreadyPlayed(pid, card)) {
             throw new IllegalArgumentException("Player has already played this card");
         } else if (pid != nextToPlayCard) {
             throw new IllegalArgumentException("Not this player's turn");
@@ -332,6 +332,10 @@ public class CribbageManager {
         return false;
     }
 
+    public boolean cardAlreadyPlayed(int pid, Card card) {
+        return playedCardsByPlayer.get(pid).contains(card);
+    }
+
     /**
      * Returns true if the given player can play a card for the current round. 
      * If all their cards have been played, or they have no card that can be 
@@ -362,23 +366,6 @@ public class CribbageManager {
 
         return false;
     }   
-
-    /**
-     * Returns true if every player in the game has played their entire hand 
-     * for the second stage, false otherwise. 
-     * 
-     * @return true if all cards have been played in the second stage, false 
-     *         otherwise
-     */
-    public boolean allCardsPlayed() {
-        for (List<Card> playedCards : playedCardsByPlayer) {
-            if (playedCards.size() < HAND_SIZE) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 
     public void resetCount() {
         count = 0;
