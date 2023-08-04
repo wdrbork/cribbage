@@ -31,13 +31,9 @@ public class CribbageAI {
     // for making decisions during the second stage of play, but may eventually
     // be used for the first stage as well
     private class MCTSAgent {
-        private CribbageManager simulator;
-        private int aiPid;
         private MCTSNode root;
 
-        public MCTSAgent(CribbageManager currentState, int pid) {
-            this.simulator = new CribbageManager(currentState);
-
+        public MCTSAgent(CribbageManager currentState) {
             // In order to avoid exceptions that are thrown when playing a 
             // card that isn't in a player's hand, we must clear all hands in 
             // the game state that are not this AI's. This will come in handy
@@ -47,14 +43,13 @@ public class CribbageAI {
                     currentState.hands.get(i).clear();
                 }
             }
-            this.aiPid = pid;
+
             this.root = new MCTSNode();
+            this.root.currentState = currentState;
         }
 
         public MCTSNode nodeSelection() {
             MCTSNode curr = root;
-            CribbageManager currState = new CribbageManager(simulator);
-            int pointsGained = 0;
 
             // Stop searching once we find a leaf node
             while (!curr.children.isEmpty()) {
@@ -62,96 +57,110 @@ public class CribbageAI {
                 curr = curr.chooseHighValueChild();
                 assert(curr != null);
 
-                // If it is not the AI's turn at this node, artificially add 
-                // the played card at this node into the other player's hand. 
-                // This will prevent exceptions from being throw when the card 
-                // is played just below
-                if (curr.playerPid != this.aiPid) {
-                    simulator.hands.get(curr.playerPid).add(curr.playedCard);
-                }
-                
-                int points = simulator.playCard(curr.playerPid, curr.playedCard);
-                if (simulator.countIs31()) {
-                    simulator.resetCount();
-                }
-
-                // For now, we will only consider points that are gained by 
-                // this AI. Points gained by other players may be subtracted 
-                // from this total in the future
-                if (curr.playerPid == this.aiPid) pointsGained += points;
-
                 // If this node has not been expanded, select it for rollout
                 if (curr.numRollouts == 0) return curr;
             }
 
             // Generate children for this leaf node, if possible, and select 
             // one of the children for the rollout
-            if (expand(curr, currState)) {
+            if (expand(curr)) {
                 curr = curr.chooseHighValueChild();
-                int points = simulator.playCard(curr.playerPid, curr.playedCard);
-                if (simulator.countIs31()) {
-                    simulator.resetCount();
-                }
-
-                if (curr.playerPid == this.aiPid) pointsGained += points;
             }
 
             return curr;
         }
 
-        private boolean expand(MCTSNode node, CribbageManager state) {
-            // If no more cards can be played, return false
-            boolean endOfGame = true;
-            for (List<Card> hand : state.playedCardsByPlayer) {
-                if (hand.size() != HAND_SIZE) {
-                    endOfGame = false;
-                    break;
-                }
-            }
-            if (endOfGame) return false;
+        private int rollout(CribbageManager initialState) {
+            
+        }
 
-            Map<Integer, MCTSNode> children = new HashMap<Integer, MCTSNode>();
+        private boolean expand(MCTSNode node) {
+            CribbageManager currentState = node.currentState;
+
+            // If no more cards can be played, return false
+            if (isTerminalState(currentState)) return false;
 
             // If the next player to play a card is this AI, go through its 
             // hand and add nodes for cards that haven't already been played
-            if (state.nextToPlayCard == aiPid) {
-                for (Card card : state.getHand(aiPid)) {
-                    if (state.cardAlreadyPlayed(aiPid, card)) {
-                        continue;
-                    }
-
-                    int rank = card.getRankValue();
-                    MCTSNode child = new MCTSNode(node);
-                    child.playedCard = card;
-                    child.playerPid = aiPid;
-                    children.put(rank, child);
-                }
+            if (currentState.nextToPlayCard == pid) {
+                node.addChildren(expandOwnHand(node));
             } else {
                 // Add nodes to the tree using cards that could possibly be 
                 // played
-                for (int i = 1; i < Math.min(10, MAX_COUNT - state.count); i++) {
-                    Rank rank = Card.getRankBasedOnValue(i);
-
-                    // In order to prevent duplicate cards from being played 
-                    // by the same player, change the suit based on the number
-                    // of times this rank has been played by this player already
-                    int occurrences = 0;
-                    for (Card card : state.playedCardsByPlayer.get(state.nextToPlayCard)) {
-                        if (card.getRank() == rank) {
-                            occurrences++;
-                        }
-                    }
-                    Suit suit = Suit.values()[occurrences];
-
-                    Card possibleCard = new Card(suit, rank);
-                    MCTSNode child = new MCTSNode(node);
-                    child.playedCard = possibleCard;
-                    child.playerPid = state.nextToPlayCard;
-                    children.put(i, child);
-                }
+                node.addChildren(expandOtherHand(node));
             }
 
-            node.addChildren(children);
+            return true;
+        }
+
+        private Map<Integer, MCTSNode> expandOwnHand(
+                MCTSNode parent) {
+            Map<Integer, MCTSNode> children = new HashMap<Integer, MCTSNode>();
+            CribbageManager state = parent.currentState;
+            List<Card> hand = state.getHand(pid);
+
+            for (Card card : hand) {
+                if (state.cardAlreadyPlayed(pid, card)) {
+                    continue;
+                }
+
+                // Create a deep copy of the parent state and play 
+                // the current card
+                CribbageManager nextState = new CribbageManager(state);
+                nextState.playCard(pid, card);
+
+                int rank = card.getRankValue();
+                MCTSNode child = new MCTSNode(parent);
+                child.currentState = nextState;
+                children.put(rank, child);
+            }
+
+            return children;
+        }
+
+        private Map<Integer, MCTSNode> expandOtherHand(MCTSNode parent) {
+            Map<Integer, MCTSNode> children = new HashMap<Integer, MCTSNode>();
+            CribbageManager state = parent.currentState;
+            int otherPid = state.nextToPlayCard;
+            List<Card> playedCards = state.playedCardsByPlayer.get(otherPid);
+
+            for (int i = 1; 
+                    i < Math.min(10, MAX_COUNT - state.count);
+                    i++) {
+                Rank rank = Card.getRankBasedOnValue(i);
+
+                // In order to prevent duplicate cards from being played 
+                // by the same player, change the suit based on the number
+                // of times this rank has been played by this player already
+                int occurrences = 0;
+                for (Card card : playedCards) {
+                    if (card.getRank() == rank) {
+                        occurrences++;
+                    }
+                }
+                Suit suit = Suit.values()[occurrences];
+
+                // Create a deep copy of the parent state and play 
+                // the possible card
+                Card possibleCard = new Card(suit, rank);
+                CribbageManager nextState = new CribbageManager(state);
+                state.playCard(otherPid, possibleCard);
+
+                MCTSNode child = new MCTSNode(parent);
+                child.currentState = nextState;
+                children.put(i, child);
+            }
+
+            return children;
+        }
+
+        private boolean isTerminalState(CribbageManager state) {
+            // If no more cards can be played, return false
+            for (List<Card> hand : state.playedCardsByPlayer) {
+                if (hand.size() != HAND_SIZE) {
+                    return false;
+                }
+            }
             return true;
         }
     }
@@ -167,8 +176,7 @@ public class CribbageAI {
         // public LinkedList<Card> cardStack;
         // public int pidTurn;
 
-        public Card playedCard;
-        public int playerPid;
+        public CribbageManager currentState;
 
         // Node fields
         public int pointsEarned = 0;
