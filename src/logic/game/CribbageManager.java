@@ -98,6 +98,51 @@ public class CribbageManager {
         this.cardStack = new LinkedList<Card>(copy.cardStack);
     }
 
+    // Getter functions
+    public int numPlayers() { return numPlayers; }
+
+    public int nextPlayer() { return nextToPlayCard; }
+
+    public int count() { return count; }
+
+    public int getPlayerScore(int pid) { 
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IllegalArgumentException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+        }
+
+        return gameScores[pid]; 
+    }
+
+    public List<List<Card>> getAllHands() { 
+        List<List<Card>> deepCopy = new ArrayList<List<Card>>();
+        for (List<Card> hand : hands) {
+            deepCopy.add(new ArrayList<Card>(hand));
+        }
+        return deepCopy;
+    }
+
+    public List<List<Card>> getPlayedCards() {
+        List<List<Card>> deepCopy = new ArrayList<List<Card>>();
+        for (List<Card> played : playedCardsByPlayer) {
+            deepCopy.add(new ArrayList<Card>(played));
+        }
+        return deepCopy;
+    }
+
+    public List<Card> getHand(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IllegalArgumentException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+        }
+
+        return hands.get(pid);
+    }
+
+    public List<Card> getCrib() {
+        return new ArrayList<Card>(crib);
+    }
+
     /**************************************************************************
     * Setup Stage
     **************************************************************************/
@@ -113,15 +158,6 @@ public class CribbageManager {
         
         this.dealerId = pid;
         nextToPlayCard = (dealerId + 1) % numPlayers;
-    }
-
-    public List<Card> getHand(int pid) {
-        if (pid < 0 || pid >= numPlayers) {
-            throw new IllegalArgumentException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
-        }
-
-        return hands.get(pid);
     }
 
     /**************************************************************************
@@ -170,10 +206,6 @@ public class CribbageManager {
         }
 
         return Collections.unmodifiableList(hands);
-    }
-
-    public List<Card> getCrib() {
-        return Collections.unmodifiableList(crib);
     }
 
     /**
@@ -542,7 +574,14 @@ public class CribbageManager {
         return gameScores[pid] >= MAX_SCORE;
     }
 
-    public int getPlayerScore(int pid) { return gameScores[pid]; }
+    public boolean gameOver() {
+        for (int i = 0; i < numPlayers; i++) {
+            if (isWinner(i)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Resets all state from a round, including hands, the crib, and played 

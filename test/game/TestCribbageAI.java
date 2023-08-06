@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import logic.game.ai.CribbageAI;
 import logic.game.*;
 import logic.deck.*;
 
