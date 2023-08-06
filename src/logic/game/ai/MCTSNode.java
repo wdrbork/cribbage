@@ -1,9 +1,11 @@
 package logic.game.ai;
 
-import logic.game.*;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Random;
+
+import logic.game.*;
 
 // Represents a node in a Monte Carlo search tree. Used when deciding what
 // card to play during the second stage of Cribbage
@@ -18,6 +20,7 @@ public class MCTSNode {
     // public LinkedList<Card> cardStack;
     // public int pidTurn;
 
+    // TODO: Remove currentState and attempt to use just the played card and pid
     public CribbageManager currentState;
 
     // Node fields
@@ -61,7 +64,8 @@ public class MCTSNode {
             }
         }
 
-        int randomIdx = (int) Math.random() * selections.size();
+        Random r = new Random();
+        int randomIdx = r.nextInt(selections.size());
         return selections.get(randomIdx);
     }
 

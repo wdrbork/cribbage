@@ -329,7 +329,7 @@ public class CribbageManager {
         // addPoints(pid, totalPoints);
         determineNextPlayer();
 
-        // if (!inPlay()) {
+        // if (!canPlayCard()) {
         //     resetCount();
         // } else {
         //     determineNextPlayer();
@@ -343,7 +343,7 @@ public class CribbageManager {
      * to play a card is awarded a point. 
      */
     public void awardPointsForGo() {
-        if (inPlay()) {
+        if (canPlayCard()) {
             throw new IllegalStateException("Cards can still be played");
         }
         addPoints(nextToPlayCard, 1);
@@ -360,7 +360,7 @@ public class CribbageManager {
         return count == MAX_COUNT;
     }
 
-    public boolean inPlay() {
+    public boolean canPlayCard() {
         for (int i = 0; i < numPlayers; i++) {
             if (hasPlayableCard(i)) {
                 return true;

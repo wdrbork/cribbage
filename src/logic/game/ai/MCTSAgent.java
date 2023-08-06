@@ -1,10 +1,13 @@
 package logic.game.ai;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Random;
 
 import logic.deck.Card;
+import logic.deck.Deck;
 import logic.deck.Rank;
 import logic.deck.Suit;
 import logic.game.*;
@@ -44,7 +47,11 @@ public class MCTSAgent {
         this.pid = pid;
     }
 
-    public MCTSNode nodeSelection() {
+    public Card selectCard() {
+        return null;
+    }
+
+    private MCTSNode nodeSelection() {
         MCTSNode curr = root;
 
         // Stop searching once we find a leaf node
@@ -68,12 +75,53 @@ public class MCTSAgent {
 
     private int rollout(CribbageManager state) {
         int pointDiff = 0;
+        Random r = new Random();
         while (!isTerminalState(state)) {
             int next = state.nextPlayer();
             if (next == pid) {
+                List<Card> hand = state.getHand(pid);
+                List<Card> possibleCards = new ArrayList<Card>();
+                for (Card card : hand) {
+                    if (!state.cardAlreadyPlayed(pid, card)) {
+                        possibleCards.add(card);
+                    }
+                }
+                assert(possibleCards.size() > 0) : "Can't play anymore cards";
+
+                int idx = r.nextInt(possibleCards.size());
+                pointDiff += state.playCard(pid, possibleCards.get(idx));
+                if (!state.canPlayCard()) {
+                    // If the count is not 31 and nobody can play a card, give
+                    // ourselves a point
+                    if (state.count() != MAX_COUNT) {
+                        pointDiff += 1;
+                    }
+                    state.resetCount();
+                }
+            } else {
+                int value = r.nextInt(Deck.CARDS_PER_SUIT);
+                Rank rank = Card.getRankBasedOnValue(value);
+
+                int occurrences = 0;
+                for (Card card : state.getPlayedCards().get(next)) {
+                    if (card.getRank() == rank) {
+                        occurrences++;
+                    }
+                }
+                Suit suit = Suit.values()[occurrences];
                 
+                Card playedCard = new Card(suit, rank);
+                pointDiff -= state.playCard(next, playedCard);
+                if (!state.canPlayCard()) {
+                    if (state.count() != MAX_COUNT) {
+                        pointDiff -= 1;
+                    }
+                    state.resetCount();
+                }
             }
         }
+
+        return pointDiff;
     }
 
     private boolean expand(MCTSNode node) {
@@ -110,6 +158,9 @@ public class MCTSAgent {
             // the current card
             CribbageManager nextState = new CribbageManager(state);
             nextState.playCard(pid, card);
+            if (!nextState.canPlayCard()) {
+                nextState.resetCount();
+            }
 
             int rank = card.getRankValue();
             MCTSNode child = new MCTSNode(parent);
@@ -147,6 +198,9 @@ public class MCTSAgent {
             Card possibleCard = new Card(suit, rank);
             CribbageManager nextState = new CribbageManager(state);
             state.playCard(otherPid, possibleCard);
+            if (!state.canPlayCard()) {
+                state.resetCount();
+            }
 
             MCTSNode child = new MCTSNode(parent);
             child.currentState = nextState;
