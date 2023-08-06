@@ -17,7 +17,6 @@ public class CribbageAI {
     private static final int TWO_PLAYER_START_SIZE = 6;
     private static final int THREE_PLAYER_START_SIZE = 5;
     private static final int HAND_SIZE = 4;
-    private static final int ITERATIONS = 1000;
 
     private CribbageManager gameState;
     private int pid;

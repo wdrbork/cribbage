@@ -327,12 +327,13 @@ public class CribbageManager {
         totalPoints += CribbagePegging.countPegPairs(cardStack) + 
                 CribbagePegging.countPegRuns(cardStack);
         // addPoints(pid, totalPoints);
+        determineNextPlayer();
 
-        if (!inPlay()) {
-            resetCount();
-        } else {
-            determineNextPlayer();
-        }
+        // if (!inPlay()) {
+        //     resetCount();
+        // } else {
+        //     determineNextPlayer();
+        // }
         
         return totalPoints;
     }
