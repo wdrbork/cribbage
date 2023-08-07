@@ -140,7 +140,7 @@ public class CribbageManager {
     }
 
     public List<Card> getCrib() {
-        return new ArrayList<Card>(crib);
+        return Collections.unmodifiableList(crib);
     }
 
     /**************************************************************************
@@ -326,14 +326,8 @@ public class CribbageManager {
         }
         totalPoints += CribbagePegging.countPegPairs(cardStack) + 
                 CribbagePegging.countPegRuns(cardStack);
-        // addPoints(pid, totalPoints);
+        addPoints(pid, totalPoints);
         determineNextPlayer();
-
-        // if (!canPlayCard()) {
-        //     resetCount();
-        // } else {
-        //     determineNextPlayer();
-        // }
         
         return totalPoints;
     }
