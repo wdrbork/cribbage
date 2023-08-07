@@ -113,6 +113,7 @@ public class MCTSAgent {
                     // If the count is not 31 and nobody can play a card, give
                     // ourselves a point
                     if (state.count() != MAX_COUNT) {
+                        state.awardPointsForGo();
                         pointsEarned += 1;
                     }
                     state.resetCount();
@@ -132,6 +133,9 @@ public class MCTSAgent {
                 Card playedCard = new Card(suit, rank);
                 state.playCard(next, playedCard);
                 if (!state.canPlayCard()) {
+                    if (state.count() != MAX_COUNT) {
+                        state.awardPointsForGo();
+                    }
                     state.resetCount();
                 }
             }
