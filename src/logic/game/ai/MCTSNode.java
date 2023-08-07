@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
 
+import logic.deck.Card;
 import logic.game.*;
 
 // Represents a node in a Monte Carlo search tree. Used when deciding what
@@ -22,6 +23,9 @@ public class MCTSNode {
 
     // TODO: Remove currentState and attempt to use just the played card and pid
     public CribbageManager currentState;
+
+    public Card playedCard;
+    public int pidTurn;
 
     // Node fields
     public int pointsEarned = 0;

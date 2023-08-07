@@ -6,10 +6,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
 
-import logic.deck.Card;
-import logic.deck.Deck;
-import logic.deck.Rank;
-import logic.deck.Suit;
+import logic.deck.*;
 import logic.game.*;
 
 // Makes decisions for the AI using Monte Carlo tree search (for more 
@@ -24,6 +21,9 @@ public class MCTSAgent {
 
     private MCTSNode root;
     private int pid;
+
+    // Debug field
+    private int numberOfNodes;
 
     /**
      * Constructs an MCTSAgent
@@ -45,10 +45,29 @@ public class MCTSAgent {
         this.root = new MCTSNode();
         this.root.currentState = currentState;
         this.pid = pid;
+
+        this.numberOfNodes = 1;
     }
 
     public Card selectCard() {
-        return null;
+        if (root.currentState.gameOver()) {
+            return null;
+        }
+
+        search();
+        MCTSNode bestMove = root.chooseHighValueChild();
+        return bestMove.playedCard;
+    }
+
+    private void search() {
+        int searches = 0;
+
+        while (searches < ITERATIONS) {
+            MCTSNode selection = nodeSelection();
+            int pointsEarned = rollout(selection.currentState);
+            backup(selection, pointsEarned);
+            searches++;
+        }
     }
 
     private MCTSNode nodeSelection() {
@@ -74,7 +93,7 @@ public class MCTSAgent {
     }
 
     private int rollout(CribbageManager state) {
-        int pointDiff = 0;
+        int pointsEarned = 0;
         Random r = new Random();
         while (!isTerminalState(state)) {
             int next = state.nextPlayer();
@@ -89,12 +108,12 @@ public class MCTSAgent {
                 assert(possibleCards.size() > 0) : "Can't play anymore cards";
 
                 int idx = r.nextInt(possibleCards.size());
-                pointDiff += state.playCard(pid, possibleCards.get(idx));
+                pointsEarned += state.playCard(pid, possibleCards.get(idx));
                 if (!state.canPlayCard()) {
                     // If the count is not 31 and nobody can play a card, give
                     // ourselves a point
                     if (state.count() != MAX_COUNT) {
-                        pointDiff += 1;
+                        pointsEarned += 1;
                     }
                     state.resetCount();
                 }
@@ -111,17 +130,26 @@ public class MCTSAgent {
                 Suit suit = Suit.values()[occurrences];
                 
                 Card playedCard = new Card(suit, rank);
-                pointDiff -= state.playCard(next, playedCard);
+                state.playCard(next, playedCard);
                 if (!state.canPlayCard()) {
-                    if (state.count() != MAX_COUNT) {
-                        pointDiff -= 1;
-                    }
                     state.resetCount();
                 }
             }
         }
 
-        return pointDiff;
+        return pointsEarned;
+    }
+
+    private void backup(MCTSNode curr, int points) {
+        if (curr == null) {
+            return;
+        }
+
+        curr.numRollouts++;
+        if (curr.pidTurn == pid) {
+            curr.pointsEarned += points;
+        }
+        backup(curr.parent, points);
     }
 
     private boolean expand(MCTSNode node) {
@@ -165,9 +193,12 @@ public class MCTSAgent {
             int rank = card.getRankValue();
             MCTSNode child = new MCTSNode(parent);
             child.currentState = nextState;
+            child.playedCard = card;
+            child.pidTurn = pid;
             children.put(rank, child);
         }
 
+        this.numberOfNodes += children.size();
         return children;
     }
 
@@ -207,6 +238,7 @@ public class MCTSAgent {
             children.put(i, child);
         }
 
+        this.numberOfNodes += children.size();
         return children;
     }
 
