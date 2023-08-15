@@ -40,11 +40,18 @@ public class CribbageAI {
         this.hand = hand;
     }
 
-    public List<Card> getOptimalHand(boolean isDealer) {
+    public List<Card> getOptimalHand() {
         Map<List<Card>, Double> savedCounts = new HashMap<List<Card>, Double>();
+        boolean isDealer = false;
+        if (gameState.dealer() == pid) isDealer = true;
         hand = maximizePoints(hand, isDealer, 
                 new ArrayList<Card>(), 0, savedCounts);
         return hand;
+    }
+
+    public Card playOptimalCard() {
+        MCTSAgent agent = new MCTSAgent(gameState, pid);
+        return agent.selectCard();
     }
 
     // Recursively finds the 4-card hand with the most expected points given 

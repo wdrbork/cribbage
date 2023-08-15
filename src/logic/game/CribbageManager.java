@@ -105,6 +105,8 @@ public class CribbageManager {
 
     public int count() { return count; }
 
+    public int dealer() { return dealerId; }
+
     public int getPlayerScore(int pid) { 
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID of " + 

@@ -32,4 +32,15 @@ public class TestCribbageAI {
         List<Card> optimal = ai.getOptimalHand(true);
         System.out.println(optimal);
     }
+
+    @Test 
+    public void testMoveLogic() {
+        List<Card> hand = new ArrayList<Card>();
+        hand.add(new Card(Suit.SPADE, Rank.TWO));
+        hand.add(new Card(Suit.DIAMOND, Rank.TWO));
+        hand.add(new Card(Suit.DIAMOND, Rank.FIVE));
+        hand.add(new Card(Suit.SPADE, Rank.SIX));
+        hand.add(new Card(Suit.SPADE, Rank.SEVEN));
+        hand.add(new Card(Suit.SPADE, Rank.KING));
+    }
 }
