@@ -15,10 +15,12 @@ import logic.game.*;
 // for making decisions during the second stage of play, but may eventually
 // be used for the first stage as well
 public class MCTSAgent {
-    private static final int ITERATIONS = 1000;
+    private static final int ITERATIONS = 10000;
     private static final int MAX_COUNT = 31;
     private static final int HAND_SIZE = 4;
 
+    private CribbageManager gameState;
+    private CribbageManager selectedState;
     private MCTSNode root;
     private int pid;
 
@@ -35,22 +37,22 @@ public class MCTSAgent {
         // card that isn't in a player's hand, we must clear all hands in 
         // the game state that are not this AI's. This will come in handy
         // when we are running simulations of different possible plays
-        List<List<Card>> hands = currentState.getAllHands();
-        for (int i = 0; i < currentState.numPlayers(); i++) {
+        gameState = new CribbageManager(currentState);
+        List<List<Card>> hands = gameState.getAllHands();
+        for (int i = 0; i < gameState.numPlayers(); i++) {
             if (i != pid) {
                 hands.get(i).clear();
             }
         }
 
         this.root = new MCTSNode();
-        this.root.currentState = currentState;
         this.pid = pid;
 
         this.numberOfNodes = 1;
     }
 
     public Card selectCard() {
-        if (root.currentState.gameOver()) {
+        if (gameState.gameOver()) {
             return null;
         }
 
@@ -64,7 +66,7 @@ public class MCTSAgent {
 
         while (searches < ITERATIONS) {
             MCTSNode selection = nodeSelection();
-            int pointsEarned = rollout(selection.currentState);
+            int pointsEarned = rollout();
             backup(selection, pointsEarned);
             searches++;
         }
@@ -72,12 +74,15 @@ public class MCTSAgent {
 
     private MCTSNode nodeSelection() {
         MCTSNode curr = root;
+        selectedState = new CribbageManager(gameState);
 
         // Stop searching once we find a leaf node
         while (!curr.children.isEmpty()) {
             // Find node with the highest UCT value
             curr = curr.chooseHighValueChild();
             assert(curr != null);
+            assert(selectedState.nextPlayer() == curr.pidTurn);
+            selectedState.playCard(curr.pidTurn, curr.playedCard);
 
             // If this node has not been expanded, select it for rollout
             if (curr.numRollouts == 0) return curr;
@@ -85,45 +90,46 @@ public class MCTSAgent {
 
         // Generate children for this leaf node, if possible, and select 
         // one of the children for the rollout
-        if (expand(curr)) {
+        if (expandSelection(curr)) {
             curr = curr.chooseHighValueChild();
+            selectedState.playCard(curr.pidTurn, curr.playedCard);
         }
 
         return curr;
     }
 
-    private int rollout(CribbageManager state) {
+    private int rollout() {
         int pointsEarned = 0;
         Random r = new Random();
-        while (!isTerminalState(state)) {
-            int next = state.nextPlayer();
+        while (!isTerminalState(selectedState)) {
+            int next = selectedState.nextPlayer();
             if (next == pid) {
-                List<Card> hand = state.getHand(pid);
+                List<Card> hand = selectedState.getHand(pid);
                 List<Card> possibleCards = new ArrayList<Card>();
                 for (Card card : hand) {
-                    if (!state.cardAlreadyPlayed(pid, card)) {
+                    if (!selectedState.cardAlreadyPlayed(pid, card)) {
                         possibleCards.add(card);
                     }
                 }
                 assert(possibleCards.size() > 0) : "Can't play anymore cards";
 
                 int idx = r.nextInt(possibleCards.size());
-                pointsEarned += state.playCard(pid, possibleCards.get(idx));
-                if (!state.canPlayCard()) {
+                pointsEarned += selectedState.playCard(pid, possibleCards.get(idx));
+                if (!selectedState.canPlayCard()) {
                     // If the count is not 31 and nobody can play a card, give
                     // ourselves a point
-                    if (state.count() != MAX_COUNT) {
-                        state.awardPointsForGo();
+                    if (selectedState.count() != MAX_COUNT) {
+                        selectedState.awardPointsForGo();
                         pointsEarned += 1;
                     }
-                    state.resetCount();
+                    selectedState.resetCount();
                 }
             } else {
                 int value = r.nextInt(Deck.CARDS_PER_SUIT);
                 Rank rank = Card.getRankBasedOnValue(value);
 
                 int occurrences = 0;
-                for (Card card : state.getPlayedCards().get(next)) {
+                for (Card card : selectedState.getPlayedCards().get(next)) {
                     if (card.getRank() == rank) {
                         occurrences++;
                     }
@@ -131,12 +137,12 @@ public class MCTSAgent {
                 Suit suit = Suit.values()[occurrences];
                 
                 Card playedCard = new Card(suit, rank);
-                state.playCard(next, playedCard);
-                if (!state.canPlayCard()) {
-                    if (state.count() != MAX_COUNT) {
-                        state.awardPointsForGo();
+                selectedState.playCard(next, playedCard);
+                if (!selectedState.canPlayCard()) {
+                    if (selectedState.count() != MAX_COUNT) {
+                        selectedState.awardPointsForGo();
                     }
-                    state.resetCount();
+                    selectedState.resetCount();
                 }
             }
         }
@@ -156,15 +162,13 @@ public class MCTSAgent {
         backup(curr.parent, points);
     }
 
-    private boolean expand(MCTSNode node) {
-        CribbageManager currentState = node.currentState;
-
+    private boolean expandSelection(MCTSNode node) {
         // If no more cards can be played, return false
-        if (isTerminalState(currentState)) return false;
+        if (isTerminalState(selectedState)) return false;
 
         // If the next player to play a card is this AI, go through its 
         // hand and add nodes for cards that haven't already been played
-        if (currentState.nextPlayer() == pid) {
+        if (selectedState.nextPlayer() == pid) {
             node.addChildren(expandOwnHand(node));
         } else {
             // Add nodes to the tree using cards that could possibly be 
@@ -178,25 +182,15 @@ public class MCTSAgent {
     private Map<Integer, MCTSNode> expandOwnHand(
             MCTSNode parent) {
         Map<Integer, MCTSNode> children = new HashMap<Integer, MCTSNode>();
-        CribbageManager state = parent.currentState;
-        List<Card> hand = state.getHand(pid);
+        List<Card> hand = selectedState.getHand(pid);
 
         for (Card card : hand) {
-            if (state.cardAlreadyPlayed(pid, card)) {
+            if (selectedState.cardAlreadyPlayed(pid, card)) {
                 continue;
-            }
-
-            // Create a deep copy of the parent state and play 
-            // the current card
-            CribbageManager nextState = new CribbageManager(state);
-            nextState.playCard(pid, card);
-            if (!nextState.canPlayCard()) {
-                nextState.resetCount();
             }
 
             int rank = card.getRankValue();
             MCTSNode child = new MCTSNode(parent);
-            child.currentState = nextState;
             child.playedCard = card;
             child.pidTurn = pid;
             children.put(rank, child);
@@ -208,12 +202,11 @@ public class MCTSAgent {
 
     private Map<Integer, MCTSNode> expandOtherHand(MCTSNode parent) {
         Map<Integer, MCTSNode> children = new HashMap<Integer, MCTSNode>();
-        CribbageManager state = parent.currentState;
-        int otherPid = state.nextPlayer();
-        List<Card> playedCards = state.getPlayedCards().get(otherPid);
+        int otherPid = selectedState.nextPlayer();
+        List<Card> playedCards = selectedState.getPlayedCards().get(otherPid);
 
         for (int i = 1; 
-                i < Math.min(10, MAX_COUNT - state.count());
+                i < Math.min(10, MAX_COUNT - selectedState.count());
                 i++) {
             Rank rank = Card.getRankBasedOnValue(i);
 
@@ -228,17 +221,10 @@ public class MCTSAgent {
             }
             Suit suit = Suit.values()[occurrences];
 
-            // Create a deep copy of the parent state and play 
-            // the possible card
             Card possibleCard = new Card(suit, rank);
-            CribbageManager nextState = new CribbageManager(state);
-            state.playCard(otherPid, possibleCard);
-            if (!state.canPlayCard()) {
-                state.resetCount();
-            }
-
             MCTSNode child = new MCTSNode(parent);
-            child.currentState = nextState;
+            child.playedCard = possibleCard;
+            child.pidTurn = otherPid;
             children.put(i, child);
         }
 

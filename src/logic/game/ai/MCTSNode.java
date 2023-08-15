@@ -3,6 +3,7 @@ package logic.game.ai;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import logic.deck.Card;
@@ -12,17 +13,6 @@ import logic.game.*;
 // card to play during the second stage of Cribbage
 public class MCTSNode {
     private static final double UCT_CONSTANT = .5;
-
-    // // State fields
-    // public List<Card> hand;
-    // public int[] remainingCards;
-    // public int[] rankCounts;
-    // public int count;
-    // public LinkedList<Card> cardStack;
-    // public int pidTurn;
-
-    // TODO: Remove currentState and attempt to use just the played card and pid
-    public CribbageManager currentState;
 
     public Card playedCard;
     public int pidTurn;
@@ -42,6 +32,7 @@ public class MCTSNode {
 
     public MCTSNode(MCTSNode parent) {
         this.parent = parent;
+        this.children = new HashMap<Integer, MCTSNode>();
     }
 
     public void addChildren(Map<Integer, MCTSNode> children) {
