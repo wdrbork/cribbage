@@ -138,7 +138,7 @@ public class CribbageManager {
                     pid + "; must be between 0 and " + numPlayers + "exclusive");
         }
 
-        return hands.get(pid);
+        return new ArrayList<Card>(hands.get(pid));
     }
 
     public List<Card> getCrib() {
