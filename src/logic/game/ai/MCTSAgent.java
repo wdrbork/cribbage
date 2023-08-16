@@ -57,7 +57,7 @@ public class MCTSAgent {
         }
 
         search();
-        MCTSNode bestMove = root.chooseHighValueChild();
+        MCTSNode bestMove = root.chooseMostExpandedChild();
         System.out.println(numberOfNodes);
         return bestMove.playedCard;
     }

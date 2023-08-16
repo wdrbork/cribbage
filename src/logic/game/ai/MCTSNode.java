@@ -64,6 +64,29 @@ public class MCTSNode {
         return selections.get(randomIdx);
     }
 
+    public MCTSNode chooseMostExpandedChild() {
+        if (children.isEmpty()) {
+            return null;
+        }
+
+        int mostRollouts = 0;
+        List<MCTSNode> selections = new ArrayList<MCTSNode>();
+        for (MCTSNode child : children.values()) {
+            int value = child.numRollouts;
+            if (value > mostRollouts) {
+                selections.clear();
+                selections.add(child);
+                mostRollouts = value;
+            } else if (value == mostRollouts) {
+                selections.add(child);
+            }
+        }
+
+        Random r = new Random();
+        int randomIdx = r.nextInt(selections.size());
+        return selections.get(randomIdx);
+    }
+
     public double getUCTValue(double constant) {
         if (numRollouts == 0) {
             // If the constant is not 0, return the highest value possible
