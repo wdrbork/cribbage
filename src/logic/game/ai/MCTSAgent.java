@@ -15,7 +15,7 @@ import logic.game.*;
 // for making decisions during the second stage of play, but may eventually
 // be used for the first stage as well
 public class MCTSAgent {
-    private static final int ITERATIONS = 100000;
+    private static final int ITERATIONS = 10000;
     private static final int MAX_COUNT = 31;
     private static final int HAND_SIZE = 4;
 
@@ -66,6 +66,7 @@ public class MCTSAgent {
         int searches = 0;
 
         while (searches < ITERATIONS) {
+            // System.out.println("Search " + searches);
             MCTSNode selection = nodeSelection();
             int pointsEarned = rollout();
             backup(selection, pointsEarned);
@@ -84,6 +85,7 @@ public class MCTSAgent {
             assert(curr != null);
             assert(selectedState.nextPlayer() == curr.pidTurn);
             assert(selectedState.canPlayCard(curr.playedCard));
+            // System.out.println(curr.playedCard);
             selectedState.playCard(curr.pidTurn, curr.playedCard);
             if (!selectedState.movePossible()) {
                 selectedState.resetCount();
@@ -146,7 +148,7 @@ public class MCTSAgent {
                 Rank rank = Card.getRankBasedOnValue(value);
 
                 // If all 4 cards of this rank have been played, try again
-                int occurrences = playedRankCount(rank);
+                int occurrences = knownRankCount(rank);
                 if (occurrences == 4) continue;
                 Suit suit = Suit.values()[occurrences];
                 
@@ -258,14 +260,31 @@ public class MCTSAgent {
         return true;
     }
 
-    private int playedRankCount(Rank rank) {
+    private int knownRankCount(Rank rank) {
         int occurrences = 0;
-        for (List<Card> playedCards : selectedState.getPlayedCards()) {
-            for (Card card : playedCards) {
+
+        // Search through our own hand first
+        List<Card> hand = gameState.getHand(pid);
+        for (Card card : hand) {
+            if (card.getRank() == rank) {
+                occurrences++;
+            }
+        }
+
+        // Search through cards that have been played by other players
+        List<List<Card>> allPlayedCards = selectedState.getPlayedCards();
+        for (int i = 0; i < selectedState.numPlayers(); i++) {
+            if (i == pid) continue;
+
+            List<Card> pidPlayedCards = allPlayedCards.get(i);
+            for (Card card : pidPlayedCards) {
                 if (card.getRank() == rank) {
                     occurrences++;
                 }
             }
+        }
+        if (occurrences > Deck.CARDS_PER_RANK) {
+            throw new IllegalStateException(occurrences + " instances of " + rank);
         }
         assert(occurrences <= Deck.CARDS_PER_RANK);
         return occurrences;
