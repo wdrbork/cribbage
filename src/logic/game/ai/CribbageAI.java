@@ -41,6 +41,10 @@ public class CribbageAI {
     }
 
     public List<Card> getOptimalHand() {
+        if (this.hand == null) {
+            throw new IllegalStateException("No hand set for AI with pid " + pid);
+        }
+
         Map<List<Card>, Double> savedCounts = new HashMap<List<Card>, Double>();
         boolean isDealer = false;
         if (gameState.dealer() == pid) isDealer = true;
@@ -51,11 +55,13 @@ public class CribbageAI {
 
     public Card playOptimalCard() {
         MCTSAgent agent = new MCTSAgent(gameState, pid);
-        return agent.selectCard();
+        Card card = agent.selectCard();
+        return card;
     }
 
     // Recursively finds the 4-card hand with the most expected points given 
-    // a 6-card hand (6 choose 4). NOTE: Ignores suits in the calculation
+    // a 6-card hand (6 choose 4). NOTE: Ignores suits in the calculation; see
+    // the runtimes below to understand why this is necessary
     //
     // Total long runtime: 15 possible combos of 4 cards * 46 possible starter
     // cards * 1980 (45 * 44) possible cribs = 1,366,200 iterations

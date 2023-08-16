@@ -91,9 +91,8 @@ public class CribbageManager {
         this.gameScores = copy.gameScores.clone();
         this.nextToPlayCard = copy.nextToPlayCard;
         this.dealerId = copy.dealerId;
-        this.hands = new ArrayList<List<Card>>(copy.hands);
-        this.playedCardsByPlayer = 
-                new ArrayList<List<Card>>(copy.playedCardsByPlayer);
+        this.hands = copy.getAllHands();
+        this.playedCardsByPlayer = copy.getPlayedCards();
         this.crib = new ArrayList<Card>(copy.crib);
         this.cardStack = new LinkedList<Card>(copy.cardStack);
     }
@@ -292,9 +291,9 @@ public class CribbageManager {
      * @param pid the player's ID
      * @param card the card to be played
      * @return the total points earned from playing the card
-     * @throws IllegalArgumentException if this player doesn't have the card in
-     *                                  their hand, has already played the 
-     *                                  card, or it is not this player's turn
+     * @throws IllegalArgumentException if this player cannot play the card, 
+     *                                  has already played the card, or it is 
+     *                                  not this player's turn
      * @throws NullPointerException if the card is null
      * @throws IndexOutOfBoundsException if the player ID is invalid
      */
@@ -304,21 +303,15 @@ public class CribbageManager {
                     pid + "; must be between 0 and " + numPlayers + "exclusive");
         } else if (card == null) {
            throw new NullPointerException("Card is null");
-        } else if (!hands.get(pid).contains(card)) {
-            throw new IllegalArgumentException("Player does not have this card");
         } else if (cardAlreadyPlayed(pid, card)) {
             throw new IllegalArgumentException("Player has already played this card");
         } else if (pid != nextToPlayCard) {
             throw new IllegalArgumentException("Not this player's turn");
+        } else if (!canPlayCard(card)) {
+            throw new IllegalArgumentException("Card cannot be played");
         }
-        
-
-        int cardValue = card.getValue();
-        if (count + cardValue > MAX_COUNT) {
-            return -1;
-        }
-
-        count += cardValue;
+    
+        count += card.getValue();
         cardStack.addFirst(card);
         playedCardsByPlayer.get(pid).add(card);
 
@@ -334,12 +327,16 @@ public class CribbageManager {
         return totalPoints;
     }
 
+    public boolean canPlayCard(Card card) {
+        return count + card.getValue() <= MAX_COUNT;
+    }
+
     /**
      * If no more cards can be played for the current round, the last player 
      * to play a card is awarded a point. 
      */
     public void awardPointsForGo() {
-        if (canPlayCard()) {
+        if (movePossible()) {
             throw new IllegalStateException("Cards can still be played");
         }
         addPoints(nextToPlayCard, 1);
@@ -356,7 +353,7 @@ public class CribbageManager {
         return count == MAX_COUNT;
     }
 
-    public boolean canPlayCard() {
+    public boolean movePossible() {
         for (int i = 0; i < numPlayers; i++) {
             if (hasPlayableCard(i)) {
                 return true;
