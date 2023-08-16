@@ -53,7 +53,7 @@ public class CribbageAI {
         return hand;
     }
 
-    public Card playOptimalCard() {
+    public Card getOptimalCard() {
         MCTSAgent agent = new MCTSAgent(gameState, pid);
         Card card = agent.selectCard();
         return card;

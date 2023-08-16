@@ -35,7 +35,7 @@ public class TestCribbageAI {
     }
 
     @Test 
-    public void testMoveLogic() {
+    public void testTwoAI() {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
         CribbageAI playerOne = new CribbageAI(state, 0);
         CribbageAI playerTwo = new CribbageAI(state, 1);
@@ -63,10 +63,10 @@ public class TestCribbageAI {
         while (state.movePossible()) {
             Card optimalCard;
             if (state.nextPlayer() == 0) {
-                optimalCard = playerOne.playOptimalCard();
+                optimalCard = playerOne.getOptimalCard();
                 System.out.println("playerOne optimal card: " + optimalCard);
             } else {
-                optimalCard = playerTwo.playOptimalCard();
+                optimalCard = playerTwo.getOptimalCard();
                 System.out.println("playerTwo optimal card: " + optimalCard);
             }
             state.playCard(state.nextPlayer(), optimalCard);

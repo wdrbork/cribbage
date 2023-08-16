@@ -222,18 +222,13 @@ public class MCTSAgent {
                 i <= Math.min(10, MAX_COUNT - selectedState.count());
                 i++) {
             Rank rank = Card.getRankBasedOnValue(i);
-
-            // In order to prevent duplicate cards from being played 
-            // by the same player, change the suit based on the number
-            // of times this rank has been played by this player already
-            int occurrences = 0;
-            for (Card card : playedCards) {
-                if (card.getRank() == rank) {
-                    occurrences++;
-                }
-            }
+            
             // If all 4 cards of this rank have been played, skip it
+            int occurrences = knownRankCount(rank);
             if (occurrences == 4) continue;
+
+            // Choose the rank of the card based on the number of times it 
+            // has appeared (i.e. in our hand or played by another player)
             Suit suit = Suit.values()[occurrences];
 
             Card possibleCard = new Card(suit, rank);
@@ -284,9 +279,10 @@ public class MCTSAgent {
             }
         }
         if (occurrences > Deck.CARDS_PER_RANK) {
+            System.out.println(selectedState.getAllHands());
+            System.out.println(selectedState.getPlayedCards());
             throw new IllegalStateException(occurrences + " instances of " + rank);
         }
-        assert(occurrences <= Deck.CARDS_PER_RANK);
         return occurrences;
     }
 }
