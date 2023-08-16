@@ -39,7 +39,7 @@ public class TestCribbageAI {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
         CribbageAI playerOne = new CribbageAI(state, 0);
         CribbageAI playerTwo = new CribbageAI(state, 1);
-        state.setDealer(0);
+        state.setDealer(1);
         state.dealHands();
         playerOne.setHand(state.getHand(0));
         playerTwo.setHand(state.getHand(1));
@@ -69,7 +69,7 @@ public class TestCribbageAI {
                 optimalCard = playerTwo.getOptimalCard();
                 System.out.println("playerTwo optimal card: " + optimalCard);
             }
-            state.playCard(state.nextPlayer(), optimalCard);
+            System.out.println("Points earned: " + state.playCard(state.nextPlayer(), optimalCard));
         }
     }
 }

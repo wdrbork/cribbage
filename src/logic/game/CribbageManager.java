@@ -304,6 +304,8 @@ public class CribbageManager {
         } else if (card == null) {
            throw new NullPointerException("Card is null");
         } else if (cardAlreadyPlayed(pid, card)) {
+            System.out.println(card);
+            System.out.println(playedCardsByPlayer);
             throw new IllegalArgumentException("Player has already played this card");
         } else if (pid != nextToPlayCard) {
             throw new IllegalArgumentException("Not this player's turn");

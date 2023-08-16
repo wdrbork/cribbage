@@ -46,7 +46,7 @@ public class MCTSNode {
             return null;
         }
 
-        double maxValue = 0;
+        double maxValue = -Double.MAX_VALUE;
         List<MCTSNode> selections = new ArrayList<MCTSNode>();
         for (MCTSNode child : children.values()) {
             double value = child.getUCTValue(UCT_CONSTANT);

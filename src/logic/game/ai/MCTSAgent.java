@@ -15,7 +15,7 @@ import logic.game.*;
 // for making decisions during the second stage of play, but may eventually
 // be used for the first stage as well
 public class MCTSAgent {
-    private static final int ITERATIONS = 10000;
+    private static final int ITERATIONS = 100000;
     private static final int MAX_COUNT = 31;
     private static final int HAND_SIZE = 4;
 
@@ -121,7 +121,11 @@ public class MCTSAgent {
 
                     // If this AI was the last to play a card, include the 
                     // point as part of the rollout
-                    if (selectedState.nextPlayer() == pid) pointsEarned++;
+                    if (selectedState.nextPlayer() == pid) {
+                        pointsEarned++;
+                    } else {
+                        pointsEarned--;
+                    }
                 }
                 selectedState.resetCount();
             }
@@ -141,7 +145,7 @@ public class MCTSAgent {
                 if (!selectedState.canPlayCard(possibleCards.get(idx))) {
                     continue;
                 }
-                pointsEarned +=selectedState.playCard(pid, possibleCards.get(idx));
+                pointsEarned += selectedState.playCard(pid, possibleCards.get(idx));
             } else {
                 // Get a value between 1 and 13
                 int value = r.nextInt(Deck.CARDS_PER_SUIT - 1) + 1;
@@ -153,10 +157,11 @@ public class MCTSAgent {
                 Suit suit = Suit.values()[occurrences];
                 
                 Card playedCard = new Card(suit, rank);
-                if (!selectedState.canPlayCard(playedCard)) {
+                if (!selectedState.canPlayCard(playedCard)
+                        || selectedState.cardAlreadyPlayed(next, playedCard)) {
                     continue;
                 }
-                selectedState.playCard(next, playedCard);
+                pointsEarned -= selectedState.playCard(next, playedCard);
             }
         }
 
@@ -216,7 +221,6 @@ public class MCTSAgent {
     private Map<Integer, MCTSNode> expandOtherHand(MCTSNode parent) {
         Map<Integer, MCTSNode> children = new HashMap<Integer, MCTSNode>();
         int otherPid = selectedState.nextPlayer();
-        List<Card> playedCards = selectedState.getPlayedCards().get(otherPid);
 
         for (int i = 1; 
                 i <= Math.min(10, MAX_COUNT - selectedState.count());
@@ -232,6 +236,12 @@ public class MCTSAgent {
             Suit suit = Suit.values()[occurrences];
 
             Card possibleCard = new Card(suit, rank);
+
+            // If we have already played this card, skip it
+            if (selectedState.cardAlreadyPlayed(otherPid, possibleCard)) {
+                continue;
+            }
+
             MCTSNode child = new MCTSNode(parent);
             child.playedCard = possibleCard;
             child.pidTurn = otherPid;
