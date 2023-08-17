@@ -14,6 +14,7 @@ import java.util.List;
 public class TestCribbageAI {
     private static final int PID = 1;
     private static final int NUM_PLAYERS = 2;
+    private static final int MAX_COUNT = 31;
 
     @Test
     public void analyzeRecommendedHands() {
@@ -60,7 +61,7 @@ public class TestCribbageAI {
         System.out.println("playerOne hand: " + state.getHand(0));
         System.out.println("playerTwo hand: " + state.getHand(1));
 
-        while (state.movePossible()) {
+        while (!state.roundOver()) {
             Card optimalCard;
             if (state.nextPlayer() == 0) {
                 optimalCard = playerOne.getOptimalCard();
@@ -70,6 +71,13 @@ public class TestCribbageAI {
                 System.out.println("playerTwo optimal card: " + optimalCard);
             }
             System.out.println("Points earned: " + state.playCard(state.nextPlayer(), optimalCard));
+            System.out.println("Count: " + state.count());
+            if (!state.movePossible()) {
+                if (state.count() != MAX_COUNT) {
+                    state.awardPointsForGo();
+                }
+                state.resetCount();
+            }
         }
     }
 }

@@ -17,7 +17,6 @@ import logic.game.*;
 public class MCTSAgent {
     private static final int ITERATIONS = 100000;
     private static final int MAX_COUNT = 31;
-    private static final int HAND_SIZE = 4;
 
     private CribbageManager gameState;
     private CribbageManager selectedState;
@@ -112,7 +111,7 @@ public class MCTSAgent {
     private int rollout() {
         int pointsEarned = 0;
         Random r = new Random();
-        while (!isTerminalState(selectedState)) {
+        while (!selectedState.roundOver()) {
             if (!selectedState.movePossible()) {
                 // If the count is not 31 and nobody can play a card, give 
                 // the last player to play a card a single point
@@ -182,7 +181,7 @@ public class MCTSAgent {
 
     private boolean expandSelection(MCTSNode node) {
         // If no more cards can be played, return false
-        if (isTerminalState(selectedState)) return false;
+        if (selectedState.roundOver()) return false;
 
         // If the next player to play a card is this AI, go through its 
         // hand and add nodes for cards that haven't already been played
@@ -250,19 +249,6 @@ public class MCTSAgent {
 
         this.numberOfNodes += children.size();
         return children;
-    }
-
-    private boolean isTerminalState(CribbageManager state) {
-        // If a player has won the game, return true
-        if (state.gameOver()) return true;
-
-        // If no more cards can be played, return true
-        for (List<Card> playedCards : state.getPlayedCards()) {
-            if (playedCards.size() != HAND_SIZE) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private int knownRankCount(Rank rank) {

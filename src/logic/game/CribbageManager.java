@@ -416,6 +416,19 @@ public class CribbageManager {
         }
     }
 
+    public boolean roundOver() {
+        // If a player has won the game, return true
+        if (gameOver()) return true;
+
+        // If no more cards can be played, return true
+        for (List<Card> playedCards : getPlayedCards()) {
+            if (playedCards.size() != HAND_SIZE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**************************************************************************
     * Third Stage (Show)
     **************************************************************************/
