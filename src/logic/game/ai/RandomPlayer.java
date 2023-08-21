@@ -1,5 +1,6 @@
 package logic.game.ai;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -46,6 +47,18 @@ public class RandomPlayer implements CribbageAI {
     }
 
     public Card chooseCard() {
-        return hand.get(rng.nextInt(hand.size()));
+        List<Card> playedCards = gameState.getPlayedCards().get(pid);
+        List<Card> availableCards = new ArrayList<Card>();
+        for (Card card : hand) {
+            if (!playedCards.contains(card)) {
+                availableCards.add(card);
+            }
+        }
+
+        Card card = availableCards.get(rng.nextInt(availableCards.size()));
+        while (!gameState.canPlayCard(card)) {
+            card = availableCards.get(rng.nextInt(availableCards.size()));
+        }
+        return card;
     }
 }
