@@ -313,9 +313,18 @@ public class CribbageManager {
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         } else if (card == null) {
            throw new NullPointerException("Card is null");
+        } else if (cardAlreadyPlayed(card)) {
+            System.out.println(card);
+            System.out.println(playedCardsByPlayer);
+            throw new IllegalArgumentException("Player has already played this card");
         } else if (pid != nextToPlayCard) {
             throw new IllegalArgumentException("Not this player's turn");
-        } else if (!canPlayCard(card)) {
+        } else if (maxCountExceeded(card)) {
+            System.out.println(card);
+            System.out.println(getHand(pid));
+            System.out.println(getPlayedCards().get(pid));
+            System.out.println("Count: " + count);
+            System.out.println("Player: " + nextToPlayCard);
             throw new IllegalArgumentException("Card cannot be played");
         }
     
@@ -335,16 +344,28 @@ public class CribbageManager {
         return totalPoints;
     }
 
+    /**
+     * Check to see if the passed-in card can be played. A card can be played 
+     * if it has not already been played and playing it wouldn't cause the
+     * count to exceed the maxmimum value of 31. Returns true if the card
+     * can be played, false otherwise
+     * @param card a card
+     * @return true if the card can be played, false otherwise
+     */
     public boolean canPlayCard(Card card) {
-        // Check to see if this card has already been played
-        for (List<Card> playedCards : playedCardsByPlayer) {
-            if (playedCards.contains(card)) {
-                return false;
-            }
-        }
+        return !maxCountExceeded(card) && !cardAlreadyPlayed(card);
+    }
 
-        // Check to see that this card doesn't put the count past 31
-        return count + card.getValue() <= MAX_COUNT;
+    /**
+     * Check to see if playing the passed-in card causes the count to exceed 
+     * the maximum value of 31. Return true if this is the case, false
+     * otherwise
+     * @param card the card that will be played
+     * @return true if playing the card would cause the count to exceed 31, 
+     *         false otherwise
+     */
+    public boolean maxCountExceeded(Card card) {
+        return count + card.getValue() > MAX_COUNT;
     }
 
     /**
@@ -372,6 +393,16 @@ public class CribbageManager {
     public boolean movePossible() {
         for (int i = 0; i < numPlayers; i++) {
             if (hasPlayableCard(i)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean cardAlreadyPlayed(Card card) {
+        for (List<Card> playedCards : playedCardsByPlayer) {
+            if (playedCards.contains(card)) {
                 return true;
             }
         }
