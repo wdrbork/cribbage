@@ -132,7 +132,9 @@ public class TestSecondStage {
         assertThrows(IllegalArgumentException.class, () -> {
             man.playCardByIndex(PLAYER_ONE_ID, 2);
         });
-        assertEquals(man.playCardByIndex(PLAYER_TWO_ID, 2), -1);
+        assertThrows(IllegalArgumentException.class, () -> {
+            man.playCardByIndex(PLAYER_TWO_ID, 2);
+        });
 
         man.resetCount();
 
@@ -227,6 +229,11 @@ public class TestSecondStage {
         playerThreeHand.add(new Card(Suit.DIAMOND, Rank.NINE)); //
         man.setHand(PLAYER_THREE_ID, playerThreeHand);
 
+        Card falseCard = new Card(Suit.HEART, Rank.ACE);
+        Card trueCard = new Card(Suit.DIAMOND, Rank.ACE);
+        assertFalse(man.getHand(PLAYER_ONE_ID).contains(falseCard));
+        assertTrue(man.getHand(PLAYER_ONE_ID).contains(trueCard));
+
         assertTrue(man.movePossible());
 
         // Player 1 plays the three of diamonds
@@ -313,7 +320,9 @@ public class TestSecondStage {
         // The count is 31, so nobody should be able to play a card
         assertFalse(man.movePossible());
         assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
-        assertEquals(man.playCardByIndex(PLAYER_ONE_ID, 0), -1);
+        assertThrows(IllegalArgumentException.class, () -> {
+            man.playCardByIndex(PLAYER_ONE_ID, 0);
+        });
         assertThrows(IllegalArgumentException.class, () -> {
             man.playCardByIndex(PLAYER_TWO_ID, 2);
         });
