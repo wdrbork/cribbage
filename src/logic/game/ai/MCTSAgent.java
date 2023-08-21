@@ -15,7 +15,7 @@ import logic.game.*;
 // for making decisions during the second stage of play, but may eventually
 // be used for the first stage as well
 public class MCTSAgent {
-    private static final int ITERATIONS = 100000;
+    private static final int ITERATIONS = 1000;
     private static final int MAX_COUNT = 31;
 
     private CribbageManager gameState;
@@ -25,6 +25,7 @@ public class MCTSAgent {
 
     // Debug field
     private int numberOfNodes;
+    private int loops = 0;
 
     /**
      * Constructs an MCTSAgent
@@ -57,7 +58,6 @@ public class MCTSAgent {
 
         search();
         MCTSNode bestMove = root.chooseMostExpandedChild();
-        System.out.println(numberOfNodes);
         return bestMove.playedCard;
     }
 
@@ -65,7 +65,7 @@ public class MCTSAgent {
         int searches = 0;
 
         while (searches < ITERATIONS) {
-            // System.out.println("Search " + searches);
+            loops = 0;
             MCTSNode selection = nodeSelection();
             int pointsEarned = rollout();
             backup(selection, pointsEarned);
@@ -84,7 +84,6 @@ public class MCTSAgent {
             assert(curr != null);
             assert(selectedState.nextPlayer() == curr.pidTurn);
             assert(selectedState.canPlayCard(curr.playedCard));
-            // System.out.println(curr.playedCard);
             selectedState.playCard(curr.pidTurn, curr.playedCard);
             if (!selectedState.movePossible()) {
                 selectedState.resetCount();
@@ -112,6 +111,10 @@ public class MCTSAgent {
         int pointsEarned = 0;
         Random r = new Random();
         while (!selectedState.roundOver()) {
+            loops++;
+            if (loops == 1000) {
+                throw new IllegalStateException("Too many loops");
+            }
             if (!selectedState.movePossible()) {
                 // If the count is not 31 and nobody can play a card, give 
                 // the last player to play a card a single point
@@ -134,11 +137,17 @@ public class MCTSAgent {
                 List<Card> hand = selectedState.getHand(pid);
                 List<Card> possibleCards = new ArrayList<Card>();
                 for (Card card : hand) {
-                    if (!selectedState.cardAlreadyPlayed(pid, card)) {
+                    if (!selectedState.cardAlreadyPlayed(card)) {
                         possibleCards.add(card);
                     }
                 }
-                assert(possibleCards.size() > 0) : "Can't play anymore cards";
+                if (possibleCards.size() == 0) {
+                    System.out.println(hand);
+                    System.out.println(selectedState.getPlayedCards());
+                    System.out.println(selectedState.count());
+                    throw new IllegalStateException("Can't play anymore cards");
+                }
+                // assert(possibleCards.size() > 0) : "Can't play anymore cards";
 
                 int idx = r.nextInt(possibleCards.size());
                 if (!selectedState.canPlayCard(possibleCards.get(idx))) {
@@ -146,21 +155,38 @@ public class MCTSAgent {
                 }
                 pointsEarned += selectedState.playCard(pid, possibleCards.get(idx));
             } else {
-                // Get a value between 1 and 13
-                int value = r.nextInt(Deck.CARDS_PER_SUIT - 1) + 1;
+                // Get the highest valued card that could be played
+                int upperBound = Math.min(MAX_COUNT - selectedState.count(), 
+                        Deck.CARDS_PER_SUIT - Deck.NUM_FACE_CARDS);
+
+                // Pick a random value between 1 and this upper bound
+                int value = r.nextInt(upperBound) + 1;
+
+                // If the value is a 10, we want to randomly select either a 
+                // face card or the actual 10 card
+                if (value == 10) {
+                    value += r.nextInt(Deck.NUM_FACE_CARDS + 1);
+                }
                 Rank rank = Card.getRankBasedOnValue(value);
 
-                // If all 4 cards of this rank have been played, try again
-                int occurrences = knownRankCount(rank);
-                if (occurrences == 4) continue;
-                Suit suit = Suit.values()[occurrences];
+                // Find a possible suit for a card of this rank. If there is 
+                // no available suit, try again
+                Suit suit = getPossibleSuit(rank);
+                if (suit == null) continue;
                 
-                Card playedCard = new Card(suit, rank);
-                if (!selectedState.canPlayCard(playedCard)
-                        || selectedState.cardAlreadyPlayed(next, playedCard)) {
+                Card card = new Card(suit, rank);
+                if (!selectedState.canPlayCard(card)) {
+                    System.out.println("Cannot play card " + card + " with count " + selectedState.count());
                     continue;
                 }
-                pointsEarned -= selectedState.playCard(next, playedCard);
+
+                if (selectedState.cardAlreadyPlayed(card)) {
+                    System.out.println(card + " already played");
+                    System.out.println("Count = " + selectedState.count());
+                    System.out.println(selectedState.getPlayedCards());
+                    continue;
+                }
+                pointsEarned -= selectedState.playCard(next, card);
             }
         }
 
@@ -201,7 +227,7 @@ public class MCTSAgent {
         List<Card> hand = selectedState.getHand(pid);
 
         for (Card card : hand) {
-            if (selectedState.cardAlreadyPlayed(pid, card) 
+            if (selectedState.cardAlreadyPlayed(card) 
                     || !selectedState.canPlayCard(card)) {
                 continue;
             }
@@ -226,18 +252,15 @@ public class MCTSAgent {
                 i++) {
             Rank rank = Card.getRankBasedOnValue(i);
             
-            // If all 4 cards of this rank have been played, skip it
-            int occurrences = knownRankCount(rank);
-            if (occurrences == 4) continue;
-
-            // Choose the rank of the card based on the number of times it 
-            // has appeared (i.e. in our hand or played by another player)
-            Suit suit = Suit.values()[occurrences];
+            // Find a possible suit for a card of this rank. If there is 
+            // no available suit, try again
+            Suit suit = getPossibleSuit(rank);
+            if (suit == null) continue;
 
             Card possibleCard = new Card(suit, rank);
 
-            // If we have already played this card, skip it
-            if (selectedState.cardAlreadyPlayed(otherPid, possibleCard)) {
+            // If this card has already been played, skip it
+            if (selectedState.cardAlreadyPlayed(possibleCard)) {
                 continue;
             }
 
@@ -251,34 +274,46 @@ public class MCTSAgent {
         return children;
     }
 
-    private int knownRankCount(Rank rank) {
-        int occurrences = 0;
+    // private int knownRankCount(Rank rank) {
+    //     int occurrences = 0;
 
-        // Search through our own hand first
-        List<Card> hand = gameState.getHand(pid);
-        for (Card card : hand) {
-            if (card.getRank() == rank) {
-                occurrences++;
+    //     // Search through our own hand first
+    //     List<Card> hand = gameState.getHand(pid);
+    //     for (Card card : hand) {
+    //         if (card.getRank() == rank) {
+    //             occurrences++;
+    //         }
+    //     }
+
+    //     // Search through cards that have been played by other players
+    //     List<List<Card>> allPlayedCards = selectedState.getPlayedCards();
+    //     for (int i = 0; i < selectedState.numPlayers(); i++) {
+    //         if (i == pid) continue;
+
+    //         List<Card> pidPlayedCards = allPlayedCards.get(i);
+    //         for (Card card : pidPlayedCards) {
+    //             if (card.getRank() == rank) {
+    //                 occurrences++;
+    //             }
+    //         }
+    //     }
+    //     if (occurrences > Deck.CARDS_PER_RANK) {
+    //         System.out.println(selectedState.getAllHands());
+    //         System.out.println(selectedState.getPlayedCards());
+    //         throw new IllegalStateException(occurrences + " instances of " + rank);
+    //     }
+    //     return occurrences;
+    // }
+
+    private Suit getPossibleSuit(Rank rank) {
+        for (Suit suit : Suit.values()) {
+            Card testCard = new Card(suit, rank);
+            if (!selectedState.cardAlreadyPlayed(testCard)
+                    && !selectedState.getHand(pid).contains(testCard)) {
+                return suit;
             }
         }
 
-        // Search through cards that have been played by other players
-        List<List<Card>> allPlayedCards = selectedState.getPlayedCards();
-        for (int i = 0; i < selectedState.numPlayers(); i++) {
-            if (i == pid) continue;
-
-            List<Card> pidPlayedCards = allPlayedCards.get(i);
-            for (Card card : pidPlayedCards) {
-                if (card.getRank() == rank) {
-                    occurrences++;
-                }
-            }
-        }
-        if (occurrences > Deck.CARDS_PER_RANK) {
-            System.out.println(selectedState.getAllHands());
-            System.out.println(selectedState.getPlayedCards());
-            throw new IllegalStateException(occurrences + " instances of " + rank);
-        }
-        return occurrences;
+        return null;
     }
 }
