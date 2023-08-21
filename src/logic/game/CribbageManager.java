@@ -95,6 +95,8 @@ public class CribbageManager {
         this.playedCardsByPlayer = copy.getPlayedCards();
         this.crib = new ArrayList<Card>(copy.crib);
         this.cardStack = new LinkedList<Card>(copy.cardStack);
+        this.count = copy.count;
+        this.starterCard = copy.starterCard;
     }
 
     // Getter functions
@@ -109,7 +111,7 @@ public class CribbageManager {
     public int getPlayerScore(int pid) { 
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
         return gameScores[pid]; 
@@ -134,7 +136,7 @@ public class CribbageManager {
     public List<Card> getHand(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
         return new ArrayList<Card>(hands.get(pid));
@@ -154,11 +156,19 @@ public class CribbageManager {
     public void setDealer(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         } 
         
         this.dealerId = pid;
         nextToPlayCard = (dealerId + 1) % numPlayers;
+    }
+
+    public void rotateDealer() {
+        if (dealerId == -1) {
+            throw new IllegalStateException("Must set dealer first");
+        }
+
+        dealerId = (dealerId + 1) % numPlayers;
     }
 
     /**************************************************************************
@@ -224,7 +234,7 @@ public class CribbageManager {
     public void sendCardToCrib(int pid, Card card) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         } else if (card == null) {
             throw new NullPointerException("Card is null");
         } else if (!hands.get(pid).contains(card)) {
@@ -300,13 +310,9 @@ public class CribbageManager {
     public int playCard(int pid, Card card) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         } else if (card == null) {
            throw new NullPointerException("Card is null");
-        } else if (cardAlreadyPlayed(pid, card)) {
-            System.out.println(card);
-            System.out.println(playedCardsByPlayer);
-            throw new IllegalArgumentException("Player has already played this card");
         } else if (pid != nextToPlayCard) {
             throw new IllegalArgumentException("Not this player's turn");
         } else if (!canPlayCard(card)) {
@@ -330,6 +336,14 @@ public class CribbageManager {
     }
 
     public boolean canPlayCard(Card card) {
+        // Check to see if this card has already been played
+        for (List<Card> playedCards : playedCardsByPlayer) {
+            if (playedCards.contains(card)) {
+                return false;
+            }
+        }
+
+        // Check to see that this card doesn't put the count past 31
         return count + card.getValue() <= MAX_COUNT;
     }
 
@@ -365,10 +379,6 @@ public class CribbageManager {
         return false;
     }
 
-    public boolean cardAlreadyPlayed(int pid, Card card) {
-        return playedCardsByPlayer.get(pid).contains(card);
-    }
-
     /**
      * Returns true if the given player can play a card for the current round. 
      * If all their cards have been played, or they have no card that can be 
@@ -381,7 +391,7 @@ public class CribbageManager {
     public boolean hasPlayableCard(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
         List<Card> playedCards = playedCardsByPlayer.get(pid);
@@ -434,10 +444,24 @@ public class CribbageManager {
     **************************************************************************/
     /**
      * Counts and returns the number of points present in the given player's 
+     * hand in combination with the starter card. This value is added to the 
+     * player's overall total for the game.
+     * 
+     * @param pid the ID of the player whose hand will be counted up
+     * @return the number of points present in the given player's hand
+     */
+    public int countHand(int pid) {
+        return countHand(pid, true);
+    }
+
+    /**
+     * Counts and returns the number of points present in the given player's 
      * hand in combination with the starter card. The number of points earned 
      * will be added to the player's total for this game if true is passed in.
      * 
      * @param pid the ID of the player whose hand will be counted up
+     * @param addToScore true if the score from the hand should be added to the 
+     *                   player's total score for the game; false otherwise
      * @return the number of points present in the given player's hand
      */
     public int countHand(int pid, boolean addToScore) {
@@ -487,7 +511,7 @@ public class CribbageManager {
     public int count15Combos(int pid) {
         if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
         return CribbageScoring.count15Combos(hands.get(pid), starterCard);
@@ -505,7 +529,7 @@ public class CribbageManager {
     public int countRuns(int pid) {
         if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
         return CribbageScoring.countRuns(hands.get(pid), starterCard);
@@ -521,7 +545,7 @@ public class CribbageManager {
     public int countPairs(int pid) {
         if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
        return CribbageScoring.countPairs(hands.get(pid), starterCard);
@@ -539,7 +563,7 @@ public class CribbageManager {
     public int countFlush(int pid) {
         if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
         return CribbageScoring.countFlush(hands.get(pid), starterCard);
@@ -555,7 +579,7 @@ public class CribbageManager {
     public int countNobs(int pid) {
         if (pid < 0 || pid > numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
         return CribbageScoring.countNobs(hands.get(pid), starterCard);
@@ -577,7 +601,7 @@ public class CribbageManager {
     public boolean isWinner(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + "exclusive");
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
         return gameScores[pid] >= MAX_SCORE;
@@ -594,7 +618,7 @@ public class CribbageManager {
 
     /**
      * Resets all state from a round, including hands, the crib, and played 
-     * cards.
+     * cards. Rotates the dealer as well.
      */
     public void clearRoundState() {
         resetCount();
@@ -608,6 +632,7 @@ public class CribbageManager {
         }
 
         crib.clear();
-        nextToPlayCard = -1;
+        rotateDealer();
+        determineNextPlayer();
     }
 }
