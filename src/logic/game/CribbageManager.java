@@ -30,6 +30,7 @@ public class CribbageManager {
     protected final List<Card> crib;
     protected final LinkedList<Card> cardStack;
     protected final List<List<Card>> playedCardsByPlayer;
+    protected int lastToPlayCard;
     protected int nextToPlayCard;
 
     // The starter card drawn at the end of the first stage
@@ -42,7 +43,7 @@ public class CribbageManager {
     protected int count;         
 
     /**
-     * Sets up a cribbage game using the given number of players
+     * Sets up a cribbage game using the given number of players.
      * 
      * @param numPlayers the number of players in the game (can only be 2 or 3)
      */
@@ -54,6 +55,7 @@ public class CribbageManager {
         this.numPlayers = numPlayers;
         deck = new Deck();
         gameScores = new int[numPlayers];
+        lastToPlayCard = -1;
         nextToPlayCard = -1;
         dealerId = -1;
 
@@ -77,7 +79,7 @@ public class CribbageManager {
     }
 
     /**
-     * Creates a deep copy of an existing game
+     * Creates a deep copy of an existing game.
      * 
      * @param copy the CribbageManager that will be copied over
      */
@@ -102,7 +104,9 @@ public class CribbageManager {
     // Getter functions
     public int numPlayers() { return numPlayers; }
 
-    public int nextPlayer() { return nextToPlayCard; }
+    public int lastToPlayCard() { return lastToPlayCard; }
+
+    public int nextToPlayCard() { return nextToPlayCard; }
 
     public int count() { return count; }
 
@@ -144,6 +148,13 @@ public class CribbageManager {
 
     public List<Card> getCrib() {
         return Collections.unmodifiableList(crib);
+    }
+
+    public Card getLastPlayedCard() {
+        if (cardStack.isEmpty()) {
+            return null;
+        }
+        return cardStack.getFirst();
     }
 
     /**************************************************************************
@@ -217,6 +228,27 @@ public class CribbageManager {
         }
 
         return Collections.unmodifiableList(hands);
+    }
+
+    /**
+     * Manually adds a card to the passed-in player's hand. Note: does not 
+     * need to be used in combination with dealHands() since that method adds 
+     * the cards to each hand by itself.
+     * 
+     * @param pid the ID of the player whose hand will be given the card
+     * @param card the card to be added to the player's hand
+     * @throws IllegalArgumentException - if the player's hand is full
+     */
+    public void addCardToHand(int pid, Card card) {
+        if (hands.get(pid).size() == HAND_SIZE) {
+            System.out.println(pid);
+            System.out.println(hands);
+            System.out.println(playedCardsByPlayer);
+            throw new IllegalArgumentException("Can't add anymore cards to " + 
+                    "this player's hand");
+        }
+
+        hands.get(pid).add(card);
     }
 
     /**
@@ -312,20 +344,24 @@ public class CribbageManager {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         } else if (card == null) {
+            System.out.println(hands);
+            System.out.println(playedCardsByPlayer);
+            System.out.println("PID = " + pid);
+            System.out.println("Desired PID = " + nextToPlayCard);
+            System.out.println("Count = " + count);
            throw new NullPointerException("Card is null");
         } else if (cardAlreadyPlayed(card)) {
-            System.out.println(card);
-            System.out.println(playedCardsByPlayer);
             throw new IllegalArgumentException("Player has already played this card");
         } else if (pid != nextToPlayCard) {
             throw new IllegalArgumentException("Not this player's turn");
         } else if (maxCountExceeded(card)) {
-            System.out.println(card);
-            System.out.println(getHand(pid));
-            System.out.println(getPlayedCards().get(pid));
-            System.out.println("Count: " + count);
-            System.out.println("Player: " + nextToPlayCard);
             throw new IllegalArgumentException("Card cannot be played");
+        } else if (!hands.get(pid).contains(card)) {
+            System.out.println("Count = " + count);
+            System.out.println("Card = " + card);
+            System.out.println("Hand = " + hands.get(pid));
+            System.out.println("Played cards = " + playedCardsByPlayer.get(pid));
+            throw new IllegalStateException("Player " + pid + " does not have card in their hand");
         }
     
         count += card.getValue();
@@ -339,6 +375,7 @@ public class CribbageManager {
         totalPoints += CribbagePegging.countPegPairs(cardStack) + 
                 CribbagePegging.countPegRuns(cardStack);
         addPoints(pid, totalPoints);
+        lastToPlayCard = pid;
         determineNextPlayer();
         
         return totalPoints;
@@ -374,6 +411,10 @@ public class CribbageManager {
      */
     public void awardPointsForGo() {
         if (movePossible()) {
+            System.out.println(count);
+            System.out.println(nextToPlayCard);
+            System.out.println(hands);
+            System.out.println(playedCardsByPlayer);
             throw new IllegalStateException("Cards can still be played");
         }
         addPoints(nextToPlayCard, 1);
@@ -390,6 +431,12 @@ public class CribbageManager {
         return count == MAX_COUNT;
     }
 
+    /**
+     * Checks to see if somebody in the game can play a card in the current
+     * round. Returns true if a card can be played, false otherwise.
+     * 
+     * @return true if a card can be played, false otherwise
+     */
     public boolean movePossible() {
         for (int i = 0; i < numPlayers; i++) {
             if (hasPlayableCard(i)) {
@@ -400,6 +447,14 @@ public class CribbageManager {
         return false;
     }
 
+    /**
+     * Checks to see if the passed-in card has already been played. Returns 
+     * true if it has already been played, false otherwise.
+     * 
+     * @param card a card that may or may have not been played already
+     * @return true if the passed-in card has already been played, false 
+     *         otherwise
+     */
     public boolean cardAlreadyPlayed(Card card) {
         for (List<Card> playedCards : playedCardsByPlayer) {
             if (playedCards.contains(card)) {
@@ -445,6 +500,17 @@ public class CribbageManager {
         count = 0;
         cardStack.clear();
         determineNextPlayer();
+    }
+
+    /**
+     * Manually sets the next person to play a card, overriding the underlying 
+     * function that determines the next player based on the cards in each 
+     * player's hand. Note: should rarely be used for normal cribbage games.
+     * 
+     * @param pid the ID of the next player
+     */
+    public void setNextPlayer(int pid) {
+        this.nextToPlayCard = pid;
     }
 
     private void determineNextPlayer() {
@@ -620,12 +686,12 @@ public class CribbageManager {
      * Adds points to the designated player's total and returns the new total. 
      * Caps out at 121. It is expected that points earned from either pegging 
      * or the hand are added to a player's total in order to maintain the 
-     * integrity of the cribbage game
+     * integrity of the cribbage game.
      * 
      * @param pid   the player's ID
      * @param total the number of points to be added
      */
-    private void addPoints(int pid, int total) {
+    protected void addPoints(int pid, int total) {
         gameScores[pid] = Math.min(MAX_SCORE, gameScores[pid] + total);
     }
 
@@ -653,17 +719,44 @@ public class CribbageManager {
      */
     public void clearRoundState() {
         resetCount();
-
-        for (List<Card> hand : hands) {
-            hand.clear();
-        }
+        clearAllHands();
 
         for (List<Card> playedCards : playedCardsByPlayer) {
             playedCards.clear();
         }
 
         crib.clear();
+        lastToPlayCard = -1;
         rotateDealer();
         determineNextPlayer();
+    }
+
+    /**
+     * Clears the hands of all players in the game.
+     */
+    public void clearAllHands() {
+        for (List<Card> hand : hands) {
+            hand.clear();
+        }
+    }
+
+    public void clearHand(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
+        }
+
+        hands.get(pid).clear();
+    }
+
+    public void clearHandOfUnplayedCards(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
+        }
+
+        for (Card card : playedCardsByPlayer.get(pid)) {
+            hands.get(pid).remove(card);
+        }
     }
 }

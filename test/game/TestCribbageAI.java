@@ -22,6 +22,8 @@ public class TestCribbageAI {
     private static final int TEST_GAMES = 100;
     private static final double WIN_THRESHOLD = .8;
 
+    private static int scoreDiff = 0;
+
     // @Test
     public void analyzeRecommendedHands() {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
@@ -41,7 +43,7 @@ public class TestCribbageAI {
         System.out.println(optimal);
     }
 
-    // @Test 
+    @Test 
     public void testSmartVersusSmart() {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
         CribbageAI playerOne = new SmartPlayer(state, 0);
@@ -69,14 +71,14 @@ public class TestCribbageAI {
 
         while (!state.roundOver()) {
             Card optimalCard;
-            if (state.nextPlayer() == 0) {
+            if (state.nextToPlayCard() == 0) {
                 optimalCard = playerOne.chooseCard();
                 System.out.println("playerOne optimal card: " + optimalCard);
             } else {
                 optimalCard = playerTwo.chooseCard();
                 System.out.println("playerTwo optimal card: " + optimalCard);
             }
-            System.out.println("Points earned: " + state.playCard(state.nextPlayer(), optimalCard));
+            System.out.println("Points earned: " + state.playCard(state.nextToPlayCard(), optimalCard));
             System.out.println("Count: " + state.count());
             if (!state.movePossible()) {
                 if (state.count() != MAX_COUNT) {
@@ -91,9 +93,9 @@ public class TestCribbageAI {
     public void testSmartVersusRandom() {
         int smartWins = 0;
         int randomWins = 0;
-        int gamesPlayed = 0;
+        int gamesPlayed = 1;
 
-        while (gamesPlayed < TEST_GAMES) {
+        while (gamesPlayed <= TEST_GAMES) {
             int winner = simulateTwoPlayerGame();
             if (winner == SMART_ID) {
                 smartWins++;
@@ -108,6 +110,8 @@ public class TestCribbageAI {
         double randomWinPct = (double) randomWins / gamesPlayed;
         System.out.println("Smart AI win %: " + smartWinPct * 100);
         System.out.println("Random AI win %: " + randomWinPct * 100);
+        System.out.println("Average score difference: " + 
+                (double) scoreDiff / TEST_GAMES);
         if (smartWinPct < WIN_THRESHOLD) {
             fail("Smart AI did not win enough games");
         } else {
@@ -149,7 +153,6 @@ public class TestCribbageAI {
             }
 
             game.getStarterCard();
-            //System.out.println("Begin playing round");
             playTwoPlayerRound(game, smart, random);
             if (game.dealer() == SMART_ID) {
                 game.countHand(RANDOM_ID);
@@ -158,15 +161,12 @@ public class TestCribbageAI {
                 game.countHand(SMART_ID);
                 game.countHand(RANDOM_ID);
             }
-
-            //System.out.println("Count crib");
             game.countCrib();
-            
-            // System.out.println("Clear round state");
             game.clearRoundState();
             rounds++;
         }
 
+        scoreDiff += game.getPlayerScore(SMART_ID) - game.getPlayerScore(RANDOM_ID);
         return game.isWinner(SMART_ID) ? SMART_ID : RANDOM_ID;
     }
 
@@ -174,12 +174,13 @@ public class TestCribbageAI {
             CribbageAI random) {
         while (!game.roundOver()) {
             Card playedCard;
-            if (game.nextPlayer() == SMART_ID) {
+            if (game.nextToPlayCard() == SMART_ID) {
                 playedCard = smart.chooseCard();
             } else {
                 playedCard = random.chooseCard();
             }
-            game.playCard(game.nextPlayer(), playedCard);
+            System.out.println(game.nextToPlayCard() + " plays " + playedCard);
+            game.playCard(game.nextToPlayCard(), playedCard);
 
             if (!game.movePossible()) {
                 if (game.count() != MAX_COUNT) {

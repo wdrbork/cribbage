@@ -70,7 +70,7 @@ public class TestSecondStage {
 
         // Player 1 plays the eight of spades
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_ONE_ID);
         int points = man.playCardByIndex(PLAYER_ONE_ID, 0);
         int currentCount = man.getCount();
         assertEquals(points, 0);
@@ -83,7 +83,7 @@ public class TestSecondStage {
 
         // Player 2 plays the seven of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 1);
         currentCount = man.getCount();
         assertEquals(points, 2);
@@ -101,7 +101,7 @@ public class TestSecondStage {
         });
 
         // Player 1 plays the six of spades
-        assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_ONE_ID);
         points = man.playCardByIndex(PLAYER_ONE_ID, 3);
         currentCount = man.getCount();
         assertEquals(points, 3);
@@ -114,7 +114,7 @@ public class TestSecondStage {
 
         // Player 2 plays the king of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 0);
         currentCount = man.getCount();
         assertEquals(points, 2);
@@ -128,7 +128,7 @@ public class TestSecondStage {
 
         // The count is 31, so nobody should be able to play a card
         assertFalse(man.movePossible());
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         assertThrows(IllegalArgumentException.class, () -> {
             man.playCardByIndex(PLAYER_ONE_ID, 2);
         });
@@ -139,7 +139,7 @@ public class TestSecondStage {
         man.resetCount();
 
         // It is player 1's turn, not player 2
-        assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_ONE_ID);
         assertThrows(IllegalArgumentException.class, () -> {
             man.playCardByIndex(PLAYER_TWO_ID, 2);
         });
@@ -158,7 +158,7 @@ public class TestSecondStage {
 
         // Player 2 plays the five of spades
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 3);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -171,7 +171,7 @@ public class TestSecondStage {
 
         // Player 1 plays the seven of spades
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_ONE_ID);
         points = man.playCardByIndex(PLAYER_ONE_ID, 2);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -188,7 +188,7 @@ public class TestSecondStage {
 
         // Player 2 plays their fourth and final card
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 2);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -238,7 +238,7 @@ public class TestSecondStage {
 
         // Player 1 plays the three of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_ONE_ID);
         int points = man.playCardByIndex(PLAYER_ONE_ID, 3);
         int currentCount = man.getCount();
         assertEquals(points, 0);
@@ -251,7 +251,7 @@ public class TestSecondStage {
 
         // Player 2 plays the queen of clubs
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 3);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -264,7 +264,7 @@ public class TestSecondStage {
 
         // Player 3 plays the king of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_THREE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_THREE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_THREE_ID);
         points = man.playCardByIndex(PLAYER_THREE_ID, 0);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -277,7 +277,7 @@ public class TestSecondStage {
 
         // Player 1 plays the two of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_ONE_ID);
         points = man.playCardByIndex(PLAYER_ONE_ID, 2);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -290,7 +290,7 @@ public class TestSecondStage {
 
         // Player 2 plays the five of clubs
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 0);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -306,7 +306,7 @@ public class TestSecondStage {
 
         // Player 1 plays the ace of clubs
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_ONE_ID);
         points = man.playCardByIndex(PLAYER_ONE_ID, 1);
         currentCount = man.getCount();
         assertEquals(points, 2);
@@ -319,7 +319,7 @@ public class TestSecondStage {
 
         // The count is 31, so nobody should be able to play a card
         assertFalse(man.movePossible());
-        assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_ONE_ID);
         assertThrows(IllegalArgumentException.class, () -> {
             man.playCardByIndex(PLAYER_ONE_ID, 0);
         });
@@ -339,7 +339,7 @@ public class TestSecondStage {
 
         // Player 2 plays the jack of hearts
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 1);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -352,7 +352,7 @@ public class TestSecondStage {
 
         // Player 3 plays the seven of clubs
         assertTrue(man.hasPlayableCard(PLAYER_THREE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_THREE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_THREE_ID);
         points = man.playCardByIndex(PLAYER_THREE_ID, 1);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -365,7 +365,7 @@ public class TestSecondStage {
 
         // Player 1 plays the ace of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_ONE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_ONE_ID);
         points = man.playCardByIndex(PLAYER_ONE_ID, 0);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -378,7 +378,7 @@ public class TestSecondStage {
 
         // Player 2 plays the queen of hearts
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 2);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -395,7 +395,7 @@ public class TestSecondStage {
         assertFalse(man.hasPlayableCard(PLAYER_ONE_ID));
 
         // Player 2 pegs for go
-        assertTrue(man.nextPlayer() == PLAYER_TWO_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         man.awardPointsForGo();
         assertEquals(man.getGameScores()[PLAYER_TWO_ID], 1);
 
@@ -403,7 +403,7 @@ public class TestSecondStage {
 
         // Player 3 plays their nine of spades and nine of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_THREE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_THREE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_THREE_ID);
         points = man.playCardByIndex(PLAYER_THREE_ID, 2);
         currentCount = man.getCount();
         assertEquals(points, 0);
@@ -415,7 +415,7 @@ public class TestSecondStage {
         assertEquals(man.getGameScores()[PLAYER_THREE_ID], 0);
 
         assertTrue(man.hasPlayableCard(PLAYER_THREE_ID));
-        assertTrue(man.nextPlayer() == PLAYER_THREE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_THREE_ID);
         points = man.playCardByIndex(PLAYER_THREE_ID, 3);
         currentCount = man.getCount();
         assertEquals(points, 2);
@@ -427,7 +427,7 @@ public class TestSecondStage {
         assertEquals(man.getGameScores()[PLAYER_THREE_ID], 2);
 
         // Player 3 pegs for go
-        assertTrue(man.nextPlayer() == PLAYER_THREE_ID);
+        assertTrue(man.nextToPlayCard() == PLAYER_THREE_ID);
         man.awardPointsForGo();
         assertEquals(man.getGameScores()[PLAYER_THREE_ID], 3);
     }

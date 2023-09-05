@@ -3,6 +3,7 @@ package logic.game.ai;
 import logic.game.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,16 +41,26 @@ public class SmartPlayer implements CribbageAI {
     }
 
     public List<Card> choosePlayingHand() {
+        Random rng = new Random();
         if (this.hand == null) {
             throw new IllegalStateException("No hand set for AI with pid " + pid);
         }
 
-        Map<List<Card>, Double> savedCounts = new HashMap<List<Card>, Double>();
-        boolean isDealer = false;
-        if (gameState.dealer() == pid) isDealer = true;
-        hand = maximizePoints(hand, isDealer, 
-                new ArrayList<Card>(), 0, savedCounts);
+        while (hand.size() > HAND_SIZE) {
+            hand.remove(rng.nextInt(hand.size()));
+        }
         return hand;
+
+        // if (this.hand == null) {
+        //     throw new IllegalStateException("No hand set for AI with pid " + pid);
+        // }
+
+        // Map<List<Card>, Double> savedCounts = new HashMap<List<Card>, Double>();
+        // boolean isDealer = false;
+        // if (gameState.dealer() == pid) isDealer = true;
+        // hand = maximizePoints(hand, isDealer, 
+        //         new ArrayList<Card>(), 0, savedCounts);
+        // return hand;
     }
 
     public Card chooseCard() {
