@@ -41,26 +41,26 @@ public class SmartPlayer implements CribbageAI {
     }
 
     public List<Card> choosePlayingHand() {
-        Random rng = new Random();
-        if (this.hand == null) {
-            throw new IllegalStateException("No hand set for AI with pid " + pid);
-        }
-
-        while (hand.size() > HAND_SIZE) {
-            hand.remove(rng.nextInt(hand.size()));
-        }
-        return hand;
-
+        // Random rng = new Random();
         // if (this.hand == null) {
         //     throw new IllegalStateException("No hand set for AI with pid " + pid);
         // }
 
-        // Map<List<Card>, Double> savedCounts = new HashMap<List<Card>, Double>();
-        // boolean isDealer = false;
-        // if (gameState.dealer() == pid) isDealer = true;
-        // hand = maximizePoints(hand, isDealer, 
-        //         new ArrayList<Card>(), 0, savedCounts);
+        // while (hand.size() > HAND_SIZE) {
+        //     hand.remove(rng.nextInt(hand.size()));
+        // }
         // return hand;
+
+        if (this.hand == null) {
+            throw new IllegalStateException("No hand set for AI with pid " + pid);
+        }
+
+        Map<List<Card>, Double> savedCounts = new HashMap<List<Card>, Double>();
+        boolean isDealer = false;
+        if (gameState.dealer() == pid) isDealer = true;
+        hand = maximizePoints(hand, isDealer, 
+                new ArrayList<Card>(), 0, savedCounts);
+        return hand;
     }
 
     public Card chooseCard() {

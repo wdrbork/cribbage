@@ -16,7 +16,7 @@ import logic.game.*;
 // for making decisions during the second stage of play, but may eventually
 // be used for the first stage as well
 public class MCTSAgent {
-    private static final int ITERATIONS = 10000;
+    private static final int ITERATIONS = 100;
     private static final int MAX_COUNT = 31;
     private static final int HAND_SIZE = 4;
     private static final int GO_KEY = 0;
@@ -75,10 +75,11 @@ public class MCTSAgent {
         MCTSNode curr = root;
         simulator = new CribbageManager(gameState);
         
-        // Clear hands that are not this AI's
+        // Clear hands that are not this AI's of cards that have not already
+        // been played
         for (int i = 0; i < simulator.numPlayers(); i++) {
             if (i != pid) {
-                simulator.clearHand(i);
+                simulator.clearHandOfUnplayedCards(i);
             }
         }
 
@@ -267,6 +268,7 @@ public class MCTSAgent {
             System.out.println(simulator.getPlayedCards());
             throw new IllegalStateException("Hand has more than 4 cards");
         }
+        
         if (simulator.getHand(nextPid).size() < HAND_SIZE) {
             // System.out.println("Expansion lower bound = " + lowestPlayableCards[nextPid]);
             for (int i = lowestPlayableCards[nextPid]; i <= maxCardPossible; i++) {
@@ -329,19 +331,15 @@ public class MCTSAgent {
             int lowestPlayable = lowestPlayableCards[curr.pidTurn];
             lowestPlayableCards[curr.pidTurn] = Math.max(lowestPlayable, 
                     MAX_COUNT - simulator.count() + 1);
-            // System.out.println(lowestPlayableCards[curr.pidTurn]);
-            
-            if (canResetCount(curr)) {
-                // System.out.println("Last played card = " + simulator.getLastPlayedCard());
-                // System.out.println("pidTurn = " + curr.pidTurn);
-                // System.out.println("Lowest playable card = " + lowestPlayableCards[curr.pidTurn]);
+            // System.out.println("Player " + curr.pidTurn + " calls go on count " + simulator.count());
+            if (simulator.getPlayedCards().get(curr.pidTurn).size() < HAND_SIZE && canResetCount(curr)) {
                 if (!simulator.countIs31()) {
                     points++;
                     simulator.awardPointsForGo();
                 }
                 simulator.resetCount();
-                System.out.println("Reset count");
-            }
+                // System.out.println("Reset count");
+            }            
         } else if (curr.playedCard != null) {
             // If it is not this player's turn, manually add the card 
             // to their hand
@@ -381,8 +379,6 @@ public class MCTSAgent {
             // that means nobody can play a card, so a reset is possible
             return root.pidTurn == node.pidTurn;
         }
-
-
 
         // If every player in the game has called go, a reset is possible.
         return parent.playedCard == null && (simulator.numPlayers() == 2 

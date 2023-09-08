@@ -755,8 +755,6 @@ public class CribbageManager {
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
-        for (Card card : playedCardsByPlayer.get(pid)) {
-            hands.get(pid).remove(card);
-        }
+        hands.get(pid).retainAll(playedCardsByPlayer.get(pid));
     }
 }
