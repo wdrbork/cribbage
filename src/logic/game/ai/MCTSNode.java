@@ -12,7 +12,7 @@ import logic.game.*;
 // Represents a node in a Monte Carlo search tree. Used when deciding what
 // card to play during the second stage of Cribbage
 public class MCTSNode {
-    private static final double UCT_CONSTANT = .5;
+    private static final double UCT_CONSTANT = 2.0;
 
     public Card playedCard;
     public int pidTurn;
@@ -69,7 +69,6 @@ public class MCTSNode {
 
         int mostRollouts = 0;
         List<MCTSNode> selections = new ArrayList<MCTSNode>();
-        System.out.println("Choosing most expanded child");
         for (MCTSNode child : children) {
             int value = child.numRollouts;
             System.out.print("Card = " + child.playedCard);

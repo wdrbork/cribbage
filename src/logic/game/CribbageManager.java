@@ -25,11 +25,11 @@ public class CribbageManager {
 
     protected final int numPlayers;
     protected final Deck deck;
-    protected final int[] gameScores;
+    protected int[] gameScores;  // Set back to final once done with testing
     protected final List<List<Card>> hands;
     protected final List<Card> crib;
-    protected final LinkedList<Card> cardStack;
-    protected final List<List<Card>> playedCardsByPlayer;
+    protected LinkedList<Card> cardStack;  // Set back to final once done with testing
+    protected List<List<Card>> playedCardsByPlayer;  // Set back to final once done with testing
     protected int lastToPlayCard;
     protected int nextToPlayCard;
 
@@ -377,6 +377,9 @@ public class CribbageManager {
         addPoints(pid, totalPoints);
         lastToPlayCard = pid;
         determineNextPlayer();
+
+        // System.out.println("Player " + (pid + 1) + " plays a " + card + " to make the count " + count);
+        // System.out.println("Points earned: " + totalPoints);
         
         return totalPoints;
     }

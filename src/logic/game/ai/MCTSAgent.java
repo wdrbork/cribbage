@@ -73,6 +73,8 @@ public class MCTSAgent {
     private MCTSNode nodeSelection() {
         MCTSNode curr = root;
         simulator = new CribbageManager(gameState);
+
+        System.out.println("Start node selection");
         
         // Clear hands that are not this AI's of cards that have not already
         // been played
@@ -91,7 +93,10 @@ public class MCTSAgent {
             playCardInSimulation(curr);
 
             // If this node has not been expanded, select it for rollout
-            if (curr.numRollouts == 0) return curr;
+            if (curr.numRollouts == 0) {
+                System.out.println("End node selection");
+                return curr;
+            }
         }
 
         // Generate children for this leaf node, if possible, and select 
@@ -102,12 +107,15 @@ public class MCTSAgent {
             playCardInSimulation(curr);
         }
 
+        System.out.println("End node selection");
         return curr;
     }
 
     private int rollout() {
         int pointsEarned = 0;
         Random r = new Random();
+
+        System.out.println("Start rollout");
 
         // Fill opponent hands with random cards
         for (int i = 0; i < simulator.numPlayers(); i++) {
@@ -191,6 +199,16 @@ public class MCTSAgent {
                 pointsEarned -= points;
             }
         }
+
+        // If this AI was the last to play a card, include the 
+        // point as part of the rollout
+        if (simulator.nextToPlayCard() == pid) {
+            pointsEarned++;
+        } else {
+            pointsEarned--;
+        }
+
+        System.out.println("End rollout. Total points earned: " + pointsEarned);
 
         return pointsEarned;
     }
