@@ -1,10 +1,10 @@
 package logic.game.ai;
 
-import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import logic.deck.Card;
 import logic.game.*;
@@ -24,7 +24,7 @@ public class MCTSNode {
 
     // Maps a card rank to the game state (i.e. the node) that follows from 
     // the playing of a card of that rank 
-    public Map<Integer, MCTSNode> children;
+    public Set<MCTSNode> children;
 
     public MCTSNode() {
         this(null);
@@ -32,13 +32,11 @@ public class MCTSNode {
 
     public MCTSNode(MCTSNode parent) {
         this.parent = parent;
-        this.children = new HashMap<Integer, MCTSNode>();
+        this.children = new HashSet<MCTSNode>();
     }
 
-    public void addChildren(Map<Integer, MCTSNode> children) {
-        for (int rank : children.keySet()) {
-            this.children.put(rank, children.get(rank));
-        }
+    public void addChildren(Set<MCTSNode> children) {
+        this.children.addAll(children);
     }
 
     public MCTSNode chooseHighValueChild() {
@@ -48,7 +46,7 @@ public class MCTSNode {
 
         double maxValue = -Double.MAX_VALUE;
         List<MCTSNode> selections = new ArrayList<MCTSNode>();
-        for (MCTSNode child : children.values()) {
+        for (MCTSNode child : children) {
             double value = child.getUCTValue(UCT_CONSTANT);
             if (value > maxValue) {
                 selections.clear();
@@ -71,8 +69,14 @@ public class MCTSNode {
 
         int mostRollouts = 0;
         List<MCTSNode> selections = new ArrayList<MCTSNode>();
-        for (MCTSNode child : children.values()) {
+        System.out.println("Choosing most expanded child");
+        for (MCTSNode child : children) {
             int value = child.numRollouts;
+            System.out.print("Card = " + child.playedCard);
+            System.out.print(", pointsEarned = " + child.pointsEarned);
+            System.out.print(", numRollouts = " + child.numRollouts);
+            System.out.print(", parentVisits = " + child.parent.numRollouts);
+            System.out.println(", UCT = " + child.getUCTValue(UCT_CONSTANT));
             if (value > mostRollouts) {
                 selections.clear();
                 selections.add(child);
@@ -94,7 +98,8 @@ public class MCTSNode {
             return constant == 0 ? 0 : Double.MAX_VALUE;
         }
 
-        return pointsEarned / numRollouts + constant * 
+        double pointRatio = (double) pointsEarned / numRollouts;
+        return pointRatio + constant * 
                 Math.sqrt(Math.log(parent.numRollouts) / numRollouts);
     }
 }

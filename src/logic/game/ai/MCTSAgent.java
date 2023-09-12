@@ -3,9 +3,9 @@ package logic.game.ai;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import logic.deck.*;
 import logic.game.*;
@@ -16,10 +16,9 @@ import logic.game.*;
 // for making decisions during the second stage of play, but may eventually
 // be used for the first stage as well
 public class MCTSAgent {
-    private static final int ITERATIONS = 100;
+    private static final int ITERATIONS = 100000;
     private static final int MAX_COUNT = 31;
     private static final int HAND_SIZE = 4;
-    private static final int GO_KEY = 0;
 
     private CribbageManager gameState;
     private CribbageManager simulator;
@@ -224,8 +223,8 @@ public class MCTSAgent {
         return true;
     }
 
-    private Map<Integer, MCTSNode> expandOwnHand(MCTSNode parent) {
-        Map<Integer, MCTSNode> children = new HashMap<Integer, MCTSNode>();
+    private Set<MCTSNode> expandOwnHand(MCTSNode parent) {
+        Set<MCTSNode> children = new HashSet<MCTSNode>();
         List<Card> hand = simulator.getHand(pid);
 
         for (Card card : hand) {
@@ -233,11 +232,10 @@ public class MCTSAgent {
                 continue;
             }
 
-            int rank = card.getRankValue();
             MCTSNode child = new MCTSNode(parent);
             child.playedCard = card;
             child.pidTurn = pid;
-            children.put(rank, child);
+            children.add(child);
         }
 
         // If this AI can't play a card, add a node indicating a go
@@ -245,15 +243,15 @@ public class MCTSAgent {
             MCTSNode child = new MCTSNode(parent);
             child.playedCard = null;
             child.pidTurn = pid;
-            children.put(GO_KEY, child);
+            children.add(child);
         }
 
         this.numberOfNodes += children.size();
         return children;
     }
 
-    private Map<Integer, MCTSNode> expandOtherHand(MCTSNode parent) {
-        Map<Integer, MCTSNode> children = new HashMap<Integer, MCTSNode>();
+    private Set<MCTSNode> expandOtherHand(MCTSNode parent) {
+        Set<MCTSNode> children = new HashSet<MCTSNode>();
         int nextPid = (parent.pidTurn + 1) % simulator.numPlayers();
         int maxCardPossible = Math.min(10, MAX_COUNT - simulator.count());
 
@@ -289,7 +287,7 @@ public class MCTSAgent {
                 MCTSNode child = new MCTSNode(parent);
                 child.playedCard = possibleCard;
                 child.pidTurn = nextPid;
-                children.put(i, child);
+                children.add(child);
             }
         }
 
@@ -301,7 +299,7 @@ public class MCTSAgent {
             MCTSNode child = new MCTSNode(parent);
             child.playedCard = null;
             child.pidTurn = nextPid;
-            children.put(GO_KEY, child);
+            children.add(child);
         }
 
         this.numberOfNodes += children.size();
