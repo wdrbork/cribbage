@@ -3,9 +3,8 @@
 ## Project Description
 This repository will contain code for a cribbage application. Both the 
 front-end and back-end will be made using Java. I chose Java because it is the 
-language I am most familiar with and I want to learn Java Swing for the 
-front-end (although I will likely switch to another language/framework at a 
-later date because Swing is a little dated, in my opinion).
+language I am most familiar with and I want to learn Java Swing and/or JavaFX 
+for the front-end.
 
 I decided to code up cribbage because it is a game that I love to play. My 
 parents taught me how to play it around five years ago, and we almost always 
