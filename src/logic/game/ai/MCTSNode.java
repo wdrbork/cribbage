@@ -12,7 +12,7 @@ import logic.game.*;
 // Represents a node in a Monte Carlo search tree. Used when deciding what
 // card to play during the second stage of Cribbage
 public class MCTSNode {
-    private static final double UCT_CONSTANT = 2.0;
+    private static final double UCT_CONSTANT = 2.5;
 
     public Card playedCard;
     public int pidTurn;

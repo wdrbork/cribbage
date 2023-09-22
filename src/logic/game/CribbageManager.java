@@ -415,12 +415,12 @@ public class CribbageManager {
     public void awardPointsForGo() {
         if (movePossible()) {
             System.out.println(count);
-            System.out.println(nextToPlayCard);
+            System.out.println(lastToPlayCard);
             System.out.println(hands);
             System.out.println(playedCardsByPlayer);
             throw new IllegalStateException("Cards can still be played");
         }
-        addPoints(nextToPlayCard, 1);
+        addPoints(lastToPlayCard, 1);
     }
 
     /**

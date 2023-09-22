@@ -73,8 +73,6 @@ public class MCTSAgent {
     private MCTSNode nodeSelection() {
         MCTSNode curr = root;
         simulator = new CribbageManager(gameState);
-
-        System.out.println("Start node selection");
         
         // Clear hands that are not this AI's of cards that have not already
         // been played
@@ -94,7 +92,6 @@ public class MCTSAgent {
 
             // If this node has not been expanded, select it for rollout
             if (curr.numRollouts == 0) {
-                System.out.println("End node selection");
                 return curr;
             }
         }
@@ -107,15 +104,12 @@ public class MCTSAgent {
             playCardInSimulation(curr);
         }
 
-        System.out.println("End node selection");
         return curr;
     }
 
     private int rollout() {
         int pointsEarned = 0;
         Random r = new Random();
-
-        System.out.println("Start rollout");
 
         // Fill opponent hands with random cards
         for (int i = 0; i < simulator.numPlayers(); i++) {
@@ -166,7 +160,7 @@ public class MCTSAgent {
 
                     // If this AI was the last to play a card, include the 
                     // point as part of the rollout
-                    if (simulator.nextToPlayCard() == pid) {
+                    if (simulator.lastToPlayCard() == pid) {
                         pointsEarned++;
                     } else {
                         pointsEarned--;
@@ -200,15 +194,19 @@ public class MCTSAgent {
             }
         }
 
-        // If this AI was the last to play a card, include the 
-        // point as part of the rollout
-        if (simulator.nextToPlayCard() == pid) {
-            pointsEarned++;
-        } else {
-            pointsEarned--;
-        }
+        // If the count is not 31 and nobody can play a card, give 
+        // the last player to play a card a single point
+        if (!simulator.countIs31()) {
+            simulator.awardPointsForGo();
 
-        System.out.println("End rollout. Total points earned: " + pointsEarned);
+            // If this AI was the last to play a card, include the 
+            // point as part of the rollout
+            if (simulator.lastToPlayCard() == pid) {
+                pointsEarned++;
+            } else {
+                pointsEarned--;
+            }
+        }
 
         return pointsEarned;
     }
@@ -327,9 +325,22 @@ public class MCTSAgent {
     private Suit getPossibleSuit(Rank rank) {
         for (Suit suit : Suit.values()) {
             Card testCard = new Card(suit, rank);
-            if (!simulator.cardAlreadyPlayed(testCard)
-                    && !simulator.getHand(pid).contains(testCard)) {
-                return suit;
+
+            // First check to see if this card has already been played
+            if (!simulator.cardAlreadyPlayed(testCard)) {
+                // If it has not already been played, look through each hand 
+                // to determine if it is present in one of them
+                boolean inHand = false;
+                for (List<Card> hand : simulator.getAllHands()) {
+                    if (hand.contains(testCard)) {
+                        inHand = true;
+                        break;
+                    }
+                }
+
+                // If this card is not in any hand, return the suit associated
+                // with it
+                if (!inHand) return suit;
             }
         }
 

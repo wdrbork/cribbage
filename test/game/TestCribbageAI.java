@@ -11,31 +11,56 @@ import logic.game.*;
 import logic.deck.*;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class TestCribbageAI {
     private static final int PID = 1;
+    private static final int OTHER_PID = 0;
     private static final int NUM_PLAYERS = 2;
     private static final int SMART_ID = 0;
     private static final int RANDOM_ID = 1;
     private static final int MAX_COUNT = 31;
-    private static final int TEST_GAMES = 100;
+    private static final int TEST_GAMES = 1;
     private static final double WIN_THRESHOLD = .5;
+    private static final int HAND_SIZE = 4;
 
     private static int scoreDiff = 0;
 
-    // @Test
+    // private class CribbageManagerTest extends CribbageManager {
+    //     public CribbageManagerTest(int numPlayers) {
+    //         super(numPlayers);
+    //     }
+
+    //     public void setPlayedCards(List<List<Card>> playedCards) {
+    //         this.playedCardsByPlayer = playedCards;
+    //     }
+
+    //     public void setHand(int pid, List<Card> hand) { hands.set(pid, hand); }
+
+    //     public void setCount(int count) { this.count = count; }
+
+    //     public void setGameScores(int[] gameScores) {
+    //         this.gameScores = gameScores.clone();
+    //     }
+
+    //     public void setCardStack(LinkedList<Card> cardStack) {
+    //         this.cardStack = cardStack;
+    //     }
+    // }
+
+    @Test
     public void analyzeRecommendedHands() {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
         CribbageAI ai = new SmartPlayer(state, PID);
 
         List<Card> hand = new ArrayList<Card>();
-        hand.add(new Card(Suit.SPADE, Rank.TWO));
-        hand.add(new Card(Suit.DIAMOND, Rank.TWO));
-        hand.add(new Card(Suit.DIAMOND, Rank.FIVE));
-        hand.add(new Card(Suit.SPADE, Rank.SIX));
-        hand.add(new Card(Suit.SPADE, Rank.SEVEN));
-        hand.add(new Card(Suit.SPADE, Rank.KING));
+        hand.add(new Card(Suit.CLUB, Rank.ACE));
+        hand.add(new Card(Suit.CLUB, Rank.SEVEN));
+        hand.add(new Card(Suit.SPADE, Rank.EIGHT));
+        hand.add(new Card(Suit.DIAMOND, Rank.TEN));
+        hand.add(new Card(Suit.HEART, Rank.QUEEN));
+        hand.add(new Card(Suit.DIAMOND, Rank.QUEEN));
 
         ai.setHand(hand);
         state.setDealer(PID);
@@ -67,10 +92,11 @@ public class TestCribbageAI {
         }
 
         System.out.println("playerOne hand: " + state.getHand(0));
-        System.out.println("playerTwo hand: " + state.getHand(1));
+        System.out.println("playerTwo hand: " + state.getHand(1) + "\n");
 
         while (!state.roundOver()) {
             Card optimalCard;
+            System.out.println("Player " + (state.nextToPlayCard() + 1) + "'s turn");
             if (state.nextToPlayCard() == 0) {
                 optimalCard = playerOne.chooseCard();
                 System.out.println("playerOne optimal card: " + optimalCard);
@@ -87,6 +113,7 @@ public class TestCribbageAI {
                 }
                 state.resetCount();
             }
+            System.out.println();
         }
     }
 
@@ -94,16 +121,16 @@ public class TestCribbageAI {
     public void testSmartVersusRandom() {
         int smartWins = 0;
         int randomWins = 0;
-        int gamesPlayed = 1;
+        int gamesPlayed = 0;
 
-        while (gamesPlayed <= TEST_GAMES) {
+        while (gamesPlayed < TEST_GAMES) {
             int winner = simulateTwoPlayerGame();
             if (winner == SMART_ID) {
                 smartWins++;
             } else {
                 randomWins++;
             }
-            System.out.println("Game " + gamesPlayed + " winner PID: " + winner + "\n");
+            System.out.println("Game " + (gamesPlayed + 1) + " winner PID: " + winner + "\n");
             gamesPlayed++;
         }
         
@@ -124,14 +151,13 @@ public class TestCribbageAI {
         CribbageManager game = new CribbageManager(NUM_PLAYERS);
         CribbageAI smart = new SmartPlayer(game, SMART_ID);
         CribbageAI random = new RandomPlayer(game, RANDOM_ID);
-        // Card smartDraw = game.pickCardForDealer();
-        // Card randomDraw = game.pickCardForDealer();
-        // if (smartDraw.compareTo(randomDraw) > 0) {
-        //     game.setDealer(SMART_ID);
-        // } else {
-        //     game.setDealer(RANDOM_ID);
-        // }
-        game.setDealer(SMART_ID);
+        Card smartDraw = game.pickCardForDealer();
+        Card randomDraw = game.pickCardForDealer();
+        if (smartDraw.compareTo(randomDraw) > 0) {
+            game.setDealer(SMART_ID);
+        } else {
+            game.setDealer(RANDOM_ID);
+        }
 
         int rounds = 0;
         while (!game.gameOver()) {
@@ -154,6 +180,8 @@ public class TestCribbageAI {
                 }
             }
 
+            System.out.println("Smart hand = " + smartHand);
+            System.out.println("Random hand = " + randomHand);
             game.getStarterCard();
             playTwoPlayerRound(game, smart, random);
             // if (game.dealer() == SMART_ID) {
