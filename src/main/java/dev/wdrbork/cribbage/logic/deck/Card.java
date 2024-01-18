@@ -39,7 +39,8 @@ public class Card implements Comparable<Card> {
 
     /**
      * Returns the value of this card based on its rank. Unlike the above 
-     * method, this one gives face cards unique values
+     * method, this one gives face cards unique values (jack = 11, queen = 12, 
+     * king = 13).
      * 
      * @return the value of this card based on its rank
      */

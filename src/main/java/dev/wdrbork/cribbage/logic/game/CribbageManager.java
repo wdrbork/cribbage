@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import dev.wdrbork.cribbage.logic.deck.Card;
 import dev.wdrbork.cribbage.logic.deck.Deck;
 import dev.wdrbork.cribbage.logic.deck.Rank;
@@ -16,6 +18,7 @@ import dev.wdrbork.cribbage.logic.deck.Rank;
  * also keep track of which player is assigned to which ID so that points are
  * not being added to the wrong player.
  */
+@Service
 public class CribbageManager {
     private static final int MAX_COUNT = 31;
     private static final int MAX_SCORE = 121;
@@ -25,23 +28,30 @@ public class CribbageManager {
 
     protected final int numPlayers;
     protected final Deck deck;
-    protected int[] gameScores;  // Set back to final once done with testing
+    protected int[] gameScores;
     protected final List<List<Card>> hands;
     protected final List<Card> crib;
-    protected LinkedList<Card> cardStack;  // Set back to final once done with testing
-    protected List<List<Card>> playedCardsByPlayer;  // Set back to final once done with testing
+    protected LinkedList<Card> cardStack;
+    protected List<List<Card>> playedCardsByPlayer;
     protected int lastToPlayCard;
     protected int nextToPlayCard;
 
     // The starter card drawn at the end of the first stage
-    protected Card starterCard;  
+    protected Card starterCard;
 
     // Represents a player's ID (between 0 and numPlayers exclusive)
-    protected int dealerId; 
+    protected int dealerId;
     
     // Count for the second stage of play
-    protected int count;         
+    protected int count;
 
+    /**
+     * Sets up a default cribbage game with two players.
+     */
+    public CribbageManager() {
+        this(2);
+    }
+    
     /**
      * Sets up a cribbage game using the given number of players.
      * 
