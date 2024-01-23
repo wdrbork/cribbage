@@ -29,7 +29,7 @@ public class TestCard {
     private static final Card NULL_CARD = null;
 
     @BeforeAll
-    public void initializeSample() throws Exception {
+    public static void initializeSample() throws Exception {
         sampleCards.add(ACE_HEART);
         sampleCards.add(TWO_DIAMOND);
         sampleCards.add(THREE_SPADE);
