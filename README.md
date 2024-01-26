@@ -1,16 +1,12 @@
 # Personal Project: Cribbage
 
 ## Project Description
-This repository will contain code for a cribbage application. Both the 
-front-end and back-end will be made using Java. I chose Java because it is the 
-language I am most familiar with and I want to learn Java Swing and/or JavaFX 
-for the front-end.
-
-I decided to code up cribbage because it is a game that I love to play. My 
-parents taught me how to play it around five years ago, and we almost always 
-play a game when I am visiting, so it only felt right to spend this summer
-trying to create a program that can run it. I also plan on using it as a warmup
-for a chess program that I want to create later on.
+This repository will contain code for a cribbage website. I decided to code up 
+cribbage because it is a game that I love to play. My parents taught me how to 
+play it back in 2019, and we almost always play a game when I am visiting, so 
+it only felt right to spend this summer trying to create a program that can run
+it. I also plan on using it as a warmup for a chess program that I want to 
+create later on.
 
 ## How Cribbage Works
 Cribbage is a card game with either two or three players. A standard game 
@@ -42,3 +38,18 @@ their own total for the game.
 
 The game continues until a player reaches 121 points, signaling that they have
 won. Full rules can be seen [here](https://en.wikipedia.org/wiki/Cribbage).
+
+## Architecture
+For this project, I am developing a backend using almost entirely Java. It is 
+the language I am most familiar with, and I figured it would make it easier 
+for me to learn about creating high-quality tests as well as a REST API since 
+I wouldn't have to learn another language in the process. This decision also 
+resulted in me using Spring Boot as the backend application and Maven as the 
+build tool. Each of these technologies are designed for use in Java programs, 
+so it made sense to use each tool for their respective task.
+
+For the frontend, I plan on using JavaScript and CSS as the primary languages.
+In particular, I want to make use of the React library. I briefly learned about
+it in one of my earlier computer science classes, and I was pretty impressed 
+with how much could be done using it, so it is something I want to learn more 
+about and get some practice with it.
