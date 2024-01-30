@@ -18,6 +18,16 @@ public class Card implements Comparable<Card> {
         rank = r;
     }
 
+    /**
+     * Creates a card using the given suit and rank values
+     * @param suitValue the value of the desired suit
+     * @param rankValue the value of the desired rank
+     */
+    public Card(int suitValue, int rankValue) {
+        suit = getSuitBasedOnValue(suitValue);
+        rank = getRankBasedOnValue(rankValue);
+    }
+
     public Suit getSuit() {
         return this.suit;
     }
