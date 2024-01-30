@@ -57,7 +57,24 @@ public class Card implements Comparable<Card> {
      * @return the rank that corresponds to the passed-in value
      */
     public static Rank getRankBasedOnValue(int rankValue) {
+        if (rankValue < 1 || rankValue > 13) {
+            throw new IllegalArgumentException("Invalid rank value; must be between 1 and 13 inclusive");
+        }
         return Rank.values()[rankValue - 1];
+    }
+
+    /**
+     * Returns the suit that corresponds to the given number. CLUB = 1, 
+     * DIAMOND = 2, HEART = 3, SPADE = 4.
+     * 
+     * @param rankValue a value that corresponds to the rank of a card 
+     * @return the rank that corresponds to the passed-in value
+     */
+    public static Suit getSuitBasedOnValue(int suitValue) {
+        if (suitValue < 1 || suitValue > 4) {
+            throw new IllegalArgumentException("Invalid suit value; must be between 1 and 4 inclusive");
+        }
+        return Suit.values()[suitValue - 1];
     }
 
     @Override
