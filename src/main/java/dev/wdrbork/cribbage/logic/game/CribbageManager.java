@@ -360,11 +360,9 @@ public class CribbageManager {
             // System.out.println("Desired PID = " + nextToPlayCard);
             // System.out.println("Count = " + count);
            throw new NullPointerException("Card is null");
-        } else if (cardAlreadyPlayed(card)) {
-            throw new IllegalArgumentException("Player has already played this card");
         } else if (pid != nextToPlayCard) {
             throw new IllegalArgumentException("Not this player's turn");
-        } else if (maxCountExceeded(card)) {
+        } else if (!canPlayCard(card)) {
             throw new IllegalArgumentException("Card cannot be played");
         } else if (!hands.get(pid).contains(card)) {
             // System.out.println("Count = " + count);
