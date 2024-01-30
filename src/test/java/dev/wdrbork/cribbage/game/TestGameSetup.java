@@ -13,7 +13,6 @@ import dev.wdrbork.cribbage.logic.deck.*;
 
 public class TestGameSetup {
     private static final int PLAYER_ONE_ID = 0;
-    private static final int PLAYER_TWO_ID = 1;
     private static final int PLAYER_THREE_ID = 2;
     private static final int SETUP_TRIALS = 100;
 

@@ -14,14 +14,11 @@ import java.util.List;
 
 public class TestCribbageAI {
     private static final int PID = 1;
-    private static final int OTHER_PID = 0;
     private static final int NUM_PLAYERS = 2;
     private static final int SMART_ID = 0;
     private static final int RANDOM_ID = 1;
-    private static final int MAX_COUNT = 31;
     private static final int TEST_GAMES = 1;
     private static final double WIN_THRESHOLD = .5;
-    private static final int HAND_SIZE = 4;
 
     private static int scoreDiff = 0;
 
