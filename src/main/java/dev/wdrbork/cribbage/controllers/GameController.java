@@ -270,4 +270,22 @@ public class GameController {
         }
     }
 
+    @GetMapping("/winner/{pid}")
+    public ResponseEntity<Boolean> winner(@PathVariable String pid) {
+        try {
+            return new ResponseEntity<>(
+                game.isWinner(Integer.valueOf(pid)), 
+                HttpStatus.OK
+            );
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/clear_round")
+    public ResponseEntity<String> clearRoundState() {
+        game.clearRoundState();
+        return new ResponseEntity<>("Round state cleared", HttpStatus.OK);
+    }
+
 }
