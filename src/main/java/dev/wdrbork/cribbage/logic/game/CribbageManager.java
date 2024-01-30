@@ -275,7 +275,7 @@ public class CribbageManager {
      */
     public void sendCardToCrib(int pid, Card card) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         } else if (card == null) {
             throw new NullPointerException("Card is null");
@@ -347,11 +347,11 @@ public class CribbageManager {
      *                                  has already played the card, or it is 
      *                                  not this player's turn
      * @throws NullPointerException if the card is null
-     * @throws IndexOutOfBoundsException if the player ID is invalid
+     * @throws IllegalArgumentException if the player ID is invalid
      */
     public int playCard(int pid, Card card) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         } else if (card == null) {
             // System.out.println(hands);
@@ -491,7 +491,7 @@ public class CribbageManager {
      */
     public boolean hasPlayableCard(int pid) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
@@ -525,6 +525,11 @@ public class CribbageManager {
      * @param pid the ID of the next player
      */
     public void setNextPlayer(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IllegalArgumentException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
+        }
+
         this.nextToPlayCard = pid;
     }
 
@@ -563,6 +568,11 @@ public class CribbageManager {
      * @return the number of points present in the given player's hand
      */
     public int countHand(int pid) {
+        if (pid < 0 || pid >= numPlayers) {
+            throw new IllegalArgumentException("Invalid player ID of " + 
+                    pid + "; must be between 0 and " + numPlayers + " exclusive");
+        }
+
         return countHand(pid, true);
     }
 
@@ -622,7 +632,7 @@ public class CribbageManager {
      */
     public int count15Combos(int pid) {
         if (pid < 0 || pid > numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
@@ -640,7 +650,7 @@ public class CribbageManager {
      */
     public int countRuns(int pid) {
         if (pid < 0 || pid > numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
@@ -656,7 +666,7 @@ public class CribbageManager {
      */
     public int countPairs(int pid) {
         if (pid < 0 || pid > numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
@@ -674,7 +684,7 @@ public class CribbageManager {
      */
     public int countFlush(int pid) {
         if (pid < 0 || pid > numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
@@ -690,7 +700,7 @@ public class CribbageManager {
      */
     public int countNobs(int pid) {
         if (pid < 0 || pid > numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
@@ -712,7 +722,7 @@ public class CribbageManager {
 
     public boolean isWinner(int pid) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
@@ -757,7 +767,7 @@ public class CribbageManager {
 
     public void clearHand(int pid) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
@@ -766,7 +776,7 @@ public class CribbageManager {
 
     public void clearHandOfUnplayedCards(int pid) {
         if (pid < 0 || pid >= numPlayers) {
-            throw new IndexOutOfBoundsException("Invalid player ID of " + 
+            throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
