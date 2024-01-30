@@ -184,7 +184,7 @@ public class CribbageManager {
         nextToPlayCard = (dealerId + 1) % numPlayers;
     }
 
-    public void rotateDealer() {
+    private void rotateDealer() {
         if (dealerId == -1) {
             throw new IllegalStateException("Must set dealer first");
         }
@@ -354,11 +354,11 @@ public class CribbageManager {
             throw new IndexOutOfBoundsException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         } else if (card == null) {
-            System.out.println(hands);
-            System.out.println(playedCardsByPlayer);
-            System.out.println("PID = " + pid);
-            System.out.println("Desired PID = " + nextToPlayCard);
-            System.out.println("Count = " + count);
+            // System.out.println(hands);
+            // System.out.println(playedCardsByPlayer);
+            // System.out.println("PID = " + pid);
+            // System.out.println("Desired PID = " + nextToPlayCard);
+            // System.out.println("Count = " + count);
            throw new NullPointerException("Card is null");
         } else if (cardAlreadyPlayed(card)) {
             throw new IllegalArgumentException("Player has already played this card");
@@ -367,10 +367,10 @@ public class CribbageManager {
         } else if (maxCountExceeded(card)) {
             throw new IllegalArgumentException("Card cannot be played");
         } else if (!hands.get(pid).contains(card)) {
-            System.out.println("Count = " + count);
-            System.out.println("Card = " + card);
-            System.out.println("Hand = " + hands.get(pid));
-            System.out.println("Played cards = " + playedCardsByPlayer.get(pid));
+            // System.out.println("Count = " + count);
+            // System.out.println("Card = " + card);
+            // System.out.println("Hand = " + hands.get(pid));
+            // System.out.println("Played cards = " + playedCardsByPlayer.get(pid));
             throw new IllegalStateException("Player " + pid + " does not have card in their hand");
         }
     
@@ -386,6 +386,10 @@ public class CribbageManager {
                 CribbagePegging.countPegRuns(cardStack);
         addPoints(pid, totalPoints);
         lastToPlayCard = pid;
+        if (!movePossible() && count != 31) {
+            awardPointsForGo();
+            totalPoints++;
+        }
         determineNextPlayer();
 
         // System.out.println("Player " + (pid + 1) + " plays a " + card + " to make the count " + count);
@@ -424,10 +428,10 @@ public class CribbageManager {
      */
     public void awardPointsForGo() {
         if (movePossible()) {
-            System.out.println(count);
-            System.out.println(lastToPlayCard);
-            System.out.println(hands);
-            System.out.println(playedCardsByPlayer);
+            // System.out.println(count);
+            // System.out.println(lastToPlayCard);
+            // System.out.println(hands);
+            // System.out.println(playedCardsByPlayer);
             throw new IllegalStateException("Cards can still be played");
         }
         addPoints(lastToPlayCard, 1);

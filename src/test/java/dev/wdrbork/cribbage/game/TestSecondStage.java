@@ -183,25 +183,25 @@ public class TestSecondStage {
         assertEquals(CribbagePegging.countPegRuns(man.getCardStack()), 0);
         assertEquals(man.getGameScores()[PLAYER_ONE_ID], 3);
 
-        assertThrows(IllegalStateException.class, () -> { 
-            man.awardPointsForGo();
-        });
+        // assertThrows(IllegalStateException.class, () -> { 
+        //     man.awardPointsForGo();
+        // });
 
         // Player 2 plays their fourth and final card
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
         assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 2);
         currentCount = man.getCount();
-        assertEquals(points, 0);
+        assertEquals(points, 1);
         assertEquals(currentCount, 24);
         assertEquals(man.getPlayedCards().get(PLAYER_TWO_ID).size(), 4);
         assertEquals(man.getCardStack().size(), 4);
         assertEquals(CribbagePegging.countPegPairs(man.getCardStack()), 0);
         assertEquals(CribbagePegging.countPegRuns(man.getCardStack()), 0);
-        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 4);
-
-        man.awardPointsForGo();
         assertEquals(man.getGameScores()[PLAYER_TWO_ID], 5);
+
+        // man.awardPointsForGo();
+        // assertEquals(man.getGameScores()[PLAYER_TWO_ID], 5);
     }
 
     @Test
@@ -382,13 +382,13 @@ public class TestSecondStage {
         assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
         points = man.playCardByIndex(PLAYER_TWO_ID, 2);
         currentCount = man.getCount();
-        assertEquals(points, 0);
+        assertEquals(points, 1);
         assertEquals(currentCount, 28);
         assertEquals(man.getPlayedCards().get(PLAYER_TWO_ID).size(), 4);
         assertEquals(man.getCardStack().size(), 4);
         assertEquals(CribbagePegging.countPegPairs(man.getCardStack()), 0);
         assertEquals(CribbagePegging.countPegRuns(man.getCardStack()), 0);
-        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 0);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 1);
         assertFalse(man.hasPlayableCard(PLAYER_TWO_ID));
 
         // Neither player 3 nor player 1 can play a card
@@ -397,7 +397,7 @@ public class TestSecondStage {
 
         // Player 2 pegs for go
         assertTrue(man.nextToPlayCard() == PLAYER_TWO_ID);
-        man.awardPointsForGo();
+        // man.awardPointsForGo();
         assertEquals(man.getGameScores()[PLAYER_TWO_ID], 1);
 
         man.resetCount();
@@ -419,17 +419,17 @@ public class TestSecondStage {
         assertTrue(man.nextToPlayCard() == PLAYER_THREE_ID);
         points = man.playCardByIndex(PLAYER_THREE_ID, 3);
         currentCount = man.getCount();
-        assertEquals(points, 2);
+        assertEquals(points, 3);
         assertEquals(currentCount, 18);
         assertEquals(man.getPlayedCards().get(PLAYER_THREE_ID).size(), 4);
         assertEquals(man.getCardStack().size(), 2);
         assertEquals(CribbagePegging.countPegPairs(man.getCardStack()), 2);
         assertEquals(CribbagePegging.countPegRuns(man.getCardStack()), 0);
-        assertEquals(man.getGameScores()[PLAYER_THREE_ID], 2);
+        assertEquals(man.getGameScores()[PLAYER_THREE_ID], 3);
 
         // Player 3 pegs for go
         assertTrue(man.nextToPlayCard() == PLAYER_THREE_ID);
-        man.awardPointsForGo();
+        // man.awardPointsForGo();
         assertEquals(man.getGameScores()[PLAYER_THREE_ID], 3);
     }
 
@@ -479,10 +479,10 @@ public class TestSecondStage {
         assertTrue(man.hasPlayableCard(PLAYER_TWO_ID));
         points = man.playCardByIndex(PLAYER_TWO_ID, 1);
         currentCount = man.getCount();
-        assertEquals(points, 12);
+        assertEquals(points, 13);
         assertEquals(currentCount, 4);
         assertEquals(CribbagePegging.countPegPairs(man.getCardStack()), 12);
-        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 14);
+        assertEquals(man.getGameScores()[PLAYER_TWO_ID], 15);
     }
 
     @Test
@@ -561,10 +561,10 @@ public class TestSecondStage {
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
         points = man.playCardByIndex(PLAYER_ONE_ID, 3);
         currentCount = man.getCount();
-        assertEquals(points, 7);
+        assertEquals(points, 8);
         assertEquals(currentCount, 28);
         assertEquals(CribbagePegging.countPegRuns(man.getCardStack()), 7);
-        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 7);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 8);
     }
 
     @Test
@@ -643,10 +643,10 @@ public class TestSecondStage {
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
         points = man.playCardByIndex(PLAYER_ONE_ID, 3);
         currentCount = man.getCount();
-        assertEquals(points, 7);
+        assertEquals(points, 8);
         assertEquals(currentCount, 28);
         assertEquals(CribbagePegging.countPegRuns(man.getCardStack()), 7);
-        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 15);
+        assertEquals(man.getGameScores()[PLAYER_ONE_ID], 16);
     }
 
     @Test

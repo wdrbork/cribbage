@@ -105,10 +105,10 @@ public class TestCribbageAI {
             System.out.println("Points earned: " + state.playCard(state.nextToPlayCard(), optimalCard));
             System.out.println("Count: " + state.count());
             if (!state.movePossible()) {
-                if (state.count() != MAX_COUNT) {
-                    System.out.println("Award point for go");
-                    state.awardPointsForGo();
-                }
+                // if (state.count() != MAX_COUNT) {
+                //     System.out.println("Award point for go");
+                //     state.awardPointsForGo();
+                // }
                 state.resetCount();
             }
             System.out.println();
@@ -211,9 +211,9 @@ public class TestCribbageAI {
             game.playCard(game.nextToPlayCard(), playedCard);
 
             if (!game.movePossible()) {
-                if (game.count() != MAX_COUNT) {
-                    game.awardPointsForGo();
-                }
+                // if (game.count() != MAX_COUNT) {
+                //     game.awardPointsForGo();
+                // }
                 game.resetCount();
             }
         }
