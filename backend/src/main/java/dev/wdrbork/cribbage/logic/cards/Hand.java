@@ -19,6 +19,10 @@ public class Hand {
         this.cards = new LinkedList<Card>(cards);
     }
 
+    public Hand(Hand copy) {
+        this.cards = new LinkedList<Card>(copy.cards);
+    }
+
     public int size() {
         return cards.size();
     }
