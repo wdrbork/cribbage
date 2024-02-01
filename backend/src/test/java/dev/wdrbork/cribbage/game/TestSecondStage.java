@@ -3,9 +3,9 @@ package dev.wdrbork.cribbage.game;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
 import dev.wdrbork.cribbage.logic.game.CribbagePegging;
-import dev.wdrbork.cribbage.logic.deck.*;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

@@ -7,9 +7,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import dev.wdrbork.cribbage.logic.deck.Card;
-import dev.wdrbork.cribbage.logic.deck.Deck;
-import dev.wdrbork.cribbage.logic.deck.Rank;
+import dev.wdrbork.cribbage.logic.cards.Card;
+import dev.wdrbork.cribbage.logic.cards.Deck;
+import dev.wdrbork.cribbage.logic.cards.Rank;
 
 /**
  * Manages a game of cribbage. The caller is largely in charge of maintaining 

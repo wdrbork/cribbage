@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import dev.wdrbork.cribbage.logic.deck.Card;
+import dev.wdrbork.cribbage.logic.cards.Card;
 
 // Represents a node in a Monte Carlo search tree. Used when deciding what
 // card to play during the second stage of Cribbage

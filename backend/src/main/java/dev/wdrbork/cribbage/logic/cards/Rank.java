@@ -1,4 +1,4 @@
-package dev.wdrbork.cribbage.logic.deck;
+package dev.wdrbork.cribbage.logic.cards;
 
 /* Includes all the ranks in a standard 52-card deck. */
 public enum Rank {

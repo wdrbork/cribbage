@@ -1,14 +1,16 @@
-package dev.wdrbork.cribbage.deck;
+package dev.wdrbork.cribbage.cards;
 
 import org.junit.jupiter.api.Test;
+
+import dev.wdrbork.cribbage.logic.cards.Card;
+import dev.wdrbork.cribbage.logic.cards.Rank;
+import dev.wdrbork.cribbage.logic.cards.Suit;
+
 import org.junit.jupiter.api.BeforeAll;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.ArrayList;
-import dev.wdrbork.cribbage.logic.deck.Card;
-import dev.wdrbork.cribbage.logic.deck.Rank;
-import dev.wdrbork.cribbage.logic.deck.Suit;
 
 public class TestCard {
     private static final int SAMPLE_SIZE = 13;

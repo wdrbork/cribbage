@@ -8,8 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
-import dev.wdrbork.cribbage.logic.deck.*;
 
 public class TestGameSetup {
     private static final int PLAYER_ONE_ID = 0;
@@ -68,7 +68,7 @@ public class TestGameSetup {
         man.setDealer(PLAYER_ONE_ID);
         setupGame(2);
 
-        while(man.getStarterCard().getRank() != Rank.JACK) {
+        while(man.pickStarterCard().getRank() != Rank.JACK) {
         }
 
         assertEquals(man.getPlayerScore(PLAYER_ONE_ID), 2);

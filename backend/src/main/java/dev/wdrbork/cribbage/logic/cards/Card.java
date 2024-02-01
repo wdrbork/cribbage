@@ -1,4 +1,4 @@
-package dev.wdrbork.cribbage.logic.deck;
+package dev.wdrbork.cribbage.logic.cards;
 
 /**
  * Represents a single card in a standard 52-card deck.

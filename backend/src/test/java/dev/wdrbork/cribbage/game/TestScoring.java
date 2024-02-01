@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.LinkedList;
 import java.util.List;
 
+import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
-import dev.wdrbork.cribbage.logic.deck.*;
 
 public class TestScoring {
     private static final int NUM_PLAYERS = 2;

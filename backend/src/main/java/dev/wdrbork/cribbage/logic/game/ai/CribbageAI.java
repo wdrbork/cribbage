@@ -1,7 +1,8 @@
 package dev.wdrbork.cribbage.logic.game.ai;
 
 import java.util.List;
-import dev.wdrbork.cribbage.logic.deck.*;
+
+import dev.wdrbork.cribbage.logic.cards.*;
 
 /**
  * An interface for cribbage AI agents to implement from.

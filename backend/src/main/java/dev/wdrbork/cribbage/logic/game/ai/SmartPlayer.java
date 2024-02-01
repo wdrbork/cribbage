@@ -1,14 +1,12 @@
 package dev.wdrbork.cribbage.logic.game.ai;
 
+import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import dev.wdrbork.cribbage.logic.deck.*;
 
 /**
  * AI for a game of cribbage. Calculates the most optimal play at each stage 

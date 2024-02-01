@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.wdrbork.cribbage.logic.deck.Card;
-import dev.wdrbork.cribbage.logic.deck.Rank;
-import dev.wdrbork.cribbage.logic.deck.Suit;
+import dev.wdrbork.cribbage.logic.cards.Card;
+import dev.wdrbork.cribbage.logic.cards.Rank;
+import dev.wdrbork.cribbage.logic.cards.Suit;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
 
 @RestController

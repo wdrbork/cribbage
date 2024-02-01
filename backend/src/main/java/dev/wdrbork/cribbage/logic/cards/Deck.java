@@ -1,4 +1,4 @@
-package dev.wdrbork.cribbage.logic.deck;
+package dev.wdrbork.cribbage.logic.cards;
 
 import java.util.ArrayList;
 import java.util.Collections;

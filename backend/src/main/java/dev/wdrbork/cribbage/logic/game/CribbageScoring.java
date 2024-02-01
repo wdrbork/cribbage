@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import dev.wdrbork.cribbage.logic.deck.Card;
-import dev.wdrbork.cribbage.logic.deck.Deck;
-import dev.wdrbork.cribbage.logic.deck.Rank;
+import dev.wdrbork.cribbage.logic.cards.Card;
+import dev.wdrbork.cribbage.logic.cards.Deck;
+import dev.wdrbork.cribbage.logic.cards.Rank;
 
 public class CribbageScoring {
     private static final int HAND_SIZE = 4;

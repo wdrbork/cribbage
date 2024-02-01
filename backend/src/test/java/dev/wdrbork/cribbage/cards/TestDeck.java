@@ -1,12 +1,14 @@
-package dev.wdrbork.cribbage.deck;
+package dev.wdrbork.cribbage.cards;
 
 import org.junit.jupiter.api.Test;
+
+import dev.wdrbork.cribbage.logic.cards.Card;
+import dev.wdrbork.cribbage.logic.cards.Deck;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashSet;
 import java.util.Set;
-import dev.wdrbork.cribbage.logic.deck.Deck;
-import dev.wdrbork.cribbage.logic.deck.Card;
 
 public class TestDeck {
     private static final int DECK_SIZE = 52;

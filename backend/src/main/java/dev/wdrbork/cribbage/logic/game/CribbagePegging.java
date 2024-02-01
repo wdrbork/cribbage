@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import dev.wdrbork.cribbage.logic.deck.Card;
-import dev.wdrbork.cribbage.logic.deck.Deck;
+import dev.wdrbork.cribbage.logic.cards.Card;
+import dev.wdrbork.cribbage.logic.cards.Deck;
 
 public class CribbagePegging {
     /**

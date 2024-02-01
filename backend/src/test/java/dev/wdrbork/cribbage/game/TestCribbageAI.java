@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import dev.wdrbork.cribbage.logic.game.ai.CribbageAI;
 import dev.wdrbork.cribbage.logic.game.ai.RandomPlayer;
 import dev.wdrbork.cribbage.logic.game.ai.SmartPlayer;
+import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
-import dev.wdrbork.cribbage.logic.deck.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -177,7 +177,7 @@ public class TestCribbageAI {
 
             System.out.println("Smart hand = " + smartHand);
             System.out.println("Random hand = " + randomHand);
-            game.getStarterCard();
+            game.pickStarterCard();
             playTwoPlayerRound(game, smart, random);
             // if (game.dealer() == SMART_ID) {
             //     game.countHand(RANDOM_ID);

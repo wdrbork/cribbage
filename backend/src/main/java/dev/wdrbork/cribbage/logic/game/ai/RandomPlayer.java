@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
-import dev.wdrbork.cribbage.logic.deck.*;
 
 public class RandomPlayer implements CribbageAI {
     private static final int TWO_PLAYER_START_SIZE = 6;

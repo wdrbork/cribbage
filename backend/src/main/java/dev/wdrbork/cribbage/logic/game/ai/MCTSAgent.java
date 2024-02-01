@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import dev.wdrbork.cribbage.logic.deck.*;
+import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.*;
 
 // Makes decisions for the AI using Monte Carlo tree search (for more 
