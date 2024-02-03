@@ -1,8 +1,6 @@
 package dev.wdrbork.cribbage.controllers;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,8 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.wdrbork.cribbage.logic.cards.Card;
 import dev.wdrbork.cribbage.logic.cards.Hand;
-import dev.wdrbork.cribbage.logic.cards.Rank;
-import dev.wdrbork.cribbage.logic.cards.Suit;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
 
 @RestController

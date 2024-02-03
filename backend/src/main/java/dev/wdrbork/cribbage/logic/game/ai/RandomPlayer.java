@@ -8,8 +8,6 @@ import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
 
 public class RandomPlayer implements CribbageAI {
-    private static final int TWO_PLAYER_START_SIZE = 6;
-    private static final int THREE_PLAYER_START_SIZE = 5;
     private static final int HAND_SIZE = 4;
 
     private CribbageManager gameState;

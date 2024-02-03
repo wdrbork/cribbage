@@ -27,7 +27,6 @@ public class MCTSAgent {
     private int pid;
 
     // Debug fields
-    private int numberOfNodes;
     private int loops = 0;
 
     /**
@@ -43,8 +42,6 @@ public class MCTSAgent {
         root.playedCard = gameState.getLastPlayedCard();
         root.pidTurn = gameState.lastToPlayCard();
         this.pid = pid;
-
-        this.numberOfNodes = 1;
     }
 
     public Card selectCard() {
@@ -263,7 +260,7 @@ public class MCTSAgent {
             children.add(child);
         }
 
-        this.numberOfNodes += children.size();
+        children.size();
         return children;
     }
 
@@ -319,7 +316,7 @@ public class MCTSAgent {
             children.add(child);
         }
 
-        this.numberOfNodes += children.size();
+        children.size();
         return children;
     }
 

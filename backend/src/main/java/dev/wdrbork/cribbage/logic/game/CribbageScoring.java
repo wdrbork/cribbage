@@ -1,8 +1,6 @@
 package dev.wdrbork.cribbage.logic.game;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import dev.wdrbork.cribbage.logic.cards.Card;
