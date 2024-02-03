@@ -19,7 +19,7 @@ public class SmartPlayer implements CribbageAI {
 
     private CribbageManager gameState;
     private int pid;
-    private List<Card> hand;
+    private Hand hand;
     
     public SmartPlayer(CribbageManager gameState, int pid) {
         int numPlayers = gameState.numPlayers();
@@ -34,11 +34,11 @@ public class SmartPlayer implements CribbageAI {
         this.hand = gameState.getHand(pid);
     }
 
-    public void setHand(List<Card> hand) {
+    public void setHand(Hand hand) {
         this.hand = hand;
     }
 
-    public List<Card> choosePlayingHand() {
+    public Hand choosePlayingHand() {
         // Random rng = new Random();
         // if (this.hand == null) {
         //     throw new IllegalStateException("No hand set for AI with pid " + pid);
@@ -53,11 +53,11 @@ public class SmartPlayer implements CribbageAI {
             throw new IllegalStateException("No hand set for AI with pid " + pid);
         }
 
-        Map<List<Card>, Double> savedCounts = new HashMap<List<Card>, Double>();
+        Map<Hand, Double> savedCounts = new HashMap<Hand, Double>();
         boolean isDealer = false;
         if (gameState.dealer() == pid) isDealer = true;
         hand = maximizePoints(hand, isDealer, 
-                new ArrayList<Card>(), 0, savedCounts);
+                new Hand(), 0, savedCounts);
         return hand;
     }
 
@@ -75,13 +75,13 @@ public class SmartPlayer implements CribbageAI {
     // cards * 1980 (45 * 44) possible cribs = 1,366,200 iterations
     // Total short runtime: 15 possible combos * 13 possible starter ranks
     // * 169 possible cribs (13 * 13) = 32,955 iterations
-    private List<Card> maximizePoints(List<Card> original, boolean isDealer,
-            List<Card> soFar, int idx, Map<List<Card>, Double> savedCounts) {
+    private Hand maximizePoints(Hand original, boolean isDealer,
+            Hand soFar, int idx, Map<Hand, Double> savedCounts) {
         // If soFar represents a full hand, determine the expected number of 
         // points and save this information
         if (soFar.size() == HAND_SIZE) {
             double bestExpected = findBestPossibleCount(soFar, isDealer);
-            List<Card> deepCopy = new ArrayList<Card>(soFar);
+            Hand deepCopy = new Hand(soFar);
             savedCounts.put(deepCopy, bestExpected);
             return deepCopy;
         }
@@ -99,18 +99,18 @@ public class SmartPlayer implements CribbageAI {
         // lists (as seen below)
         if (idx == startSize 
                 || idx - soFar.size() > startSize - HAND_SIZE) {
-            List<Card> notApplicable = new ArrayList<Card>();
+            Hand notApplicable = new Hand();
             savedCounts.put(notApplicable, -Double.MAX_VALUE);
             return notApplicable;
         }
 
         // Compare the expected points from including the card at this idx with
         // the expected points from ignoring it
-        soFar.add(original.get(idx));
-        List<Card> includeIdx = 
+        soFar.addCard(original.getCard(idx));
+        Hand includeIdx = 
                 maximizePoints(original, isDealer, soFar, idx + 1, savedCounts);
-        soFar.remove(original.get(idx));
-        List<Card> excludeIdx = 
+        soFar.removeCard(original.getCard(idx));
+        Hand excludeIdx = 
                 maximizePoints(original, isDealer, soFar, idx + 1, savedCounts);
 
         // Print the expected scores of the hands to be compared
@@ -122,13 +122,13 @@ public class SmartPlayer implements CribbageAI {
                 includeIdx : excludeIdx;
     }
 
-    private double findBestPossibleCount(List<Card> hand, boolean ownsCrib) {
+    private double findBestPossibleCount(Hand hand, boolean ownsCrib) {
         // Use the given hand and the starting hand to infer which cards have 
         // been sent to the crib
-        List<Card> sentToCrib = new ArrayList<Card>();
-        for (Card card : this.hand) {
+        Hand sentToCrib = new Hand();
+        for (Card card : this.hand.asList()) {
             if (!hand.contains(card)) {
-                sentToCrib.add(card);
+                sentToCrib.addCard(card);
             }
         }
 
@@ -137,33 +137,48 @@ public class SmartPlayer implements CribbageAI {
 
         // Quick computation (ignores suits)
         for (int i = 1; i <= Deck.CARDS_PER_SUIT; i++) {
-            Card next = new Card(Suit.SPADE, Card.getRankBasedOnValue(i));
-            int points = CribbageScoring.count15Combos(hand, next);
-            points += CribbageScoring.countPairs(hand, next);
-            points += CribbageScoring.countRuns(hand, next);
-            points += CribbageScoring.countFlush(hand, next);
-            points += CribbageScoring.countNobs(hand, next);
-            double cardProbability = (double) counts[i] / (Deck.DECK_SIZE - this.hand.size());
+            Card starter = new Card(Suit.SPADE, Card.getRankBasedOnValue(i));
+            for (Suit suit : Suit.values()) {
+                starter = new Card(suit, Card.getRankBasedOnValue(i));
+                if (!hand.contains(starter) && !sentToCrib.contains(starter)) {
+                    break;
+                }
+            }
+            int points = CribbageScoring.count15Combos(hand, starter);
+            points += CribbageScoring.countPairs(hand, starter);
+            points += CribbageScoring.countRuns(hand, starter);
+            points += CribbageScoring.countFlush(hand, starter);
+            points += CribbageScoring.countNobs(hand, starter);
+            double cardProbability = (double) counts[i] / 
+                    (Deck.DECK_SIZE - this.hand.size());
             expected += (double) points * cardProbability;
 
             if (ownsCrib) {
-                expected += findBestCribScore(sentToCrib, next) * cardProbability;
+                expected += findBestCribScore(sentToCrib, starter) * cardProbability;
             } else {
-                expected -= findBestCribScore(sentToCrib, next) * cardProbability;
+                expected -= findBestCribScore(sentToCrib, starter) * cardProbability;
             }
         }
 
         return expected;
     }
 
-    private double findBestCribScore(List<Card> sentToCrib, Card starterCard) {
+    private double findBestCribScore(Hand sentToCrib, Card starterCard) {
+        assert(sentToCrib.size() == 2);
         double expected = 0.0;
         int[] counts = rankCounts();
         counts[starterCard.getRankValue()]--;
 
         // Quick computation (ignores suits)
         for (int i = 1; i <= Deck.CARDS_PER_SUIT; i++) {
-            Card thirdCard = new Card(Suit.SPADE, Card.getRankBasedOnValue(i));
+            Card thirdCard = new Card(1, 1);
+            for (Suit suit : Suit.values()) {
+                thirdCard = new Card(suit, Card.getRankBasedOnValue(i));
+                if (!thirdCard.equals(starterCard) && 
+                        sentToCrib.addCard(thirdCard)) {
+                    break;
+                }
+            }
 
             // Find the probability of a card of this rank ending up in the 
             // crib (e.g. if our 6-card hand contains 4 aces, we should not 
@@ -175,10 +190,19 @@ public class SmartPlayer implements CribbageAI {
             // Temporarily decrement the count for this rank
             counts[i]--;
 
-            sentToCrib.add(thirdCard);
             for (int j = 1; j <= Deck.CARDS_PER_SUIT; j++) {
-                Card fourthCard = new Card(Suit.SPADE, Card.getRankBasedOnValue(j));
-                sentToCrib.add(fourthCard);
+                Card fourthCard = new Card(1, 1);
+                for (Suit suit : Suit.values()) {
+                    fourthCard = new Card(suit, Card.getRankBasedOnValue(j));
+                    if (!fourthCard.equals(starterCard) && 
+                            sentToCrib.addCard(fourthCard)) {
+                        break;
+                    }
+                }
+
+                // If we are already using all four cards of this rank value, \
+                // skip to the next rank
+                if (sentToCrib.size() != 4) continue;
 
                 // Find the expected points from this crib
                 int points = CribbageScoring.count15Combos(sentToCrib, starterCard);
@@ -195,20 +219,20 @@ public class SmartPlayer implements CribbageAI {
                 expected += (double) points * 
                         thirdCardRankProbability * fourthCardRankProbability;
 
-                sentToCrib.remove(fourthCard);
+                sentToCrib.removeCard(fourthCard);
             }
 
             counts[i]++;
-            sentToCrib.remove(thirdCard);
+            sentToCrib.removeCard(thirdCard);
         }
 
         // If the two cards in the crib are of the same suit, a flush is 
         // possible, so increase the expected point total of the crib based 
         // on the probability of the flush occurring
-        if (sentToCrib.get(0).getSuit() == sentToCrib.get(1).getSuit()) {
-            Suit sharedSuit = sentToCrib.get(0).getSuit();
+        if (sentToCrib.getCard(0).getSuit() == sentToCrib.getCard(1).getSuit()) {
+            Suit sharedSuit = sentToCrib.getCard(0).getSuit();
             int cardsOfSuitAvailable = Deck.CARDS_PER_SUIT;
-            for (Card card : hand) {
+            for (Card card : hand.asList()) {
                 if (card.getSuit() == sharedSuit) {
                     cardsOfSuitAvailable--;
                 }
@@ -229,7 +253,7 @@ public class SmartPlayer implements CribbageAI {
     private int[] rankCounts() {
         int[] counts = new int[Deck.CARDS_PER_SUIT + 1];
         Arrays.fill(counts, Deck.CARDS_PER_RANK);
-        for (Card card : this.hand) {
+        for (Card card : this.hand.asList()) {
             counts[card.getRankValue()]--;
         }
 

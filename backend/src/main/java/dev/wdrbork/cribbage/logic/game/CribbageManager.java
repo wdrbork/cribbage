@@ -1,15 +1,14 @@
 package dev.wdrbork.cribbage.logic.game;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import dev.wdrbork.cribbage.logic.cards.Card;
-import dev.wdrbork.cribbage.logic.cards.Deck;
-import dev.wdrbork.cribbage.logic.cards.Rank;
+import dev.wdrbork.cribbage.logic.cards.*;
 
 /**
  * Manages a game of cribbage. The caller is largely in charge of maintaining 
@@ -29,10 +28,10 @@ public class CribbageManager {
     protected final int numPlayers;
     protected final Deck deck;
     protected int[] gameScores;
-    protected final List<List<Card>> hands;
-    protected final List<Card> crib;
+    protected final List<Hand> hands;
+    protected final Hand crib;
     protected LinkedList<Card> cardStack;
-    protected List<List<Card>> playedCardsByPlayer;
+    protected List<Hand> playedCardsByPlayer;
     protected int lastToPlayCard;
     protected int nextToPlayCard;
 
@@ -69,22 +68,14 @@ public class CribbageManager {
         nextToPlayCard = -1;
         dealerId = -1;
 
-        /* Initialize the hands. The size of the starting hand is dependent on 
-        the number of players in the game. 3 players = 5 cards,
-        2 players = 6 cards. */
-        int startSize = TWO_PLAYER_START_SIZE;
-        if (numPlayers == 3) {
-            startSize = THREE_PLAYER_START_SIZE;
-        }
-
-        hands = new ArrayList<List<Card>>(numPlayers);
-        playedCardsByPlayer = new ArrayList<List<Card>>(numPlayers);
+        hands = new ArrayList<Hand>(numPlayers);
+        playedCardsByPlayer = new ArrayList<Hand>(numPlayers);
         for (int i = 0; i < numPlayers; i++) {
-            hands.add(new ArrayList<Card>(startSize));
-            playedCardsByPlayer.add(new ArrayList<Card>(HAND_SIZE));
+            hands.add(new Hand());
+            playedCardsByPlayer.add(new Hand());
         }
 
-        crib = new ArrayList<Card>(HAND_SIZE);
+        crib = new Hand();
         cardStack = new LinkedList<Card>();
     }
 
@@ -105,7 +96,7 @@ public class CribbageManager {
         this.dealerId = copy.dealerId;
         this.hands = copy.getAllHands();
         this.playedCardsByPlayer = copy.getPlayedCards();
-        this.crib = new ArrayList<Card>(copy.crib);
+        this.crib = new Hand(copy.crib);
         this.cardStack = new LinkedList<Card>(copy.cardStack);
         this.count = copy.count;
         this.starterCard = copy.starterCard;
@@ -133,33 +124,33 @@ public class CribbageManager {
         return gameScores[pid]; 
     }
 
-    public List<List<Card>> getAllHands() { 
-        List<List<Card>> deepCopy = new ArrayList<List<Card>>();
-        for (List<Card> hand : hands) {
-            deepCopy.add(new ArrayList<Card>(hand));
+    public List<Hand> getAllHands() { 
+        List<Hand> deepCopy = new ArrayList<Hand>();
+        for (Hand hand : hands) {
+            deepCopy.add(new Hand(hand));
         }
         return deepCopy;
     }
 
-    public List<List<Card>> getPlayedCards() {
-        List<List<Card>> deepCopy = new ArrayList<List<Card>>();
-        for (List<Card> played : playedCardsByPlayer) {
-            deepCopy.add(new ArrayList<Card>(played));
+    public List<Hand> getPlayedCards() {
+        List<Hand> deepCopy = new ArrayList<Hand>();
+        for (Hand played : playedCardsByPlayer) {
+            deepCopy.add(new Hand(played));
         }
         return deepCopy;
     }
 
-    public List<Card> getHand(int pid) {
+    public Hand getHand(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
-        return new ArrayList<Card>(hands.get(pid));
+        return new Hand(hands.get(pid));
     }
 
-    public List<Card> getCrib() {
-        return Collections.unmodifiableList(crib);
+    public Hand getCrib() {
+        return new Hand(crib);
     }
 
     public Card getLastPlayedCard() {
@@ -205,7 +196,7 @@ public class CribbageManager {
      * @throws IllegalArgumentException if a player or the crib still has cards
      * @throws IllegalStateException if no dealer has been declared
      */
-    public List<List<Card>> dealHands() {
+    public List<Hand> dealHands() {
         if (!checkEmptyHands()) {
             throw new IllegalArgumentException("Players still have cards in their hands");
         } else if (!crib.isEmpty()) {
@@ -228,7 +219,7 @@ public class CribbageManager {
             for (int j = 1; j <= this.numPlayers; j++) {
                 Card next = deck.takeTopCard();
                 assert(next != null) : "Deck is empty";
-                hands.get((j + dealerId) % numPlayers).add(next);
+                hands.get((j + dealerId) % numPlayers).addCard(next);
             }
         }
 
@@ -236,7 +227,7 @@ public class CribbageManager {
         if (this.numPlayers == 3) {
             Card next = deck.takeTopCard();
             assert(next != null) : "Deck is empty";
-            crib.add(next);
+            crib.addCard(next);
         }
 
         return Collections.unmodifiableList(hands);
@@ -260,7 +251,7 @@ public class CribbageManager {
                     "this player's hand");
         }
 
-        hands.get(pid).add(card);
+        hands.get(pid).addCard(card);
     }
 
     /**
@@ -287,8 +278,8 @@ public class CribbageManager {
             throw new IllegalStateException("Crib is full");
         }
 
-        hands.get(pid).remove(card);
-        crib.add(card);
+        hands.get(pid).removeCard(card);
+        crib.addCard(card);
     }
 
     public Card pickStarterCard() {
@@ -376,7 +367,7 @@ public class CribbageManager {
     
         count += card.getValue();
         cardStack.addFirst(card);
-        playedCardsByPlayer.get(pid).add(card);
+        playedCardsByPlayer.get(pid).addCard(card);
 
         int totalPoints = 0;
         if (count == 15 || count == 31) {
@@ -428,10 +419,11 @@ public class CribbageManager {
      */
     public void awardPointsForGo() {
         if (movePossible()) {
-            // System.out.println(count);
-            // System.out.println(lastToPlayCard);
-            // System.out.println(hands);
-            // System.out.println(playedCardsByPlayer);
+            System.out.println(Arrays.toString(gameScores));
+            System.out.println(count);
+            System.out.println(lastToPlayCard);
+            System.out.println(hands);
+            System.out.println(playedCardsByPlayer);
             throw new IllegalStateException("Cards can still be played");
         }
         addPoints(lastToPlayCard, 1);
@@ -473,7 +465,7 @@ public class CribbageManager {
      *         otherwise
      */
     public boolean cardAlreadyPlayed(Card card) {
-        for (List<Card> playedCards : playedCardsByPlayer) {
+        for (Hand playedCards : playedCardsByPlayer) {
             if (playedCards.contains(card)) {
                 return true;
             }
@@ -497,13 +489,13 @@ public class CribbageManager {
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
-        List<Card> playedCards = playedCardsByPlayer.get(pid);
+        Hand playedCards = playedCardsByPlayer.get(pid);
         if (playedCards.size() == HAND_SIZE) {
             // All cards have been played, so return false
             return false;
         }
 
-        for (Card card : hands.get(pid)) {
+        for (Card card : hands.get(pid).asList()) {
             int cardValue = card.getValue();
             if (!playedCards.contains(card) && cardValue + count <= MAX_COUNT) {
                 return true;
@@ -514,10 +506,6 @@ public class CribbageManager {
     }   
 
     public void resetCount() {
-        if (movePossible()) {
-            throw new IllegalStateException("Cards can still be played");
-        }
-
         count = 0;
         cardStack.clear();
         determineNextPlayer();
@@ -554,7 +542,7 @@ public class CribbageManager {
         if (gameOver()) return true;
 
         // If no more cards can be played, return true
-        for (List<Card> playedCards : getPlayedCards()) {
+        for (Hand playedCards : getPlayedCards()) {
             if (playedCards.size() != HAND_SIZE) {
                 return false;
             }
@@ -593,12 +581,7 @@ public class CribbageManager {
      * @return the number of points present in the given player's hand
      */
     public int countHand(int pid, boolean addToScore) {
-        int score = count15Combos(pid);
-        score += countRuns(pid);
-        score += countPairs(pid);
-        score += countFlush(pid);
-        score += countNobs(pid);
-
+        int score = hands.get(pid).countCribbageHand(starterCard);
         if (addToScore) {
             addPoints(pid, score);
         }
@@ -616,101 +599,14 @@ public class CribbageManager {
     public int countCrib() {
         if (dealerId < 0 || dealerId >= numPlayers) {
             throw new IllegalStateException("Dealer ID is invalid");
+        } else if (crib.size() != 4) {
+            throw new IllegalStateException("Crib does not have four cards");
         }
 
-        int score = CribbageScoring.count15Combos(crib, starterCard);
-        score += CribbageScoring.countRuns(crib, starterCard);
-        score += CribbageScoring.countPairs(crib, starterCard);
-        score += CribbageScoring.countFlush(crib, starterCard);
-        score += CribbageScoring.countNobs(crib, starterCard);
+        int score = crib.countCribbageHand(starterCard);
         addPoints(dealerId, score);
 
         return score;
-    }
-
-    /**
-     * Counts and returns the number of points earned from combinations of 
-     * cards that add up to 15 in a given player's hand along with the starter
-     * card.
-     * 
-     * @param pid the ID of the player whose hand will be counted up
-     * @return the number of points present in the given player's hand
-     */
-    public int count15Combos(int pid) {
-        if (pid < 0 || pid > numPlayers) {
-            throw new IllegalArgumentException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + " exclusive");
-        }
-
-        return CribbageScoring.count15Combos(hands.get(pid), starterCard);
-    }
-
-    /**
-     * Counts all points earned through runs in the given hand. A run is a 
-     * sequence of consecutive numbers irrespective of suit (e.g. a 5 of clubs, 
-     * 6 of spades, and 7 of diamonds form a run of three). The given hand 
-     * must not be empty, and there must be a starter card to reference
-     * 
-     * @param pid the ID of the player whose hand will be counted up
-     * @return the number of points earned through runs in the given hand
-     */
-    public int countRuns(int pid) {
-        if (pid < 0 || pid > numPlayers) {
-            throw new IllegalArgumentException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + " exclusive");
-        }
-
-        return CribbageScoring.countRuns(hands.get(pid), starterCard);
-    }
-
-    /**
-     * Counts all points earned through pairs in the given hand. A pair is 
-     * worth 2 points.
-     * 
-     * @param pid the ID of the player whose hand will be counted up
-     * @return the number of points earned through pairs
-     */
-    public int countPairs(int pid) {
-        if (pid < 0 || pid > numPlayers) {
-            throw new IllegalArgumentException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + " exclusive");
-        }
-
-       return CribbageScoring.countPairs(hands.get(pid), starterCard);
-    }
-
-    /**
-     * Counts and returns points earned through flush. A flush is a hand in 
-     * which all cards are of the same suit. If all four cards in a player's  
-     * hand share the same suit, 4 points are earned. If the starter card is  
-     * the same suit as these four cards, 5 points are earned.
-     * 
-     * @param pid the ID of the player whose hand will be counted up
-     * @return the number of points earned through flush
-     */
-    public int countFlush(int pid) {
-        if (pid < 0 || pid > numPlayers) {
-            throw new IllegalArgumentException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + " exclusive");
-        }
-
-        return CribbageScoring.countFlush(hands.get(pid), starterCard);
-    }
-
-    /**
-     * Returns 1 if this hand contains a jack that has the same suit as the 
-     * starter card (formally called "one for his nob").
-     * 
-     * @param pid the ID of the player whose hand will be counted up
-     * @return
-     */
-    public int countNobs(int pid) {
-        if (pid < 0 || pid > numPlayers) {
-            throw new IllegalArgumentException("Invalid player ID of " + 
-                    pid + "; must be between 0 and " + numPlayers + " exclusive");
-        }
-
-        return CribbageScoring.countNobs(hands.get(pid), starterCard);
     }
 
     /**
@@ -752,11 +648,11 @@ public class CribbageManager {
         resetCount();
         clearAllHands();
 
-        for (List<Card> playedCards : playedCardsByPlayer) {
-            playedCards.clear();
+        for (Hand playedCards : playedCardsByPlayer) {
+            playedCards.clearHand();
         }
 
-        crib.clear();
+        crib.clearHand();
         lastToPlayCard = -1;
         rotateDealer();
         determineNextPlayer();
@@ -766,8 +662,8 @@ public class CribbageManager {
      * Clears the hands of all players in the game.
      */
     public void clearAllHands() {
-        for (List<Card> hand : hands) {
-            hand.clear();
+        for (Hand hand : hands) {
+            hand.clearHand();
         }
     }
 
@@ -777,7 +673,7 @@ public class CribbageManager {
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
-        hands.get(pid).clear();
+        hands.get(pid).clearHand();
     }
 
     public void clearHandOfUnplayedCards(int pid) {

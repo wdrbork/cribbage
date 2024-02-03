@@ -3,11 +3,11 @@ package dev.wdrbork.cribbage.game;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
+import dev.wdrbork.cribbage.logic.game.CribbageScoring;
 
 public class TestScoring {
     private static final int NUM_PLAYERS = 2;
@@ -22,7 +22,7 @@ public class TestScoring {
             super(numPlayers);
         }
 
-        public void setHand(int pid, List<Card> hand) { hands.set(pid, hand); }
+        public void setHand(int pid, Hand hand) { hands.set(pid, hand); }
 
         public void setStarterCard(Card card) { starterCard = card; }
     }
@@ -30,19 +30,20 @@ public class TestScoring {
     @Test
     public void test29Hand() {
         man = new CribbageManagerScoreTest(NUM_PLAYERS);
-        List<Card> hand = new LinkedList<Card>();
-        hand.add(new Card(Suit.HEART, Rank.JACK));
-        hand.add(new Card(Suit.DIAMOND, Rank.FIVE));
-        hand.add(new Card(Suit.SPADE, Rank.FIVE));
-        hand.add(new Card(Suit.CLUB, Rank.FIVE));
-        man.setStarterCard(new Card(Suit.HEART, Rank.FIVE));
+        Hand hand = new Hand();
+        hand.addCard(new Card(Suit.HEART, Rank.JACK));
+        hand.addCard(new Card(Suit.DIAMOND, Rank.FIVE));
+        hand.addCard(new Card(Suit.SPADE, Rank.FIVE));
+        hand.addCard(new Card(Suit.CLUB, Rank.FIVE));
+        Card starter = new Card(Suit.HEART, Rank.FIVE);
+        man.setStarterCard(starter);
         man.setHand(PLAYER_ONE_ID, hand);
 
-        assertEquals(man.count15Combos(PLAYER_ONE_ID), 16);
-        assertEquals(man.countRuns(PLAYER_ONE_ID), 0);
-        assertEquals(man.countFlush(PLAYER_ONE_ID), 0);
-        assertEquals(man.countNobs(PLAYER_ONE_ID), 1);
-        assertEquals(man.countPairs(PLAYER_ONE_ID), 12);
+        assertEquals(CribbageScoring.count15Combos(hand, starter), 16);
+        assertEquals(CribbageScoring.countRuns(hand, starter), 0);
+        assertEquals(CribbageScoring.countFlush(hand, starter), 0);
+        assertEquals(CribbageScoring.countNobs(hand, starter), 1);
+        assertEquals(CribbageScoring.countPairs(hand, starter), 12);
         assertEquals(man.countHand(PLAYER_ONE_ID, false), 29);
     }
 
@@ -52,12 +53,12 @@ public class TestScoring {
         man = new CribbageManagerScoreTest(NUM_PLAYERS);
         man.setDealer(PLAYER_ONE_ID);
         for (int i = 0; i < TRIALS; i++) {
-            List<List<Card>> hands = man.dealHands();
+            List<Hand> hands = man.dealHands();
             man.setStarterCard(man.pickCardForDealer());
             for (int j = 0; j < hands.size(); j++) {
-                List<Card> hand = hands.get(j);
-                man.sendCardToCrib(j, hand.get(0));
-                man.sendCardToCrib(j, hand.get(1));
+                Hand hand = hands.get(j);
+                man.sendCardToCrib(j, hand.getCard(0));
+                man.sendCardToCrib(j, hand.getCard(1));
 
                 int score = man.countHand(j, false);
                 assertNotEquals(score, 19);
@@ -77,70 +78,70 @@ public class TestScoring {
 
         man.setStarterCard(new Card(Suit.HEART, Rank.TWO));
 
-        List<Card> playerOneHand = new LinkedList<Card>();
-        playerOneHand.add(new Card(Suit.DIAMOND, Rank.ACE));
-        playerOneHand.add(new Card(Suit.CLUB, Rank.FOUR));
-        playerOneHand.add(new Card(Suit.SPADE, Rank.TEN));
-        playerOneHand.add(new Card(Suit.HEART, Rank.KING));
+        Hand playerOneHand = new Hand();
+        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.ACE));
+        playerOneHand.addCard(new Card(Suit.CLUB, Rank.FOUR));
+        playerOneHand.addCard(new Card(Suit.SPADE, Rank.TEN));
+        playerOneHand.addCard(new Card(Suit.HEART, Rank.KING));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
         assertEquals(man.countHand(PLAYER_ONE_ID, false), 4);
 
-        List<Card> playerTwoHand = new LinkedList<Card>();
-        playerTwoHand.add(new Card(Suit.SPADE, Rank.ACE));
-        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.FOUR));
-        playerTwoHand.add(new Card(Suit.HEART, Rank.FOUR));
-        playerTwoHand.add(new Card(Suit.SPADE, Rank.QUEEN));
+        Hand playerTwoHand = new Hand();
+        playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE));
+        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.FOUR));
+        playerTwoHand.addCard(new Card(Suit.HEART, Rank.FOUR));
+        playerTwoHand.addCard(new Card(Suit.SPADE, Rank.QUEEN));
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
         assertEquals(man.countHand(PLAYER_TWO_ID, false), 6);
 
         man.clearRoundState();
         man.setStarterCard(new Card(Suit.CLUB, Rank.NINE));
 
-        playerOneHand.add(new Card(Suit.CLUB, Rank.FOUR));
-        playerOneHand.add(new Card(Suit.SPADE, Rank.FIVE));
-        playerOneHand.add(new Card(Suit.HEART, Rank.SIX));
-        playerOneHand.add(new Card(Suit.DIAMOND, Rank.SIX));
+        playerOneHand.addCard(new Card(Suit.CLUB, Rank.FOUR));
+        playerOneHand.addCard(new Card(Suit.SPADE, Rank.FIVE));
+        playerOneHand.addCard(new Card(Suit.HEART, Rank.SIX));
+        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.SIX));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
         assertEquals(man.countHand(PLAYER_ONE_ID, false), 16);
 
-        playerTwoHand.add(new Card(Suit.HEART, Rank.THREE));
-        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.THREE));
-        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.SEVEN));
-        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.KING));
+        playerTwoHand.addCard(new Card(Suit.HEART, Rank.THREE));
+        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.THREE));
+        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.SEVEN));
+        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.KING));
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
         assertEquals(man.countHand(PLAYER_TWO_ID, false), 4);
 
         man.clearRoundState();
         man.setStarterCard(new Card(Suit.SPADE, Rank.JACK));
 
-        playerOneHand.add(new Card(Suit.SPADE, Rank.ACE));
-        playerOneHand.add(new Card(Suit.HEART, Rank.FOUR));
-        playerOneHand.add(new Card(Suit.CLUB, Rank.FIVE));
-        playerOneHand.add(new Card(Suit.DIAMOND, Rank.KING));
+        playerOneHand.addCard(new Card(Suit.SPADE, Rank.ACE));
+        playerOneHand.addCard(new Card(Suit.HEART, Rank.FOUR));
+        playerOneHand.addCard(new Card(Suit.CLUB, Rank.FIVE));
+        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.KING));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
         assertEquals(man.countHand(PLAYER_ONE_ID, false), 8);
 
-        playerTwoHand.add(new Card(Suit.HEART, Rank.THREE));
-        playerTwoHand.add(new Card(Suit.CLUB, Rank.FOUR));
-        playerTwoHand.add(new Card(Suit.SPADE, Rank.FIVE));
-        playerTwoHand.add(new Card(Suit.HEART, Rank.QUEEN));
+        playerTwoHand.addCard(new Card(Suit.HEART, Rank.THREE));
+        playerTwoHand.addCard(new Card(Suit.CLUB, Rank.FOUR));
+        playerTwoHand.addCard(new Card(Suit.SPADE, Rank.FIVE));
+        playerTwoHand.addCard(new Card(Suit.HEART, Rank.QUEEN));
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
         assertEquals(man.countHand(PLAYER_TWO_ID, false), 7);
 
         man.clearRoundState();
         man.setStarterCard(new Card(Suit.SPADE, Rank.SEVEN));
 
-        playerOneHand.add(new Card(Suit.CLUB, Rank.FIVE));
-        playerOneHand.add(new Card(Suit.SPADE, Rank.SIX));
-        playerOneHand.add(new Card(Suit.CLUB, Rank.SIX));
-        playerOneHand.add(new Card(Suit.HEART, Rank.SEVEN));
+        playerOneHand.addCard(new Card(Suit.CLUB, Rank.FIVE));
+        playerOneHand.addCard(new Card(Suit.SPADE, Rank.SIX));
+        playerOneHand.addCard(new Card(Suit.CLUB, Rank.SIX));
+        playerOneHand.addCard(new Card(Suit.HEART, Rank.SEVEN));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
         assertEquals(man.countHand(PLAYER_ONE_ID, false), 16);
 
-        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.ACE));
-        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.TWO));
-        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.NINE));
-        playerTwoHand.add(new Card(Suit.DIAMOND, Rank.JACK));
+        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.ACE));
+        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.TWO));
+        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.NINE));
+        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.JACK));
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
         assertEquals(man.countHand(PLAYER_TWO_ID, false), 4);
     }

@@ -9,9 +9,6 @@ import dev.wdrbork.cribbage.logic.game.ai.SmartPlayer;
 import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class TestCribbageAI {
     private static final int PID = 1;
     private static final int NUM_PLAYERS = 2;
@@ -49,55 +46,55 @@ public class TestCribbageAI {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
         CribbageAI ai = new SmartPlayer(state, PID);
 
-        List<Card> hand = new ArrayList<Card>();
-        hand.add(new Card(Suit.CLUB, Rank.ACE));
-        hand.add(new Card(Suit.CLUB, Rank.SEVEN));
-        hand.add(new Card(Suit.SPADE, Rank.EIGHT));
-        hand.add(new Card(Suit.DIAMOND, Rank.TEN));
-        hand.add(new Card(Suit.HEART, Rank.QUEEN));
-        hand.add(new Card(Suit.DIAMOND, Rank.QUEEN));
+        Hand hand = new Hand();
+        hand.addCard(new Card(Suit.CLUB, Rank.ACE));
+        hand.addCard(new Card(Suit.CLUB, Rank.SEVEN));
+        hand.addCard(new Card(Suit.SPADE, Rank.EIGHT));
+        hand.addCard(new Card(Suit.DIAMOND, Rank.TEN));
+        hand.addCard(new Card(Suit.HEART, Rank.QUEEN));
+        hand.addCard(new Card(Suit.DIAMOND, Rank.QUEEN));
 
         ai.setHand(hand);
         state.setDealer(PID);
-        List<Card> optimal = ai.choosePlayingHand();
+        Hand optimal = ai.choosePlayingHand();
         System.out.println(optimal);
     }
 
     @Test 
     public void testSmartVersusSmart() {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
-        CribbageAI playerOne = new SmartPlayer(state, 0);
-        CribbageAI playerTwo = new SmartPlayer(state, 1);
+        CribbageAI playerZero = new SmartPlayer(state, 0);
+        CribbageAI playerOne = new SmartPlayer(state, 1);
         state.setDealer(1);
         state.dealHands();
-        playerOne.setHand(state.getHand(0));
-        playerTwo.setHand(state.getHand(1));
-        List<Card> playerOneHand = playerOne.choosePlayingHand();
-        for (Card card : state.getHand(0)) {
-            if (!playerOneHand.contains(card)) {
+        playerZero.setHand(state.getHand(0));
+        playerOne.setHand(state.getHand(1));
+        Hand playerZeroHand = playerZero.choosePlayingHand();
+        for (Card card : state.getHand(0).asList()) {
+            if (!playerZeroHand.contains(card)) {
                 state.sendCardToCrib(0, card);
             }
         }
 
-        List<Card> playerTwoHand = playerTwo.choosePlayingHand();
-        for (Card card : state.getHand(1)) {
-            if (!playerTwoHand.contains(card)) {
+        Hand playerOneHand = playerOne.choosePlayingHand();
+        for (Card card : state.getHand(1).asList()) {
+            if (!playerOneHand.contains(card)) {
                 state.sendCardToCrib(1, card);
             }
         }
 
-        System.out.println("playerOne hand: " + state.getHand(0));
-        System.out.println("playerTwo hand: " + state.getHand(1) + "\n");
+        System.out.println("playerZero hand: " + state.getHand(0));
+        System.out.println("playerOne hand: " + state.getHand(1) + "\n");
 
         while (!state.roundOver()) {
             Card optimalCard;
-            System.out.println("Player " + (state.nextToPlayCard() + 1) + "'s turn");
+            System.out.println("Player " + (state.nextToPlayCard()) + "'s turn");
             if (state.nextToPlayCard() == 0) {
+                optimalCard = playerZero.chooseCard();
+                System.out.println("playerZero optimal card: " + optimalCard);
+            } else {
                 optimalCard = playerOne.chooseCard();
                 System.out.println("playerOne optimal card: " + optimalCard);
-            } else {
-                optimalCard = playerTwo.chooseCard();
-                System.out.println("playerTwo optimal card: " + optimalCard);
             }
             System.out.println("Points earned: " + state.playCard(state.nextToPlayCard(), optimalCard));
             System.out.println("Count: " + state.count());
@@ -119,7 +116,7 @@ public class TestCribbageAI {
         int gamesPlayed = 0;
 
         while (gamesPlayed < TEST_GAMES) {
-            int winner = simulateTwoPlayerGame();
+            int winner = simulateSmartVsRandom();
             if (winner == SMART_ID) {
                 smartWins++;
             } else {
@@ -142,7 +139,7 @@ public class TestCribbageAI {
         }
     }
 
-    private int simulateTwoPlayerGame() {
+    private int simulateSmartVsRandom() {
         CribbageManager game = new CribbageManager(NUM_PLAYERS);
         CribbageAI smart = new SmartPlayer(game, SMART_ID);
         CribbageAI random = new RandomPlayer(game, RANDOM_ID);
@@ -161,15 +158,15 @@ public class TestCribbageAI {
             smart.setHand(game.getHand(SMART_ID));
             random.setHand(game.getHand(RANDOM_ID));
 
-            List<Card> smartHand = smart.choosePlayingHand();
-            for (Card card : game.getHand(SMART_ID)) {
+            Hand smartHand = smart.choosePlayingHand();
+            for (Card card : game.getHand(SMART_ID).asList()) {
                 if (!smartHand.contains(card)) {
                     game.sendCardToCrib(SMART_ID, card);
                 }
             }
 
-            List<Card> randomHand = random.choosePlayingHand();
-            for (Card card : game.getHand(RANDOM_ID)) {
+            Hand randomHand = random.choosePlayingHand();
+            for (Card card : game.getHand(RANDOM_ID).asList()) {
                 if (!randomHand.contains(card)) {
                     game.sendCardToCrib(RANDOM_ID, card);
                 }

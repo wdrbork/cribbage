@@ -3,7 +3,6 @@ package dev.wdrbork.cribbage.game;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,13 +74,13 @@ public class TestGameSetup {
     }
 
     private void setupGame(int numPlayers) {
-        List<List<Card>> hands = man.dealHands();
+        List<Hand> hands = man.dealHands();
         assertThrows(UnsupportedOperationException.class, () -> {
-            hands.add(new ArrayList<Card>());
+            hands.add(new Hand());
         });
 
         Set<Card> dealtCards = new HashSet<Card>();
-        for (List<Card> hand : hands) {
+        for (Hand hand : hands) {
             if (numPlayers == 2) {
                 assertEquals(hand.size(), 6);
             } else {
@@ -89,30 +88,30 @@ public class TestGameSetup {
             }
             
             System.out.println(hand);
-            for (Card card : hand) {
+            for (Card card : hand.asList()) {
                 assertFalse(dealtCards.contains(card));
                 dealtCards.add(card);
             }
         }
 
-        List<Card> crib = man.getCrib();
+        Hand crib = man.getCrib();
         if (numPlayers == 2) {
             assertEquals(crib.size(), 0);
-            man.sendCardToCrib(0, hands.get(0).get(0));
-            man.sendCardToCrib(0, hands.get(0).get(0));
-            man.sendCardToCrib(1, hands.get(1).get(0));
-            man.sendCardToCrib(1, hands.get(1).get(0));
+            man.sendCardToCrib(0, hands.get(0).getCard(0));
+            man.sendCardToCrib(0, hands.get(0).getCard(0));
+            man.sendCardToCrib(1, hands.get(1).getCard(0));
+            man.sendCardToCrib(1, hands.get(1).getCard(0));
         } else {
             assertEquals(crib.size(), 1);
-            man.sendCardToCrib(0, hands.get(0).get(0));
-            man.sendCardToCrib(1, hands.get(1).get(0));
-            man.sendCardToCrib(2, hands.get(2).get(0));
+            man.sendCardToCrib(0, hands.get(0).getCard(0));
+            man.sendCardToCrib(1, hands.get(1).getCard(0));
+            man.sendCardToCrib(2, hands.get(2).getCard(0));
         }
 
         crib = man.getCrib();
         System.out.println("Crib = " + crib);
         assertEquals(crib.size(), 4);
-        for (List<Card> hand : hands) {
+        for (Hand hand : hands) {
             assertEquals(hand.size(), 4);
         }
     }

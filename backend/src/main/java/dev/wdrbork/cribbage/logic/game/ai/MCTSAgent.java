@@ -54,6 +54,7 @@ public class MCTSAgent {
 
         search();
         MCTSNode bestMove = root.chooseMostExpandedChild();
+        System.out.println("Best card: " + bestMove.playedCard);
         return bestMove.playedCard;
     }
 
@@ -120,10 +121,10 @@ public class MCTSAgent {
             while (simulator.getHand(i).size() < HAND_SIZE) {
                 loops++;
                 if (loops == 1000) {
-                    System.out.println(i);
-                    System.out.println(simulator.getAllHands());
-                    System.out.println(simulator.getPlayedCards());
-                    System.out.println(simulator.count());
+                    // System.out.println(i);
+                    // System.out.println(simulator.getAllHands());
+                    // System.out.println(simulator.getPlayedCards());
+                    // System.out.println(simulator.count());
                     throw new IllegalStateException("Too many loops");
                 }
 
@@ -170,9 +171,9 @@ public class MCTSAgent {
             }
 
             int nextPlayer = simulator.nextToPlayCard();
-            List<Card> hand = simulator.getHand(nextPlayer);
+            Hand hand = simulator.getHand(nextPlayer);
             List<Card> possibleCards = new ArrayList<Card>();
-            for (Card card : hand) {
+            for (Card card : hand.asList()) {
                 if (simulator.canPlayCard(card)) {
                     possibleCards.add(card);
                 }
@@ -196,7 +197,7 @@ public class MCTSAgent {
 
         // If the count is not 31 and nobody can play a card, give 
         // the last player to play a card a single point
-        if (!simulator.countIs31()) {
+        if (!simulator.gameOver() && !simulator.countIs31()) {
             simulator.awardPointsForGo();
 
             // If this AI was the last to play a card, include the 
@@ -241,9 +242,9 @@ public class MCTSAgent {
 
     private Set<MCTSNode> expandOwnHand(MCTSNode parent) {
         Set<MCTSNode> children = new HashSet<MCTSNode>();
-        List<Card> hand = simulator.getHand(pid);
+        Hand hand = simulator.getHand(pid);
 
-        for (Card card : hand) {
+        for (Card card : hand.asList()) {
             if (!simulator.canPlayCard(card)) {
                 continue;
             }
@@ -276,10 +277,10 @@ public class MCTSAgent {
         if (maxCardPossible == 10) maxCardPossible = 13;
 
         if (simulator.getHand(nextPid).size() > HAND_SIZE) {
-            System.out.println(simulator.count());
-            System.out.println(nextPid);
-            System.out.println(simulator.getAllHands());
-            System.out.println(simulator.getPlayedCards());
+            // System.out.println(simulator.count());
+            // System.out.println(nextPid);
+            // System.out.println(simulator.getAllHands());
+            // System.out.println(simulator.getPlayedCards());
             throw new IllegalStateException("Hand has more than 4 cards");
         }
         
@@ -331,7 +332,7 @@ public class MCTSAgent {
                 // If it has not already been played, look through each hand 
                 // to determine if it is present in one of them
                 boolean inHand = false;
-                for (List<Card> hand : simulator.getAllHands()) {
+                for (Hand hand : simulator.getAllHands()) {
                     if (hand.contains(testCard)) {
                         inHand = true;
                         break;

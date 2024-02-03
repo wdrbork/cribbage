@@ -7,6 +7,7 @@ import java.util.Map;
 
 import dev.wdrbork.cribbage.logic.cards.Card;
 import dev.wdrbork.cribbage.logic.cards.Deck;
+import dev.wdrbork.cribbage.logic.cards.Hand;
 import dev.wdrbork.cribbage.logic.cards.Rank;
 
 public class CribbageScoring {
@@ -20,16 +21,18 @@ public class CribbageScoring {
      * @param starterCard the starter card for a round of cribbage
      * @return the number of points present in the given player's hand
      */
-    public static int count15Combos(List<Card> hand, Card starterCard) {
+    public static int count15Combos(Hand hand, Card starterCard) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
+        } else if (hand.contains(starterCard)) {
+            throw new IllegalStateException("Hand contains starter card");
         }
 
-        hand.add(starterCard);
+        hand.addCard(starterCard);
         int count = getCombos(hand, 0, 0);
-        hand.remove(starterCard);
+        hand.removeCard(starterCard);
         return count * 2;
     }
 
@@ -37,7 +40,7 @@ public class CribbageScoring {
     // in search of a subset that adds up to 15. Returns the number of such 
     // subsets. Note that this algorithm has a runtime of O(2^n), but n  
     // should never be more than 5, so any optimizations would be trivial
-    private static int getCombos(List<Card> hand, int idx, int soFar) {
+    private static int getCombos(Hand hand, int idx, int soFar) {
         if (soFar == 15) {
             return 1;
         }
@@ -48,7 +51,7 @@ public class CribbageScoring {
 
         // Ends up looking like a binary search tree, with one child including 
         // the value of the current card in soFar and the other skipping it
-        return getCombos(hand, idx + 1, soFar + hand.get(idx).getValue())
+        return getCombos(hand, idx + 1, soFar + hand.getCard(idx).getValue())
                 + getCombos(hand, idx + 1, soFar);
     }
 
@@ -62,19 +65,21 @@ public class CribbageScoring {
      * @param starterCard the starter card for a round of cribbage
      * @return the number of points earned through runs in the given hand
      */
-    public static int countRuns(List<Card> hand, Card starterCard) {
+    public static int countRuns(Hand hand, Card starterCard) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
+        } else if (hand.contains(starterCard)) {
+            throw new IllegalStateException("Hand contains starter card");
         }
 
-        hand.add(starterCard);
-        Collections.sort(hand);
+        hand.addCard(starterCard);
+        hand.sortHand();
         
         // Count the number of times each number appears in this hand
         int[] occurrences = new int[Deck.CARDS_PER_SUIT + 1];
-        for (Card card : hand) {
+        for (Card card : hand.asList()) {
             int value = card.getRankValue();
             occurrences[value]++;
         }
@@ -92,7 +97,7 @@ public class CribbageScoring {
         // Loop through the hand in search of runs
         int i = 0;
         while (i < hand.size()) {
-            int currentValue = hand.get(i).getRankValue();
+            int currentValue = hand.getCard(i).getRankValue();
             assert(currentValue != prevValue) : "Incorrect traversal of hand for countRuns";
 
             // If the currentValue equals the previous value + 1, increase the 
@@ -121,7 +126,7 @@ public class CribbageScoring {
             totalPoints += currentRun * multiplier;
         }
 
-        hand.remove(starterCard);
+        hand.removeCard(starterCard);
         return totalPoints;
     }
 
@@ -133,16 +138,18 @@ public class CribbageScoring {
      * @param starterCard the starter card for a round of cribbage
      * @return the number of points earned through pairs
      */
-    public static int countPairs(List<Card> hand, Card starterCard) {
+    public static int countPairs(Hand hand, Card starterCard) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
+        } else if (hand.contains(starterCard)) {
+            throw new IllegalStateException("Hand contains starter card");
         }
 
-        hand.add(starterCard);
+        hand.addCard(starterCard);
         Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
-        for (Card card : hand) {
+        for (Card card : hand.asList()) {
             int value = card.getRankValue();
             occurrences.put(value, occurrences.getOrDefault(value, 0) + 1);
         }
@@ -152,7 +159,7 @@ public class CribbageScoring {
             totalPoints += occurrences.get(value) * (occurrences.get(value) - 1);
         }
 
-        hand.remove(starterCard);
+        hand.removeCard(starterCard);
         return totalPoints;
     }
 
@@ -166,20 +173,22 @@ public class CribbageScoring {
      * @param starterCard the starter card for a round of cribbage
      * @return the number of points earned through flush
      */
-    public static int countFlush(List<Card> hand, Card starterCard) {
+    public static int countFlush(Hand hand, Card starterCard) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
+        } else if (hand.contains(starterCard)) {
+            throw new IllegalStateException("Hand contains starter card");
         }
 
         for (int i = 1; i < hand.size(); i++) {
-            if (hand.get(i).getSuit() != hand.get(i - 1).getSuit()) {
+            if (hand.getCard(i).getSuit() != hand.getCard(i - 1).getSuit()) {
                 return 0;
             }
         }
 
-        if (starterCard.getSuit() == hand.get(0).getSuit()) {
+        if (starterCard.getSuit() == hand.getCard(0).getSuit()) {
             return 5;
         }
         return 4;
@@ -194,14 +203,16 @@ public class CribbageScoring {
      * @return a point if this hand has a jack with the same suit as the 
      *         starter card and 0 otherwise
      */
-    public static int countNobs(List<Card> hand, Card starterCard) {
+    public static int countNobs(Hand hand, Card starterCard) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
             throw new IllegalStateException("No starter card");
+        } else if (hand.contains(starterCard)) {
+            throw new IllegalStateException("Hand contains starter card");
         }
 
-        for (Card card : hand) {
+        for (Card card : hand.asList()) {
             if (card.getRank() == Rank.JACK 
                     && starterCard.getSuit() == card.getSuit()) {
                 return 1;

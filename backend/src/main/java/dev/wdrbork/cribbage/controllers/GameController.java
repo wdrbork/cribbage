@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.wdrbork.cribbage.logic.cards.Card;
+import dev.wdrbork.cribbage.logic.cards.Hand;
 import dev.wdrbork.cribbage.logic.cards.Rank;
 import dev.wdrbork.cribbage.logic.cards.Suit;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
@@ -36,12 +37,12 @@ public class GameController {
     }
 
     @GetMapping("/hands")
-    public ResponseEntity<List<List<Card>>> getAllHands() {
+    public ResponseEntity<List<Hand>> getAllHands() {
         return new ResponseEntity<>(game.getAllHands(), HttpStatus.OK);
     }
 
     @GetMapping("/played_cards")
-    public ResponseEntity<List<List<Card>>> getPlayedCards() {
+    public ResponseEntity<List<Hand>> getPlayedCards() {
         return new ResponseEntity<>(game.getPlayedCards(), HttpStatus.OK);
     }
 
@@ -86,14 +87,14 @@ public class GameController {
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
-                "Invalid player ID of " + pid, 
+                e.getMessage(), 
                 HttpStatus.BAD_REQUEST
             );
         }
     }
 
     @GetMapping("/hand/{pid}")
-    public ResponseEntity<List<Card>> playerHand(@PathVariable String pid) {
+    public ResponseEntity<Hand> playerHand(@PathVariable String pid) {
         try {
             return new ResponseEntity<>(
                 game.getHand(Integer.valueOf(pid)), 
@@ -101,14 +102,14 @@ public class GameController {
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
-                List.of(), 
+                new Hand(), 
                 HttpStatus.BAD_REQUEST
             );
         }
     }
 
     @GetMapping("/crib")
-    public ResponseEntity<List<Card>> getCrib() {
+    public ResponseEntity<Hand> getCrib() {
         return new ResponseEntity<>(game.getCrib(), HttpStatus.OK);
     }
 
@@ -132,14 +133,14 @@ public class GameController {
             return dealer();
         } catch (Exception e) {
             return new ResponseEntity<>(
-                "Invalid player ID", 
+                e.getMessage(), 
                 HttpStatus.BAD_REQUEST
             );
         }
     }
 
     @PostMapping("/deal")
-    public ResponseEntity<List<List<Card>>> dealHands() {
+    public ResponseEntity<List<Hand>> dealHands() {
         try {
             return new ResponseEntity<>(game.dealHands(), HttpStatus.OK);
         } catch (Exception e) {
@@ -159,7 +160,7 @@ public class GameController {
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
-                "Invalid suit/rank values", 
+                e.getMessage(), 
                 HttpStatus.BAD_REQUEST
             );
         }
@@ -172,17 +173,12 @@ public class GameController {
             );
         } catch (NullPointerException e) {
             return new ResponseEntity<>(
-                "Card is null", 
+                e.getMessage(), 
                 HttpStatus.INTERNAL_SERVER_ERROR
             );
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return new ResponseEntity<>(
-                "Player " + pid + " does not have this card", 
-                HttpStatus.BAD_REQUEST
-            );
-        } catch (IllegalStateException e) {
-            return new ResponseEntity<>(
-                "Crib is full", 
+                e.getMessage(), 
                 HttpStatus.BAD_REQUEST
             );
         }
@@ -209,7 +205,7 @@ public class GameController {
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
-                "Invalid suit/rank values", 
+                e.getMessage(), 
                 HttpStatus.BAD_REQUEST
             );
         }
@@ -222,7 +218,7 @@ public class GameController {
                 HttpStatus.OK);
         } catch (NullPointerException e) {
             return new ResponseEntity<>(
-                "Card is null", 
+                e.getMessage(), 
                 HttpStatus.INTERNAL_SERVER_ERROR
             );
         } catch (IllegalArgumentException e) {
@@ -232,7 +228,7 @@ public class GameController {
             );
         } catch (IllegalStateException e) {
             return new ResponseEntity<>(
-                "Player " + pid + " does not have card " + card, 
+                e.getMessage(), 
                 HttpStatus.BAD_REQUEST
             );
         }
@@ -264,7 +260,20 @@ public class GameController {
             return new ResponseEntity<>(String.valueOf(score), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(
-                "Invalid player ID of " + pid, 
+                e.getMessage(), 
+                HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    @GetMapping("/crib/score")
+    public ResponseEntity<String> countCrib() {
+        try {
+            int score = game.countCrib();
+            return new ResponseEntity<>(String.valueOf(score), HttpStatus.OK);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(
+                e.getMessage(), 
                 HttpStatus.BAD_REQUEST
             );
         }

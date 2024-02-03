@@ -1,7 +1,5 @@
 package dev.wdrbork.cribbage.logic.game.ai;
 
-import java.util.List;
-
 import dev.wdrbork.cribbage.logic.cards.*;
 
 /**
@@ -11,7 +9,7 @@ public interface CribbageAI {
     /**
      * Sets the initial hand for this AI. 
      */
-    public void setHand(List<Card> hand);
+    public void setHand(Hand hand);
 
     /**
      * From the five or six cards dealt at the start of the round, choose four
@@ -20,7 +18,7 @@ public interface CribbageAI {
      * 
      * @return the four-card hand that will be used for the rest of the round
      */
-    public List<Card> choosePlayingHand();
+    public Hand choosePlayingHand();
 
     /**
      * Choose a card from the remaining cards in the AI's hand with the intent 
