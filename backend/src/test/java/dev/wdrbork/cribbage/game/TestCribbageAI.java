@@ -46,7 +46,7 @@ public class TestCribbageAI {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
         CribbageAI ai = new SmartPlayer(state, PID);
 
-        Hand hand = new Hand();
+        Hand hand = new Hand(false);
         hand.addCard(new Card(Suit.CLUB, Rank.ACE));
         hand.addCard(new Card(Suit.CLUB, Rank.SEVEN));
         hand.addCard(new Card(Suit.SPADE, Rank.EIGHT));

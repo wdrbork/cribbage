@@ -165,13 +165,14 @@ public class CribbageScoring {
      * Counts and returns points earned through flush. A flush is a hand in 
      * which all cards are of the same suit. If all four cards in a player's  
      * hand share the same suit, 4 points are earned. If the starter card is  
-     * the same suit as these four cards, 5 points are earned.
+     * the same suit as these four cards, 5 points are earned. Different rules
+     * apply for the crib, however; 
      * 
      * @param hand the hand that will be searched
      * @param starterCard the starter card for a round of cribbage
      * @return the number of points earned through flush
      */
-    public static int countFlush(Hand hand, Card starterCard) {
+    public static int countFlush(Hand hand, Card starterCard, boolean isCrib) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
@@ -189,7 +190,8 @@ public class CribbageScoring {
         if (starterCard.getSuit() == hand.getCard(0).getSuit()) {
             return 5;
         }
-        return 4;
+
+        return isCrib ? 0 : 4;
     }
 
     /**

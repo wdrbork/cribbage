@@ -51,14 +51,14 @@ public class TestSecondStage {
         man = new CribbageManagerTest(2);
         setupHands(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand();
+        Hand playerOneHand = new Hand(false);
         playerOneHand.addCard(new Card(Suit.SPADE, Rank.EIGHT)); //
         playerOneHand.addCard(new Card(Suit.HEART, Rank.EIGHT)); //
         playerOneHand.addCard(new Card(Suit.SPADE, Rank.SEVEN)); //
         playerOneHand.addCard(new Card(Suit.SPADE, Rank.SIX)); //
         man.setHand(PLAYER_ONE_ID, playerOneHand);
 
-        Hand playerTwoHand = new Hand();
+        Hand playerTwoHand = new Hand(false);
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.KING)); //
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.SEVEN)); //
         playerTwoHand.addCard(new Card(Suit.CLUB, Rank.FOUR)); //
@@ -207,21 +207,21 @@ public class TestSecondStage {
         man = new CribbageManagerTest(3);
         setupHands(PLAYER_THREE_ID, 3);
 
-        Hand playerOneHand = new Hand();
+        Hand playerOneHand = new Hand(false);
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.ACE)); //
         playerOneHand.addCard(new Card(Suit.CLUB, Rank.ACE)); //
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.TWO)); // 
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.THREE)); //
         man.setHand(PLAYER_ONE_ID, playerOneHand);
 
-        Hand playerTwoHand = new Hand();
+        Hand playerTwoHand = new Hand(false);
         playerTwoHand.addCard(new Card(Suit.CLUB, Rank.FIVE)); //
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.JACK)); //
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.QUEEN)); //
         playerTwoHand.addCard(new Card(Suit.CLUB, Rank.QUEEN)); // 
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
 
-        Hand playerThreeHand = new Hand();
+        Hand playerThreeHand = new Hand(false);
         playerThreeHand.addCard(new Card(Suit.DIAMOND, Rank.KING)); // 
         playerThreeHand.addCard(new Card(Suit.CLUB, Rank.SEVEN)); //
         playerThreeHand.addCard(new Card(Suit.SPADE, Rank.NINE)); //
@@ -436,12 +436,12 @@ public class TestSecondStage {
         man = new CribbageManagerTest(2);
         setupHands(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand();
+        Hand playerOneHand = new Hand(false);
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.ACE)); //
         playerOneHand.addCard(new Card(Suit.CLUB, Rank.ACE)); //
         man.setHand(PLAYER_ONE_ID, playerOneHand);
 
-        Hand playerTwoHand = new Hand();
+        Hand playerTwoHand = new Hand(false);
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.ACE)); //
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE)); //
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
@@ -488,14 +488,14 @@ public class TestSecondStage {
         man = new CribbageManagerTest(2);
         setupHands(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand();
+        Hand playerOneHand = new Hand(false);
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.TWO));
         playerOneHand.addCard(new Card(Suit.CLUB, Rank.THREE));
         playerOneHand.addCard(new Card(Suit.HEART, Rank.SIX));
         playerOneHand.addCard(new Card(Suit.HEART, Rank.SEVEN));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
 
-        Hand playerTwoHand = new Hand();
+        Hand playerTwoHand = new Hand(false);
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.FOUR));
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE));
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.FIVE));
@@ -570,14 +570,14 @@ public class TestSecondStage {
         man = new CribbageManagerTest(2);
         setupHands(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand();
+        Hand playerOneHand = new Hand(false);
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.TWO));
         playerOneHand.addCard(new Card(Suit.CLUB, Rank.THREE));
         playerOneHand.addCard(new Card(Suit.HEART, Rank.SIX));
         playerOneHand.addCard(new Card(Suit.HEART, Rank.SEVEN));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
 
-        Hand playerTwoHand = new Hand();
+        Hand playerTwoHand = new Hand(false);
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.FOUR));
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE));
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.FIVE));
@@ -652,7 +652,7 @@ public class TestSecondStage {
         man = new CribbageManagerTest(2);
         setupHands(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand();
+        Hand playerOneHand = new Hand(false);
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.TWO));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
 

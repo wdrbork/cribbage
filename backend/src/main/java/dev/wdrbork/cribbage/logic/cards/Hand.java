@@ -11,19 +11,23 @@ import dev.wdrbork.cribbage.logic.game.CribbageScoring;
 // Represents a hand of cards (is essentially an abstraction for a list of 
 // Card objects)
 public class Hand {
-    public List<Card> cards;
+    private List<Card> cards;
+    private boolean isCrib;
 
-    public Hand() {
+    public Hand(boolean isCrib) {
         cards = new LinkedList<Card>();
+        this.isCrib = isCrib;
     }
 
-    public Hand(Set<Card> cards) {
+    public Hand(Set<Card> cards, boolean isCrib) {
         this.cards = new LinkedList<Card>();
         this.cards.addAll(cards);
+        this.isCrib = isCrib;
     }
 
     public Hand(Hand copy) {
         this.cards = new LinkedList<Card>(copy.cards);
+        this.isCrib = copy.isCrib;
     }
 
     public int size() {
@@ -98,6 +102,10 @@ public class Hand {
         Collections.sort(cards);
     }
 
+    public boolean isCrib() {
+        return isCrib;
+    }
+
     /**
      * Counts up the score of this hand based on standard cribbage scoring. 
      * This hand must contain exactly four cards for it to be counted up.
@@ -161,7 +169,7 @@ public class Hand {
      * @return the number of points earned through flush
      */
     private int countFlush(Card starterCard) {
-        return CribbageScoring.countFlush(this, starterCard);
+        return CribbageScoring.countFlush(this, starterCard, isCrib);
     }
 
     /**

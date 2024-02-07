@@ -71,11 +71,11 @@ public class CribbageManager {
         hands = new ArrayList<Hand>(numPlayers);
         playedCardsByPlayer = new ArrayList<Hand>(numPlayers);
         for (int i = 0; i < numPlayers; i++) {
-            hands.add(new Hand());
-            playedCardsByPlayer.add(new Hand());
+            hands.add(new Hand(false));
+            playedCardsByPlayer.add(new Hand(false));
         }
 
-        crib = new Hand();
+        crib = new Hand(true);
         cardStack = new LinkedList<Card>();
     }
 

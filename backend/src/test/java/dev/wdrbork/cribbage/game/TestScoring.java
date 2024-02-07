@@ -30,7 +30,7 @@ public class TestScoring {
     @Test
     public void test29Hand() {
         man = new CribbageManagerScoreTest(NUM_PLAYERS);
-        Hand hand = new Hand();
+        Hand hand = new Hand(false);
         hand.addCard(new Card(Suit.HEART, Rank.JACK));
         hand.addCard(new Card(Suit.DIAMOND, Rank.FIVE));
         hand.addCard(new Card(Suit.SPADE, Rank.FIVE));
@@ -41,7 +41,7 @@ public class TestScoring {
 
         assertEquals(CribbageScoring.count15Combos(hand, starter), 16);
         assertEquals(CribbageScoring.countRuns(hand, starter), 0);
-        assertEquals(CribbageScoring.countFlush(hand, starter), 0);
+        assertEquals(CribbageScoring.countFlush(hand, starter, false), 0);
         assertEquals(CribbageScoring.countNobs(hand, starter), 1);
         assertEquals(CribbageScoring.countPairs(hand, starter), 12);
         assertEquals(man.countHand(PLAYER_ONE_ID, false), 29);
@@ -78,7 +78,7 @@ public class TestScoring {
 
         man.setStarterCard(new Card(Suit.HEART, Rank.TWO));
 
-        Hand playerOneHand = new Hand();
+        Hand playerOneHand = new Hand(false);
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.ACE));
         playerOneHand.addCard(new Card(Suit.CLUB, Rank.FOUR));
         playerOneHand.addCard(new Card(Suit.SPADE, Rank.TEN));
@@ -86,7 +86,7 @@ public class TestScoring {
         man.setHand(PLAYER_ONE_ID, playerOneHand);
         assertEquals(man.countHand(PLAYER_ONE_ID, false), 4);
 
-        Hand playerTwoHand = new Hand();
+        Hand playerTwoHand = new Hand(false);
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE));
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.FOUR));
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.FOUR));

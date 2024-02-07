@@ -13,7 +13,7 @@ public class TestHand {
 
     @Test
     public void testBasicOperations() {
-        Hand hand = new Hand();
+        Hand hand = new Hand(false);
         assertTrue(hand.isEmpty());
         assertEquals(hand.size(), 0);
 
@@ -30,7 +30,7 @@ public class TestHand {
 
     @Test
     public void testCopyConstructor() {
-        Hand hand = new Hand();
+        Hand hand = new Hand(false);
         assertTrue(hand.addCard(TEST_CARD_1));
         assertTrue(hand.addCard(TEST_CARD_2));
         assertTrue(hand.addCard(TEST_CARD_3));
@@ -42,12 +42,12 @@ public class TestHand {
 
     @Test
     public void testRetainAll() {
-        Hand hand = new Hand();
+        Hand hand = new Hand(false);
         assertTrue(hand.addCard(TEST_CARD_1));
         assertTrue(hand.addCard(TEST_CARD_2));
         assertTrue(hand.addCard(TEST_CARD_3));
 
-        Hand retain = new Hand();
+        Hand retain = new Hand(false);
         assertTrue(retain.addCard(TEST_CARD_1));
         assertTrue(retain.addCard(TEST_CARD_3));
 
@@ -56,7 +56,7 @@ public class TestHand {
         assertFalse(hand.contains(TEST_CARD_2));
         assertTrue(hand.contains(TEST_CARD_3));
 
-        hand.retainAll(new Hand());
+        hand.retainAll(new Hand(false));
         assertTrue(hand.isEmpty());
     }
     

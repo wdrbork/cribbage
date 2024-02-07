@@ -55,7 +55,7 @@ public class SmartPlayer implements CribbageAI {
         boolean isDealer = false;
         if (gameState.dealer() == pid) isDealer = true;
         hand = maximizePoints(hand, isDealer, 
-                new Hand(), 0, savedCounts);
+                new Hand(false), 0, savedCounts);
         return hand;
     }
 
@@ -97,7 +97,7 @@ public class SmartPlayer implements CribbageAI {
         // lists (as seen below)
         if (idx == startSize 
                 || idx - soFar.size() > startSize - HAND_SIZE) {
-            Hand notApplicable = new Hand();
+            Hand notApplicable = new Hand(false);
             savedCounts.put(notApplicable, -Double.MAX_VALUE);
             return notApplicable;
         }
@@ -123,7 +123,7 @@ public class SmartPlayer implements CribbageAI {
     private double findBestPossibleCount(Hand hand, boolean ownsCrib) {
         // Use the given hand and the starting hand to infer which cards have 
         // been sent to the crib
-        Hand sentToCrib = new Hand();
+        Hand sentToCrib = new Hand(true);
         for (Card card : this.hand.asList()) {
             if (!hand.contains(card)) {
                 sentToCrib.addCard(card);
@@ -145,7 +145,7 @@ public class SmartPlayer implements CribbageAI {
             int points = CribbageScoring.count15Combos(hand, starter);
             points += CribbageScoring.countPairs(hand, starter);
             points += CribbageScoring.countRuns(hand, starter);
-            points += CribbageScoring.countFlush(hand, starter);
+            points += CribbageScoring.countFlush(hand, starter, false);
             points += CribbageScoring.countNobs(hand, starter);
             double cardProbability = (double) counts[i] / 
                     (Deck.DECK_SIZE - this.hand.size());

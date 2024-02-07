@@ -98,7 +98,7 @@ public class GameController {
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
-                new Hand(), 
+                new Hand(false), 
                 HttpStatus.BAD_REQUEST
             );
         }

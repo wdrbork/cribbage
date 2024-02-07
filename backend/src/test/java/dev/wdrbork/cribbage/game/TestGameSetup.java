@@ -76,7 +76,7 @@ public class TestGameSetup {
     private void setupGame(int numPlayers) {
         List<Hand> hands = man.dealHands();
         assertThrows(UnsupportedOperationException.class, () -> {
-            hands.add(new Hand());
+            hands.add(new Hand(false));
         });
 
         Set<Card> dealtCards = new HashSet<Card>();
