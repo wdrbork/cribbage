@@ -1,9 +1,25 @@
-import logo from './logo.svg';
 import './App.css';
+import Game from './components/game/Game.js'
+import { useState } from 'react';
 
 function App() {
+  const [gameStart, setGameStart] = useState(false);
+
+  function handleClick() {
+    setGameStart(true);
+  }
+
   return (
-    <h1>Hello, World</h1>
+    <div className="App">
+      {gameStart ? (
+        <Game />
+      ) : (
+        <>
+          <h1>Cribbage</h1>
+          <button onClick={handleClick}>Start Game</button>
+        </>
+      )}
+    </div>
   );
 }
 
