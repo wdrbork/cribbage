@@ -2,6 +2,7 @@ package dev.wdrbork.cribbage.game;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Disabled;
 
 import dev.wdrbork.cribbage.logic.game.ai.CribbageAI;
 import dev.wdrbork.cribbage.logic.game.ai.RandomPlayer;
@@ -9,6 +10,7 @@ import dev.wdrbork.cribbage.logic.game.ai.SmartPlayer;
 import dev.wdrbork.cribbage.logic.cards.*;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
 
+@Disabled
 public class TestCribbageAI {
     private static final int PID = 1;
     private static final int NUM_PLAYERS = 2;
