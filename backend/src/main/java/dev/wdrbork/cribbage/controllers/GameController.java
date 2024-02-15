@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import dev.wdrbork.cribbage.logic.cards.Card;
 import dev.wdrbork.cribbage.logic.cards.Hand;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("api/v1/game")
 public class GameController {
@@ -70,6 +72,14 @@ public class GameController {
     public ResponseEntity<String> dealer() {
         return new ResponseEntity<>(
             String.valueOf(game.dealer()), 
+            HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/scores")
+    public ResponseEntity<int[]> gameScores() {
+        return new ResponseEntity<>(
+            game.gameScores(), 
             HttpStatus.OK
         );
     }

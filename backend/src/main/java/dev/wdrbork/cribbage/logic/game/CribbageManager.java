@@ -115,6 +115,8 @@ public class CribbageManager {
 
     public Card starterCard() { return starterCard; }
 
+    public int[] gameScores() { return gameScores.clone(); }
+
     public int getPlayerScore(int pid) { 
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID of " + 

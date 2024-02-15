@@ -21,28 +21,6 @@ public class TestCribbageAI {
 
     private static int scoreDiff = 0;
 
-    // private class CribbageManagerTest extends CribbageManager {
-    //     public CribbageManagerTest(int numPlayers) {
-    //         super(numPlayers);
-    //     }
-
-    //     public void setPlayedCards(List<List<Card>> playedCards) {
-    //         this.playedCardsByPlayer = playedCards;
-    //     }
-
-    //     public void setHand(int pid, List<Card> hand) { hands.set(pid, hand); }
-
-    //     public void setCount(int count) { this.count = count; }
-
-    //     public void setGameScores(int[] gameScores) {
-    //         this.gameScores = gameScores.clone();
-    //     }
-
-    //     public void setCardStack(LinkedList<Card> cardStack) {
-    //         this.cardStack = cardStack;
-    //     }
-    // }
-
     @Test
     public void analyzeRecommendedHands() {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
@@ -178,14 +156,14 @@ public class TestCribbageAI {
             System.out.println("Random hand = " + randomHand);
             game.pickStarterCard();
             playTwoPlayerRound(game, smart, random);
-            // if (game.dealer() == SMART_ID) {
-            //     game.countHand(RANDOM_ID);
-            //     game.countHand(SMART_ID);
-            // } else {
-            //     game.countHand(SMART_ID);
-            //     game.countHand(RANDOM_ID);
-            // }
-            // game.countCrib();
+            if (game.dealer() == SMART_ID) {
+                game.countHand(RANDOM_ID);
+                game.countHand(SMART_ID);
+            } else {
+                game.countHand(SMART_ID);
+                game.countHand(RANDOM_ID);
+            }
+            game.countCrib();
             game.clearRoundState();
             rounds++;
         }
@@ -207,9 +185,6 @@ public class TestCribbageAI {
             game.playCard(game.nextToPlayCard(), playedCard);
 
             if (!game.movePossible()) {
-                // if (game.count() != MAX_COUNT) {
-                //     game.awardPointsForGo();
-                // }
                 game.resetCount();
             }
         }
