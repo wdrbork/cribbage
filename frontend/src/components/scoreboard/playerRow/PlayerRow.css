@@ -1,3 +1,14 @@
-td {
-    padding: 1em;
+.PlayerRow {
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.player {
+    font-size: 20px;
+}
+
+.score {
+    font-size: 20px;
 }

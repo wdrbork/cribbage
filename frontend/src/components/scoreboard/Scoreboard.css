@@ -1,0 +1,9 @@
+.Scoreboard {
+    width: 15%;
+    padding: .5em;
+    border: dashed red;
+}
+
+.header {
+    text-align: center;
+}
