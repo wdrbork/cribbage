@@ -1,4 +1,4 @@
-import './Hand.css';
+import './hand.css';
 import { useState } from 'react';
 
 function Hand() {

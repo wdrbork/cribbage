@@ -1,4 +1,4 @@
-import './Crib.css';
+import './crib.css';
 import { useState } from 'react';
 
 function Crib() {

@@ -1,4 +1,4 @@
-import './Count.css';
+import './count.css';
 import { useState } from 'react';
 
 function Count() {

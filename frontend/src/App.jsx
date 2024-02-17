@@ -1,28 +1,23 @@
-import './App.css';
-import Scoreboard from './components/scoreboard'
-import { useState } from 'react';
+import "./App.css";
+import Home from "./components/home";
+import Game from "./components/game";
+import { useState } from "react";
 
 const NUM_PLAYERS_DEFAULT = 2;
 
 function App() {
   const [gameStart, setGameStart] = useState(false);
-  const numPlayers = NUM_PLAYERS_DEFAULT;
 
-  function handleClick() {
+  function startGame() {
     setGameStart(true);
   }
 
   return (
     <div className="App">
       {gameStart ? (
-        <div className="Game">
-            <Scoreboard numPlayers={numPlayers} />
-        </div>
+        <Game numPlayers={NUM_PLAYERS_DEFAULT} />
       ) : (
-        <>
-          <h1>Cribbage</h1>
-          <button onClick={handleClick}>Start Game</button>
-        </>
+        <Home handleClick={startGame} />
       )}
     </div>
   );
