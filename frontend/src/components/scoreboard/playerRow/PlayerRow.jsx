@@ -1,4 +1,4 @@
-import './playerRow.css';
+import "./playerRow.css";
 
 function PlayerRow({ pid, score }) {
   return (
