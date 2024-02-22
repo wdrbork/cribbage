@@ -77,7 +77,7 @@ public class CribbageScoring {
         
         // Count the number of times each number appears in this hand
         int[] occurrences = new int[Deck.CARDS_PER_SUIT + 1];
-        for (Card card : hand.asList()) {
+        for (Card card : hand.getCards()) {
             int value = card.getRankValue();
             occurrences[value]++;
         }
@@ -147,7 +147,7 @@ public class CribbageScoring {
 
         hand.addCard(starterCard);
         Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
-        for (Card card : hand.asList()) {
+        for (Card card : hand.getCards()) {
             int value = card.getRankValue();
             occurrences.put(value, occurrences.getOrDefault(value, 0) + 1);
         }
@@ -212,7 +212,7 @@ public class CribbageScoring {
             throw new IllegalStateException("Hand contains starter card");
         }
 
-        for (Card card : hand.asList()) {
+        for (Card card : hand.getCards()) {
             if (card.getRank() == Rank.JACK 
                     && starterCard.getSuit() == card.getSuit()) {
                 return 1;

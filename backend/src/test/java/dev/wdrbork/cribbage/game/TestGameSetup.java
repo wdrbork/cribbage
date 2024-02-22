@@ -88,7 +88,7 @@ public class TestGameSetup {
             }
             
             System.out.println(hand);
-            for (Card card : hand.asList()) {
+            for (Card card : hand.getCards()) {
                 assertFalse(dealtCards.contains(card));
                 dealtCards.add(card);
             }

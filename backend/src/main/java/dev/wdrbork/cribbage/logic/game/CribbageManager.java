@@ -497,7 +497,7 @@ public class CribbageManager {
             return false;
         }
 
-        for (Card card : hands.get(pid).asList()) {
+        for (Card card : hands.get(pid).getCards()) {
             int cardValue = card.getValue();
             if (!playedCards.contains(card) && cardValue + count <= MAX_COUNT) {
                 return true;

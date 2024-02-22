@@ -46,12 +46,12 @@ public class Hand {
         cards.clear();
     }
 
-    public List<Card> asList() {
+    public List<Card> getCards() {
         return Collections.unmodifiableList(cards);
     }
 
     public boolean retainAll(Hand hand) {
-        return cards.retainAll(hand.asList());
+        return cards.retainAll(hand.getCards());
     }
 
     /**
