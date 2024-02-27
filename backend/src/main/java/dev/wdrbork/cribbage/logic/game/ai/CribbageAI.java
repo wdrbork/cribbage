@@ -13,7 +13,7 @@ public interface CribbageAI {
      * 
      * @return the four-card hand that will be used for the rest of the round
      */
-    public Hand choosePlayingHand();
+    public Deck choosePlayingHand();
 
     /**
      * Choose a card from the remaining cards in the AI's hand with the intent 

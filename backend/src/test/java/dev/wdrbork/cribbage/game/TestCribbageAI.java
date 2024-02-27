@@ -26,7 +26,7 @@ public class TestCribbageAI {
         CribbageManager state = new CribbageManager(NUM_PLAYERS);
         CribbageAI ai = new SmartPlayer(state, PID);
 
-        Hand hand = new Hand(false);
+        Deck hand = new Deck();
         hand.addCard(new Card(Suit.CLUB, Rank.ACE));
         hand.addCard(new Card(Suit.CLUB, Rank.SEVEN));
         hand.addCard(new Card(Suit.SPADE, Rank.EIGHT));
@@ -35,7 +35,7 @@ public class TestCribbageAI {
         hand.addCard(new Card(Suit.DIAMOND, Rank.QUEEN));
 
         state.setDealer(PID);
-        Hand optimal = ai.choosePlayingHand();
+        Deck optimal = ai.choosePlayingHand();
         System.out.println(optimal);
     }
 
@@ -46,14 +46,14 @@ public class TestCribbageAI {
         CribbageAI playerOne = new SmartPlayer(state, 1);
         state.setDealer(1);
         state.dealHands();
-        Hand playerZeroHand = playerZero.choosePlayingHand();
+        Deck playerZeroHand = playerZero.choosePlayingHand();
         for (Card card : state.getHand(0).getCards()) {
             if (!playerZeroHand.contains(card)) {
                 state.sendCardToCrib(0, card);
             }
         }
 
-        Hand playerOneHand = playerOne.choosePlayingHand();
+        Deck playerOneHand = playerOne.choosePlayingHand();
         for (Card card : state.getHand(1).getCards()) {
             if (!playerOneHand.contains(card)) {
                 state.sendCardToCrib(1, card);
@@ -133,14 +133,14 @@ public class TestCribbageAI {
             System.out.println("Round " + rounds + ", smart AI score = " + game.getPlayerScore(SMART_ID) + ", random AI score = " + game.getPlayerScore(RANDOM_ID));
             game.dealHands();
 
-            Hand smartHand = smart.choosePlayingHand();
+            Deck smartHand = smart.choosePlayingHand();
             for (Card card : game.getHand(SMART_ID).getCards()) {
                 if (!smartHand.contains(card)) {
                     game.sendCardToCrib(SMART_ID, card);
                 }
             }
 
-            Hand randomHand = random.choosePlayingHand();
+            Deck randomHand = random.choosePlayingHand();
             for (Card card : game.getHand(RANDOM_ID).getCards()) {
                 if (!randomHand.contains(card)) {
                     game.sendCardToCrib(RANDOM_ID, card);

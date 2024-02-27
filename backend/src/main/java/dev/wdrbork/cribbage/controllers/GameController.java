@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.wdrbork.cribbage.logic.cards.Card;
-import dev.wdrbork.cribbage.logic.cards.Hand;
+import dev.wdrbork.cribbage.logic.cards.Deck;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
 
 @CrossOrigin(origins = "http://localhost:3000")
@@ -35,12 +35,12 @@ public class GameController {
     }
 
     @GetMapping("/hands")
-    public ResponseEntity<List<Hand>> getAllHands() {
+    public ResponseEntity<List<Deck>> getAllHands() {
         return new ResponseEntity<>(game.getAllHands(), HttpStatus.OK);
     }
 
     @GetMapping("/played_cards")
-    public ResponseEntity<List<Hand>> getPlayedCards() {
+    public ResponseEntity<List<Deck>> getPlayedCards() {
         return new ResponseEntity<>(game.getPlayedCards(), HttpStatus.OK);
     }
 
@@ -100,7 +100,7 @@ public class GameController {
     }
 
     @GetMapping("/hand/{pid}")
-    public ResponseEntity<Hand> playerHand(@PathVariable String pid) {
+    public ResponseEntity<Deck> playerHand(@PathVariable String pid) {
         try {
             return new ResponseEntity<>(
                 game.getHand(Integer.valueOf(pid)), 
@@ -108,14 +108,14 @@ public class GameController {
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
-                new Hand(false), 
+                new Deck(), 
                 HttpStatus.BAD_REQUEST
             );
         }
     }
 
     @GetMapping("/crib")
-    public ResponseEntity<Hand> getCrib() {
+    public ResponseEntity<Deck> getCrib() {
         return new ResponseEntity<>(game.getCrib(), HttpStatus.OK);
     }
 
@@ -146,7 +146,7 @@ public class GameController {
     }
 
     @PostMapping("/deal")
-    public ResponseEntity<List<Hand>> dealHands() {
+    public ResponseEntity<List<Deck>> dealHands() {
         try {
             return new ResponseEntity<>(game.dealHands(), HttpStatus.OK);
         } catch (Exception e) {

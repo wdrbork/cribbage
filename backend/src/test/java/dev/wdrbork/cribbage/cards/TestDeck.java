@@ -2,99 +2,62 @@ package dev.wdrbork.cribbage.cards;
 
 import org.junit.jupiter.api.Test;
 
-import dev.wdrbork.cribbage.logic.cards.Card;
-import dev.wdrbork.cribbage.logic.cards.Deck;
+import dev.wdrbork.cribbage.logic.cards.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class TestDeck {
-    private static final int DECK_SIZE = 52;
-    private static final int TOP_CARD = 0;
+    private static final Card TEST_CARD_1 = new Card(Suit.SPADE, Rank.ACE);
+    private static final Card TEST_CARD_2 = new Card(Suit.DIAMOND, Rank.KING);
+    private static final Card TEST_CARD_3 = new Card(Suit.CLUB, Rank.EIGHT);
 
     @Test
-    public void testDeckCreation() {
-        Deck deck = new Deck();
-        assertEquals(deck.remainingCards(), DECK_SIZE);
+    public void testBasicOperations() {
+        Deck hand = new Deck();
+        assertTrue(hand.isEmpty());
+        assertEquals(hand.size(), 0);
+
+        assertTrue(hand.addCard(TEST_CARD_1));
+        assertFalse(hand.isEmpty());
+        assertEquals(hand.size(), 1);
+        assertTrue(hand.contains(TEST_CARD_1));
+
+        assertTrue(hand.removeCard(TEST_CARD_1));
+        assertTrue(hand.isEmpty());
+        assertEquals(hand.size(), 0);
+        assertFalse(hand.contains(TEST_CARD_1));
     }
 
     @Test
-    public void testShuffle() {
-        Deck deck = new Deck();
-        for (int i = 0; i < 100; i++) {
-            deck.shuffle();
-            assertEquals(deck.remainingCards(), DECK_SIZE);
-            deck.resetDeck();
-        }
+    public void testCopyConstructor() {
+        Deck hand = new Deck();
+        assertTrue(hand.addCard(TEST_CARD_1));
+        assertTrue(hand.addCard(TEST_CARD_2));
+        assertTrue(hand.addCard(TEST_CARD_3));
+
+        Deck copy = new Deck();
+        assertTrue(hand.getCards().equals(copy.getCards()));
+        assertFalse(hand.getCards() == copy.getCards());
     }
 
     @Test
-    public void testRandomCard() {
-        Deck deck = new Deck();
-        for (int i = 0; i < 1000; i++) {
-            while (deck.remainingCards() > 0) {
-                assertNotEquals(deck.pickRandomCard(), null);
-            }
-            assertEquals(deck.takeTopCard(), null);
-            deck.resetDeck();
-            deck.shuffle();
-        }
+    public void testRetainAll() {
+        Deck hand = new Deck();
+        assertTrue(hand.addCard(TEST_CARD_1));
+        assertTrue(hand.addCard(TEST_CARD_2));
+        assertTrue(hand.addCard(TEST_CARD_3));
+
+        Deck retain = new Deck();
+        assertTrue(retain.addCard(TEST_CARD_1));
+        assertTrue(retain.addCard(TEST_CARD_3));
+
+        hand.retainAll(retain);
+        assertTrue(hand.contains(TEST_CARD_1));
+        assertFalse(hand.contains(TEST_CARD_2));
+        assertTrue(hand.contains(TEST_CARD_3));
+
+        hand.retainAll(new Deck());
+        assertTrue(hand.isEmpty());
     }
-
-    @Test
-    public void testEmptyDeck() {
-        Deck deck = new Deck();
-        while (deck.remainingCards() > 0) {
-            assertNotEquals(deck.takeTopCard(), null);
-        }
-
-        assertEquals(deck.takeTopCard(), null);
-        assertEquals(deck.pickCard(TOP_CARD), null);
-    }
-
-    @Test
-    public void testNoDuplicateCards() {
-        Deck deck = new Deck();
-        Set<Card> pickedCards = new HashSet<Card>();
-
-        for (int i = 0; i < 10; i++) {
-            deck.shuffle();
-            while (deck.remainingCards() > 0) {
-                Card card = deck.takeTopCard();
-                assertFalse(pickedCards.contains(card));
-                pickedCards.add(card);
-            }
-            deck.resetDeck();
-            pickedCards.clear();
-        }
-    }
-
-    @Test
-    public void testInvalidOffsets() {
-        Deck deck = new Deck();
-        assertThrows(IllegalArgumentException.class, () -> {
-            deck.pickCard(-1);
-        });
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            deck.pickCard(100);
-        });
-
-        assertEquals(deck.remainingCards(), DECK_SIZE);
-        for (int i = 0; i < 5; i++) {
-            deck.shuffle();
-            for (int j = DECK_SIZE - 1; j >= 0; j--) {
-                assertNotEquals(deck.takeTopCard(), null);
-                try {
-                    deck.pickCard(j);
-                } catch (Exception e) {
-                    System.out.println("Trial " + i + 
-                            ": Caught exception for offset " + j);
-                }
-            }
-            deck.resetDeck();
-        }
-    }
+    
 }

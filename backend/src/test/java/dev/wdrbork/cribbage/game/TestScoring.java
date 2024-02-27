@@ -22,7 +22,7 @@ public class TestScoring {
             super(numPlayers);
         }
 
-        public void setHand(int pid, Hand hand) { hands.set(pid, hand); }
+        public void setHand(int pid, Deck hand) { hands.set(pid, hand); }
 
         public void setStarterCard(Card card) { starterCard = card; }
     }
@@ -30,7 +30,7 @@ public class TestScoring {
     @Test
     public void test29Hand() {
         man = new CribbageManagerScoreTest(NUM_PLAYERS);
-        Hand hand = new Hand(false);
+        Deck hand = new Deck();
         hand.addCard(new Card(Suit.HEART, Rank.JACK));
         hand.addCard(new Card(Suit.DIAMOND, Rank.FIVE));
         hand.addCard(new Card(Suit.SPADE, Rank.FIVE));
@@ -53,10 +53,10 @@ public class TestScoring {
         man = new CribbageManagerScoreTest(NUM_PLAYERS);
         man.setDealer(PLAYER_ONE_ID);
         for (int i = 0; i < TRIALS; i++) {
-            List<Hand> hands = man.dealHands();
+            List<Deck> hands = man.dealHands();
             man.setStarterCard(man.pickCardForDealer());
             for (int j = 0; j < hands.size(); j++) {
-                Hand hand = hands.get(j);
+                Deck hand = hands.get(j);
                 man.sendCardToCrib(j, hand.getCard(0));
                 man.sendCardToCrib(j, hand.getCard(1));
 
@@ -78,7 +78,7 @@ public class TestScoring {
 
         man.setStarterCard(new Card(Suit.HEART, Rank.TWO));
 
-        Hand playerOneHand = new Hand(false);
+        Deck playerOneHand = new Deck();
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.ACE));
         playerOneHand.addCard(new Card(Suit.CLUB, Rank.FOUR));
         playerOneHand.addCard(new Card(Suit.SPADE, Rank.TEN));
@@ -86,7 +86,7 @@ public class TestScoring {
         man.setHand(PLAYER_ONE_ID, playerOneHand);
         assertEquals(man.countHand(PLAYER_ONE_ID, false), 4);
 
-        Hand playerTwoHand = new Hand(false);
+        Deck playerTwoHand = new Deck();
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE));
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.FOUR));
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.FOUR));

@@ -1,68 +1,102 @@
 package dev.wdrbork.cribbage.logic.cards;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+
+import dev.wdrbork.cribbage.logic.game.CribbageScoring;
 
 /**
- * Represents a standard 52-card deck.
+ * Represents a deck of cards.
  */
 public class Deck {
-    public static final int DECK_SIZE = 52;
     public static final int CARDS_PER_RANK = 4;
     public static final int CARDS_PER_SUIT = 13;
     public static final int NUM_FACE_CARDS = 3;
-    private static final int TOP_CARD = 0;
 
-    private final List<Card> cards;
+    protected List<Card> cards;
+
+    public Deck() {
+        cards = new LinkedList<Card>();
+    }
+
+    public Deck(Set<Card> cards) {
+        this.cards = new LinkedList<Card>();
+        this.cards.addAll(cards);
+    }
+
+    public Deck(Deck copy) {
+        this.cards = new LinkedList<Card>(copy.cards);
+    }
+
+    public int size() {
+        return cards.size();
+    }
+
+    public boolean isEmpty() {
+        return cards.isEmpty();
+    }
+
+    public boolean contains(Card card) {
+        return cards.contains(card);
+    }
+
+    public void clearDeck() {
+        cards.clear();
+    }
+
+    public List<Card> getCards() {
+        return Collections.unmodifiableList(cards);
+    }
+
+    public boolean retainAll(Deck hand) {
+        return cards.retainAll(hand.getCards());
+    }
 
     /**
-     * Creates a new deck of cards. The deck is unshuffled by default
+     * Adds the given card to this Hand if it isn't already present
+     * 
+     * @param card the card to be added
+     * @return true if the given card has been added to the Hand, false if 
+     *         the card is already in the Hand
      */
-    public Deck() {
-        this(false);
-    }
-
-    public Deck(boolean shuffle) {
-        cards = new ArrayList<Card>(DECK_SIZE);
-        resetDeck();
-        if (shuffle) shuffle();
-    }
-
-    /** 
-     * Puts all cards back into the deck. Note that the returned deck is 
-     * unshuffled.
-     */
-    public void resetDeck() {
-        cards.clear();
-        for (Suit suit : Suit.values()) {
-            for (Rank rank : Rank.values()) {
-                cards.add(new Card(suit, rank));
-            }
+    public boolean addCard(Card card) {
+        if (cards.contains(card)) {
+            return false;
         }
+
+        cards.add(card);
+        return true;
     }
 
-    public int remainingCards() {
-        return cards.size();
+    /**
+     * Removes the given card from this Hand if it is present
+     * 
+     * @param card the card to be removed
+     * @return true if the given card has been removed from this Hand, false 
+     *         if the card is not in this hand
+     */
+    public boolean removeCard(Card card) {
+        if (!cards.contains(card)) {
+            return false;
+        }
+
+        cards.remove(card);
+        return true;
+    }
+
+    public String toString() {
+        return cards.toString();
     }
 
     public void shuffle() {
         Collections.shuffle(cards);
     }
 
-    /**
-     * Returns the top card of the deck, or null if there are no more cards in
-     * the deck. 
-     * 
-     * Successive calls to takeTopCard() with no calls to shuffle() in between 
-     * will always return a unique card. If null is returned, the caller is 
-     * expected to call shuffle() so that the deck is restored.
-     * 
-     * @return the top card of the deck, or null if the deck is empty
-     */
-    public Card takeTopCard() {
-        return pickCard(TOP_CARD);
+    public void sortDeck() {
+        Collections.sort(cards);
     }
 
     /**
@@ -79,6 +113,10 @@ public class Deck {
         Random r = new Random();
         int offset = (int) Math.round(r.nextDouble() * (cards.size() - 1));
         return pickCard(offset);
+    }
+
+    public Card getCard(int idx) {
+        return cards.get(idx);
     }
 
     /**
@@ -102,19 +140,81 @@ public class Deck {
     }
 
     /**
-     * Returns a random card. The returned card is not bound to any instance 
-     * of the Deck class.
+     * Counts up the score of this hand based on standard cribbage scoring. 
+     * This hand must contain exactly four cards for it to be counted up.
      * 
-     * @return a random card
+     * @param starterCard the starter card for a round of cribbage
+     * @param isCrib true if this deck represents a crib, false otherwise
+     * @return the total score of this hand for a game of cribbage
      */
-    public static Card getRandomCard() {
-        Random r = new Random();
-        int idx = (int) Math.floor(r.nextDouble() * Deck.CARDS_PER_RANK);
-        Suit suit = Suit.values()[idx];
+    public int countCribbageHand(Card starterCard, boolean isCrib) {
+        int score = count15Combos(starterCard);
+        score += countRuns(starterCard);
+        score += countPairs(starterCard);
+        score += countFlush(starterCard, isCrib);
+        score += countNobs(starterCard);
 
-        idx = (int) Math.floor(r.nextDouble() * Deck.CARDS_PER_SUIT);
-        Rank rank = Rank.values()[idx];
-
-        return new Card(suit, rank);
+        return score;
     }
+
+    /**
+     * Counts and returns the number of points earned from combinations of 
+     * cards that add up to 15 in a given player's hand along with the starter
+     * card.
+     * 
+     * @param pid the ID of the player whose hand will be counted up
+     * @return the number of points present in the given player's hand
+     */
+    private int count15Combos(Card starterCard) {
+        return CribbageScoring.count15Combos(this, starterCard);
+    }
+
+    /**
+     * Counts all points earned through runs in the given hand. A run is a 
+     * sequence of consecutive numbers irrespective of suit (e.g. a 5 of clubs, 
+     * 6 of spades, and 7 of diamonds form a run of three). The given hand 
+     * must not be empty, and there must be a starter card to reference
+     * 
+     * @param pid the ID of the player whose hand will be counted up
+     * @return the number of points earned through runs in the given hand
+     */
+    private int countRuns(Card starterCard) {
+        return CribbageScoring.countRuns(this, starterCard);
+    }
+
+    /**
+     * Counts all points earned through pairs in the given hand. A pair is 
+     * worth 2 points.
+     * 
+     * @param pid the ID of the player whose hand will be counted up
+     * @return the number of points earned through pairs
+     */
+    private int countPairs(Card starterCard) {
+       return CribbageScoring.countPairs(this, starterCard);
+    }
+
+    /**
+     * Counts and returns points earned through flush. A flush is a hand in 
+     * which all cards are of the same suit. If all four cards in a player's  
+     * hand share the same suit, 4 points are earned. If the starter card is  
+     * the same suit as these four cards, 5 points are earned.
+     * 
+     * @param pid the ID of the player whose hand will be counted up
+     * @return the number of points earned through flush
+     */
+    private int countFlush(Card starterCard, boolean isCrib) {
+        return CribbageScoring.countFlush(this, starterCard, isCrib);
+    }
+
+    /**
+     * Returns 1 if this hand contains a jack that has the same suit as the 
+     * starter card (formally called "one for his nob").
+     * 
+     * @param pid the ID of the player whose hand will be counted up
+     * @return the number of points earned through nobs
+     */
+    private int countNobs(Card starterCard) {
+        return CribbageScoring.countNobs(this, starterCard);
+    }
+
 }

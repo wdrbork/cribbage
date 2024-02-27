@@ -30,18 +30,18 @@ public class SmartPlayer implements CribbageAI {
         this.pid = pid;
     }
 
-    public Hand choosePlayingHand() {
-        Hand currentHand = gameState.getHand(pid);
+    public Deck choosePlayingHand() {
+        Deck currentHand = gameState.getHand(pid);
         if (currentHand.size() < 5) {
             // Playing hand has already been chosen
             return currentHand;
         }
 
-        Map<Hand, Double> savedCounts = new HashMap<Hand, Double>();
+        Map<Deck, Double> savedCounts = new HashMap<Deck, Double>();
         boolean isDealer = false;
         if (gameState.dealer() == pid) isDealer = true;
-        Hand playingHand = maximizePoints(currentHand, isDealer, 
-                new Hand(false), 0, savedCounts);
+        Deck playingHand = maximizePoints(currentHand, isDealer, 
+                new Deck(), 0, savedCounts);
         return playingHand;
     }
 
@@ -59,13 +59,13 @@ public class SmartPlayer implements CribbageAI {
     // cards * 1980 (45 * 44) possible cribs = 1,366,200 iterations
     // Total short runtime: 15 possible combos * 13 possible starter ranks
     // * 169 possible cribs (13 * 13) = 32,955 iterations
-    private Hand maximizePoints(Hand original, boolean isDealer,
-            Hand soFar, int idx, Map<Hand, Double> savedCounts) {
+    private Deck maximizePoints(Deck original, boolean isDealer,
+            Deck soFar, int idx, Map<Deck, Double> savedCounts) {
         // If soFar represents a full hand, determine the expected number of 
         // points and save this information
         if (soFar.size() == HAND_SIZE) {
             double bestExpected = findBestPossibleCount(soFar, isDealer);
-            Hand deepCopy = new Hand(soFar);
+            Deck deepCopy = new Deck(soFar);
             savedCounts.put(deepCopy, bestExpected);
             return deepCopy;
         }
@@ -83,7 +83,7 @@ public class SmartPlayer implements CribbageAI {
         // lists (as seen below)
         if (idx == startSize 
                 || idx - soFar.size() > startSize - HAND_SIZE) {
-            Hand notApplicable = new Hand(false);
+            Deck notApplicable = new Deck();
             savedCounts.put(notApplicable, -Double.MAX_VALUE);
             return notApplicable;
         }
@@ -91,10 +91,10 @@ public class SmartPlayer implements CribbageAI {
         // Compare the expected points from including the card at this idx with
         // the expected points from ignoring it
         soFar.addCard(original.getCard(idx));
-        Hand includeIdx = 
+        Deck includeIdx = 
                 maximizePoints(original, isDealer, soFar, idx + 1, savedCounts);
         soFar.removeCard(original.getCard(idx));
-        Hand excludeIdx = 
+        Deck excludeIdx = 
                 maximizePoints(original, isDealer, soFar, idx + 1, savedCounts);
 
         // Print the expected scores of the hands to be compared
@@ -106,11 +106,11 @@ public class SmartPlayer implements CribbageAI {
                 includeIdx : excludeIdx;
     }
 
-    private double findBestPossibleCount(Hand hand, boolean ownsCrib) {
+    private double findBestPossibleCount(Deck hand, boolean ownsCrib) {
         // Use the given hand and the starting hand to infer which cards have 
         // been sent to the crib
-        Hand currentHand = gameState.getHand(pid);
-        Hand sentToCrib = new Hand(true);
+        Deck currentHand = gameState.getHand(pid);
+        Deck sentToCrib = new Deck();
         for (Card card : currentHand.getCards()) {
             if (!hand.contains(card)) {
                 sentToCrib.addCard(card);
@@ -135,7 +135,7 @@ public class SmartPlayer implements CribbageAI {
             points += CribbageScoring.countFlush(hand, starter, false);
             points += CribbageScoring.countNobs(hand, starter);
             double cardProbability = (double) counts[i] / 
-                    (Deck.DECK_SIZE - currentHand.size());
+                    (StandardDeck.DECK_SIZE - currentHand.size());
             expected += (double) points * cardProbability;
 
             if (ownsCrib) {
@@ -148,9 +148,9 @@ public class SmartPlayer implements CribbageAI {
         return expected;
     }
 
-    private double findBestCribScore(Hand sentToCrib, Card starterCard) {
+    private double findBestCribScore(Deck sentToCrib, Card starterCard) {
         assert(sentToCrib.size() == 2);
-        Hand currentHand = gameState.getHand(pid);
+        Deck currentHand = gameState.getHand(pid);
         double expected = 0.0;
         int[] counts = rankCounts();
         counts[starterCard.getRankValue()]--;
@@ -171,7 +171,7 @@ public class SmartPlayer implements CribbageAI {
             // expect there to be another ace in the crib, so the probability 
             // would be zero)
             double thirdCardRankProbability = (double) counts[i] / 
-                    (Deck.DECK_SIZE - currentHand.size() - 1);
+                    (StandardDeck.DECK_SIZE - currentHand.size() - 1);
 
             // Temporarily decrement the count for this rank
             counts[i]--;
@@ -198,7 +198,7 @@ public class SmartPlayer implements CribbageAI {
                 // Find the probability of a card of this rank ending up in the
                 // crib
                 double fourthCardRankProbability = (double) counts[j] / 
-                        (Deck.DECK_SIZE - currentHand.size() - 2);
+                        (StandardDeck.DECK_SIZE - currentHand.size() - 2);
 
                 // Add the expected points from this crib to the overall total
                 // (with respect to the probability of this crib occurring)
@@ -226,8 +226,8 @@ public class SmartPlayer implements CribbageAI {
 
             double numerator = (double) cardsOfSuitAvailable * 
                     (cardsOfSuitAvailable - 1);
-            double denominator = (Deck.DECK_SIZE - currentHand.size() - 1) * 
-                    (Deck.DECK_SIZE - currentHand.size() - 2);
+            double denominator = (StandardDeck.DECK_SIZE - currentHand.size() - 1) * 
+                    (StandardDeck.DECK_SIZE - currentHand.size() - 2);
             double flushProbability = numerator / denominator;
                                     
             expected += 4 * flushProbability;

@@ -168,7 +168,7 @@ public class MCTSAgent {
             }
 
             int nextPlayer = simulator.nextToPlayCard();
-            Hand hand = simulator.getHand(nextPlayer);
+            Deck hand = simulator.getHand(nextPlayer);
             List<Card> possibleCards = new ArrayList<Card>();
             for (Card card : hand.getCards()) {
                 if (simulator.canPlayCard(card)) {
@@ -239,7 +239,7 @@ public class MCTSAgent {
 
     private Set<MCTSNode> expandOwnHand(MCTSNode parent) {
         Set<MCTSNode> children = new HashSet<MCTSNode>();
-        Hand hand = simulator.getHand(pid);
+        Deck hand = simulator.getHand(pid);
 
         for (Card card : hand.getCards()) {
             if (!simulator.canPlayCard(card)) {
@@ -329,7 +329,7 @@ public class MCTSAgent {
                 // If it has not already been played, look through each hand 
                 // to determine if it is present in one of them
                 boolean inHand = false;
-                for (Hand hand : simulator.getAllHands()) {
+                for (Deck hand : simulator.getAllHands()) {
                     if (hand.contains(testCard)) {
                         inHand = true;
                         break;

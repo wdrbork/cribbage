@@ -5,8 +5,8 @@ import java.util.Map;
 
 import dev.wdrbork.cribbage.logic.cards.Card;
 import dev.wdrbork.cribbage.logic.cards.Deck;
-import dev.wdrbork.cribbage.logic.cards.Hand;
 import dev.wdrbork.cribbage.logic.cards.Rank;
+import dev.wdrbork.cribbage.logic.cards.StandardDeck;
 
 public class CribbageScoring {
     private static final int HAND_SIZE = 4;
@@ -19,7 +19,7 @@ public class CribbageScoring {
      * @param starterCard the starter card for a round of cribbage
      * @return the number of points present in the given player's hand
      */
-    public static int count15Combos(Hand hand, Card starterCard) {
+    public static int count15Combos(Deck hand, Card starterCard) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
@@ -38,7 +38,7 @@ public class CribbageScoring {
     // in search of a subset that adds up to 15. Returns the number of such 
     // subsets. Note that this algorithm has a runtime of O(2^n), but n  
     // should never be more than 5, so any optimizations would be trivial
-    private static int getCombos(Hand hand, int idx, int soFar) {
+    private static int getCombos(Deck hand, int idx, int soFar) {
         if (soFar == 15) {
             return 1;
         }
@@ -63,7 +63,7 @@ public class CribbageScoring {
      * @param starterCard the starter card for a round of cribbage
      * @return the number of points earned through runs in the given hand
      */
-    public static int countRuns(Hand hand, Card starterCard) {
+    public static int countRuns(Deck hand, Card starterCard) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
@@ -73,10 +73,10 @@ public class CribbageScoring {
         }
 
         hand.addCard(starterCard);
-        hand.sortHand();
+        hand.sortDeck();
         
         // Count the number of times each number appears in this hand
-        int[] occurrences = new int[Deck.CARDS_PER_SUIT + 1];
+        int[] occurrences = new int[StandardDeck.CARDS_PER_SUIT + 1];
         for (Card card : hand.getCards()) {
             int value = card.getRankValue();
             occurrences[value]++;
@@ -136,7 +136,7 @@ public class CribbageScoring {
      * @param starterCard the starter card for a round of cribbage
      * @return the number of points earned through pairs
      */
-    public static int countPairs(Hand hand, Card starterCard) {
+    public static int countPairs(Deck hand, Card starterCard) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
@@ -172,7 +172,7 @@ public class CribbageScoring {
      * @param starterCard the starter card for a round of cribbage
      * @return the number of points earned through flush
      */
-    public static int countFlush(Hand hand, Card starterCard, boolean isCrib) {
+    public static int countFlush(Deck hand, Card starterCard, boolean isCrib) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {
@@ -203,7 +203,7 @@ public class CribbageScoring {
      * @return a point if this hand has a jack with the same suit as the 
      *         starter card and 0 otherwise
      */
-    public static int countNobs(Hand hand, Card starterCard) {
+    public static int countNobs(Deck hand, Card starterCard) {
         if (hand.size() != HAND_SIZE) {
             throw new IllegalStateException("Hand does not have 4 cards");
         } else if (starterCard == null) {

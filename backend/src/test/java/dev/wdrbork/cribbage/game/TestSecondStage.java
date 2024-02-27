@@ -23,7 +23,7 @@ public class TestSecondStage {
             super(numPlayers);
         }
 
-        public void setHand(int pid, Hand hand) {
+        public void setHand(int pid, Deck hand) {
             hands.set(pid, hand);
         }
 
@@ -37,7 +37,7 @@ public class TestSecondStage {
 
         public LinkedList<Card> getCardStack() { return cardStack; }
 
-        public List<Hand> getPlayedCards() { 
+        public List<Deck> getPlayedCards() { 
             return playedCardsByPlayer; 
         }
 
@@ -49,21 +49,21 @@ public class TestSecondStage {
     @Test
     public void testSingleRoundTwoPlayers() {
         man = new CribbageManagerTest(2);
-        setupHands(PLAYER_TWO_ID, 2);
+        setupDecks(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand(false);
-        playerOneHand.addCard(new Card(Suit.SPADE, Rank.EIGHT)); //
-        playerOneHand.addCard(new Card(Suit.HEART, Rank.EIGHT)); //
-        playerOneHand.addCard(new Card(Suit.SPADE, Rank.SEVEN)); //
-        playerOneHand.addCard(new Card(Suit.SPADE, Rank.SIX)); //
-        man.setHand(PLAYER_ONE_ID, playerOneHand);
+        Deck playerOneDeck = new Deck();
+        playerOneDeck.addCard(new Card(Suit.SPADE, Rank.EIGHT)); //
+        playerOneDeck.addCard(new Card(Suit.HEART, Rank.EIGHT)); //
+        playerOneDeck.addCard(new Card(Suit.SPADE, Rank.SEVEN)); //
+        playerOneDeck.addCard(new Card(Suit.SPADE, Rank.SIX)); //
+        man.setHand(PLAYER_ONE_ID, playerOneDeck);
 
-        Hand playerTwoHand = new Hand(false);
-        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.KING)); //
-        playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.SEVEN)); //
-        playerTwoHand.addCard(new Card(Suit.CLUB, Rank.FOUR)); //
-        playerTwoHand.addCard(new Card(Suit.SPADE, Rank.FIVE)); //
-        man.setHand(PLAYER_TWO_ID, playerTwoHand);
+        Deck playerTwoDeck = new Deck();
+        playerTwoDeck.addCard(new Card(Suit.DIAMOND, Rank.KING)); //
+        playerTwoDeck.addCard(new Card(Suit.DIAMOND, Rank.SEVEN)); //
+        playerTwoDeck.addCard(new Card(Suit.CLUB, Rank.FOUR)); //
+        playerTwoDeck.addCard(new Card(Suit.SPADE, Rank.FIVE)); //
+        man.setHand(PLAYER_TWO_ID, playerTwoDeck);
 
         assertTrue(man.movePossible());
 
@@ -205,28 +205,28 @@ public class TestSecondStage {
     @Test
     public void testSingleRoundThreePlayers() {
         man = new CribbageManagerTest(3);
-        setupHands(PLAYER_THREE_ID, 3);
+        setupDecks(PLAYER_THREE_ID, 3);
 
-        Hand playerOneHand = new Hand(false);
-        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.ACE)); //
-        playerOneHand.addCard(new Card(Suit.CLUB, Rank.ACE)); //
-        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.TWO)); // 
-        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.THREE)); //
-        man.setHand(PLAYER_ONE_ID, playerOneHand);
+        Deck playerOneDeck = new Deck();
+        playerOneDeck.addCard(new Card(Suit.DIAMOND, Rank.ACE)); //
+        playerOneDeck.addCard(new Card(Suit.CLUB, Rank.ACE)); //
+        playerOneDeck.addCard(new Card(Suit.DIAMOND, Rank.TWO)); // 
+        playerOneDeck.addCard(new Card(Suit.DIAMOND, Rank.THREE)); //
+        man.setHand(PLAYER_ONE_ID, playerOneDeck);
 
-        Hand playerTwoHand = new Hand(false);
-        playerTwoHand.addCard(new Card(Suit.CLUB, Rank.FIVE)); //
-        playerTwoHand.addCard(new Card(Suit.HEART, Rank.JACK)); //
-        playerTwoHand.addCard(new Card(Suit.HEART, Rank.QUEEN)); //
-        playerTwoHand.addCard(new Card(Suit.CLUB, Rank.QUEEN)); // 
-        man.setHand(PLAYER_TWO_ID, playerTwoHand);
+        Deck playerTwoDeck = new Deck();
+        playerTwoDeck.addCard(new Card(Suit.CLUB, Rank.FIVE)); //
+        playerTwoDeck.addCard(new Card(Suit.HEART, Rank.JACK)); //
+        playerTwoDeck.addCard(new Card(Suit.HEART, Rank.QUEEN)); //
+        playerTwoDeck.addCard(new Card(Suit.CLUB, Rank.QUEEN)); // 
+        man.setHand(PLAYER_TWO_ID, playerTwoDeck);
 
-        Hand playerThreeHand = new Hand(false);
-        playerThreeHand.addCard(new Card(Suit.DIAMOND, Rank.KING)); // 
-        playerThreeHand.addCard(new Card(Suit.CLUB, Rank.SEVEN)); //
-        playerThreeHand.addCard(new Card(Suit.SPADE, Rank.NINE)); //
-        playerThreeHand.addCard(new Card(Suit.DIAMOND, Rank.NINE)); //
-        man.setHand(PLAYER_THREE_ID, playerThreeHand);
+        Deck playerThreeDeck = new Deck();
+        playerThreeDeck.addCard(new Card(Suit.DIAMOND, Rank.KING)); // 
+        playerThreeDeck.addCard(new Card(Suit.CLUB, Rank.SEVEN)); //
+        playerThreeDeck.addCard(new Card(Suit.SPADE, Rank.NINE)); //
+        playerThreeDeck.addCard(new Card(Suit.DIAMOND, Rank.NINE)); //
+        man.setHand(PLAYER_THREE_ID, playerThreeDeck);
 
         Card falseCard = new Card(Suit.HEART, Rank.ACE);
         Card trueCard = new Card(Suit.DIAMOND, Rank.ACE);
@@ -434,17 +434,17 @@ public class TestSecondStage {
     @Test
     public void testPairs() {
         man = new CribbageManagerTest(2);
-        setupHands(PLAYER_TWO_ID, 2);
+        setupDecks(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand(false);
-        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.ACE)); //
-        playerOneHand.addCard(new Card(Suit.CLUB, Rank.ACE)); //
-        man.setHand(PLAYER_ONE_ID, playerOneHand);
+        Deck playerOneDeck = new Deck();
+        playerOneDeck.addCard(new Card(Suit.DIAMOND, Rank.ACE)); //
+        playerOneDeck.addCard(new Card(Suit.CLUB, Rank.ACE)); //
+        man.setHand(PLAYER_ONE_ID, playerOneDeck);
 
-        Hand playerTwoHand = new Hand(false);
-        playerTwoHand.addCard(new Card(Suit.HEART, Rank.ACE)); //
-        playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE)); //
-        man.setHand(PLAYER_TWO_ID, playerTwoHand);
+        Deck playerTwoDeck = new Deck();
+        playerTwoDeck.addCard(new Card(Suit.HEART, Rank.ACE)); //
+        playerTwoDeck.addCard(new Card(Suit.SPADE, Rank.ACE)); //
+        man.setHand(PLAYER_TWO_ID, playerTwoDeck);
 
         // Player 1 plays the ace of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
@@ -486,20 +486,20 @@ public class TestSecondStage {
     @Test
     public void testRunOf7() {
         man = new CribbageManagerTest(2);
-        setupHands(PLAYER_TWO_ID, 2);
+        setupDecks(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand(false);
-        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.TWO));
-        playerOneHand.addCard(new Card(Suit.CLUB, Rank.THREE));
-        playerOneHand.addCard(new Card(Suit.HEART, Rank.SIX));
-        playerOneHand.addCard(new Card(Suit.HEART, Rank.SEVEN));
-        man.setHand(PLAYER_ONE_ID, playerOneHand);
+        Deck playerOneDeck = new Deck();
+        playerOneDeck.addCard(new Card(Suit.DIAMOND, Rank.TWO));
+        playerOneDeck.addCard(new Card(Suit.CLUB, Rank.THREE));
+        playerOneDeck.addCard(new Card(Suit.HEART, Rank.SIX));
+        playerOneDeck.addCard(new Card(Suit.HEART, Rank.SEVEN));
+        man.setHand(PLAYER_ONE_ID, playerOneDeck);
 
-        Hand playerTwoHand = new Hand(false);
-        playerTwoHand.addCard(new Card(Suit.HEART, Rank.FOUR));
-        playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE));
-        playerTwoHand.addCard(new Card(Suit.SPADE, Rank.FIVE));
-        man.setHand(PLAYER_TWO_ID, playerTwoHand);
+        Deck playerTwoDeck = new Deck();
+        playerTwoDeck.addCard(new Card(Suit.HEART, Rank.FOUR));
+        playerTwoDeck.addCard(new Card(Suit.SPADE, Rank.ACE));
+        playerTwoDeck.addCard(new Card(Suit.SPADE, Rank.FIVE));
+        man.setHand(PLAYER_TWO_ID, playerTwoDeck);
 
         // Player 1 plays the two of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
@@ -568,20 +568,20 @@ public class TestSecondStage {
     @Test
     public void testRepeatedRuns() {
         man = new CribbageManagerTest(2);
-        setupHands(PLAYER_TWO_ID, 2);
+        setupDecks(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand(false);
-        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.TWO));
-        playerOneHand.addCard(new Card(Suit.CLUB, Rank.THREE));
-        playerOneHand.addCard(new Card(Suit.HEART, Rank.SIX));
-        playerOneHand.addCard(new Card(Suit.HEART, Rank.SEVEN));
-        man.setHand(PLAYER_ONE_ID, playerOneHand);
+        Deck playerOneDeck = new Deck();
+        playerOneDeck.addCard(new Card(Suit.DIAMOND, Rank.TWO));
+        playerOneDeck.addCard(new Card(Suit.CLUB, Rank.THREE));
+        playerOneDeck.addCard(new Card(Suit.HEART, Rank.SIX));
+        playerOneDeck.addCard(new Card(Suit.HEART, Rank.SEVEN));
+        man.setHand(PLAYER_ONE_ID, playerOneDeck);
 
-        Hand playerTwoHand = new Hand(false);
-        playerTwoHand.addCard(new Card(Suit.HEART, Rank.FOUR));
-        playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE));
-        playerTwoHand.addCard(new Card(Suit.SPADE, Rank.FIVE));
-        man.setHand(PLAYER_TWO_ID, playerTwoHand);
+        Deck playerTwoDeck = new Deck();
+        playerTwoDeck.addCard(new Card(Suit.HEART, Rank.FOUR));
+        playerTwoDeck.addCard(new Card(Suit.SPADE, Rank.ACE));
+        playerTwoDeck.addCard(new Card(Suit.SPADE, Rank.FIVE));
+        man.setHand(PLAYER_TWO_ID, playerTwoDeck);
 
         // Player 1 plays the two of diamonds
         assertTrue(man.hasPlayableCard(PLAYER_ONE_ID));
@@ -650,11 +650,11 @@ public class TestSecondStage {
     @Test
     public void testWinnerFromPegging() {
         man = new CribbageManagerTest(2);
-        setupHands(PLAYER_TWO_ID, 2);
+        setupDecks(PLAYER_TWO_ID, 2);
 
-        Hand playerOneHand = new Hand(false);
-        playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.TWO));
-        man.setHand(PLAYER_ONE_ID, playerOneHand);
+        Deck playerOneDeck = new Deck();
+        playerOneDeck.addCard(new Card(Suit.DIAMOND, Rank.TWO));
+        man.setHand(PLAYER_ONE_ID, playerOneDeck);
 
         man.setGameScore(PLAYER_ONE_ID, 120);
         man.setCount(13);
@@ -667,9 +667,9 @@ public class TestSecondStage {
     }
 
     // Assumes that all tests in TestGameSetup are passing
-    private List<Hand> setupHands(int dealerId, int numPlayers) {
+    private List<Deck> setupDecks(int dealerId, int numPlayers) {
         man.setDealer(dealerId);
-        List<Hand> hands = man.dealHands();
+        List<Deck> hands = man.dealHands();
         while (man.getCrib().size() < 4) {
             for (int i = 0; i < numPlayers; i++) {
                 System.out.println("Player " + i + " sends card to crib");
