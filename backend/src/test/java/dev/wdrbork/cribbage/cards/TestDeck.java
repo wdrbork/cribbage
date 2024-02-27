@@ -35,7 +35,7 @@ public class TestDeck {
         assertTrue(hand.addCard(TEST_CARD_2));
         assertTrue(hand.addCard(TEST_CARD_3));
 
-        Deck copy = new Deck();
+        Deck copy = new Deck(hand);
         assertTrue(hand.getCards().equals(copy.getCards()));
         assertFalse(hand.getCards() == copy.getCards());
     }
