@@ -34,7 +34,6 @@ public class TestCribbageAI {
         hand.addCard(new Card(Suit.HEART, Rank.QUEEN));
         hand.addCard(new Card(Suit.DIAMOND, Rank.QUEEN));
 
-        ai.setHand(hand);
         state.setDealer(PID);
         Hand optimal = ai.choosePlayingHand();
         System.out.println(optimal);
@@ -47,8 +46,6 @@ public class TestCribbageAI {
         CribbageAI playerOne = new SmartPlayer(state, 1);
         state.setDealer(1);
         state.dealHands();
-        playerZero.setHand(state.getHand(0));
-        playerOne.setHand(state.getHand(1));
         Hand playerZeroHand = playerZero.choosePlayingHand();
         for (Card card : state.getHand(0).getCards()) {
             if (!playerZeroHand.contains(card)) {
@@ -135,8 +132,6 @@ public class TestCribbageAI {
         while (!game.gameOver()) {
             System.out.println("Round " + rounds + ", smart AI score = " + game.getPlayerScore(SMART_ID) + ", random AI score = " + game.getPlayerScore(RANDOM_ID));
             game.dealHands();
-            smart.setHand(game.getHand(SMART_ID));
-            random.setHand(game.getHand(RANDOM_ID));
 
             Hand smartHand = smart.choosePlayingHand();
             for (Card card : game.getHand(SMART_ID).getCards()) {

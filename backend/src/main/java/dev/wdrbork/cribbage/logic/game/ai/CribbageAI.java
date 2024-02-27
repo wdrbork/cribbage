@@ -7,11 +7,6 @@ import dev.wdrbork.cribbage.logic.cards.*;
  */
 public interface CribbageAI {
     /**
-     * Sets the initial hand for this AI. 
-     */
-    public void setHand(Hand hand);
-
-    /**
      * From the five or six cards dealt at the start of the round, choose four
      * cards that will be used in the second and third stages of the game. It 
      * is expected that the card(s) not selected will be sent to the crib.
