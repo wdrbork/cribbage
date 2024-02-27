@@ -9,6 +9,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import dev.wdrbork.cribbage.logic.cards.*;
+import dev.wdrbork.cribbage.logic.game.ai.CribbageAI;
+import dev.wdrbork.cribbage.logic.game.ai.SmartPlayer;
 
 /**
  * Manages a game of cribbage. The caller is largely in charge of maintaining 
@@ -27,7 +29,8 @@ public class CribbageManager {
 
     protected final int numPlayers;
     protected final Deck deck;
-    protected int[] gameScores;
+    protected final int[] gameScores;
+    protected final CribbageAI[] ai;
     protected final List<Hand> hands;
     protected final Hand crib;
     protected LinkedList<Card> cardStack;
@@ -68,6 +71,11 @@ public class CribbageManager {
         nextToPlayCard = -1;
         dealerId = -1;
 
+        ai = new SmartPlayer[numPlayers - 1];
+        for (int i = 0; i < ai.length; i++) {
+            ai[0] = new SmartPlayer(this, i + 1);
+        }
+
         hands = new ArrayList<Hand>(numPlayers);
         playedCardsByPlayer = new ArrayList<Hand>(numPlayers);
         for (int i = 0; i < numPlayers; i++) {
@@ -91,6 +99,7 @@ public class CribbageManager {
 
         this.numPlayers = copy.numPlayers;
         this.deck = copy.deck;
+        this.ai = copy.ai.clone();
         this.gameScores = copy.gameScores.clone();
         this.nextToPlayCard = copy.nextToPlayCard;
         this.dealerId = copy.dealerId;
@@ -257,6 +266,22 @@ public class CribbageManager {
     }
 
     /**
+     * Selects the playing hand for each AI opponent and sends the appropriate
+     * cards to the crib.
+     */
+    public void chooseAIPlayingHands() {
+        for (int i = 0; i < ai.length; i++) {
+            Hand currentHand = getHand(i + 1);
+            Hand playingHand = ai[i].choosePlayingHand();
+            for (Card card : currentHand.getCards()) {
+                if (!playingHand.contains(card)) {
+                    sendCardToCrib(i + 1, card);
+                }
+            }
+        }
+    }
+
+    /**
      * Removes the card from the player's hand and puts it in the crib. The 
      * caller must have already dealt cards to each player, and the crib must 
      * not already be full
@@ -389,6 +414,21 @@ public class CribbageManager {
         // System.out.println("Points earned: " + totalPoints);
         
         return totalPoints;
+    }
+
+    /**
+     * Selects a card from the given AI's hand that should be played. The 
+     * chosen card is returned.
+     * @param pid the AI's ID
+     * @return the card selected by the AI
+     */
+    public Card chooseAICard(int pid) {
+        if (pid < 1 || pid >= numPlayers) {
+            throw new IllegalArgumentException("Invalid AI ID of " + 
+                    pid + "; must be between 1 and " + numPlayers + " exclusive");
+        }
+
+        return ai[pid - 1].chooseCard();
     }
 
     /**
