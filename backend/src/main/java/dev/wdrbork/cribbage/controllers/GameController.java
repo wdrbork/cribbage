@@ -240,6 +240,24 @@ public class GameController {
         }
     }
 
+    @GetMapping("/ai/play/{pid}")
+    public ResponseEntity<String> playAICard(@PathVariable String pid) {
+        try {
+            int truePid = Integer.valueOf(pid);
+            Card card = game.chooseAICard(truePid);
+            int points = game.playCard(truePid, card);
+            return new ResponseEntity<>(
+                "Player " + pid + " played " + card + " for " + points + 
+                    " points", 
+                HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                e.getMessage(), 
+                HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
     @GetMapping("/move_possible")
     public ResponseEntity<Boolean> movePossible() {
         return new ResponseEntity<>(game.movePossible(), HttpStatus.OK);
