@@ -47,7 +47,7 @@ public class RandomPlayer implements CribbageAI {
     public Card chooseCard() {
         Hand playedCards = gameState.getPlayedCards().get(pid);
         List<Card> availableCards = new ArrayList<Card>();
-        for (Card card : hand.asList()) {
+        for (Card card : hand.getCards()) {
             if (!playedCards.contains(card)) {
                 availableCards.add(card);
             }

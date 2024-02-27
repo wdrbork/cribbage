@@ -124,7 +124,7 @@ public class SmartPlayer implements CribbageAI {
         // Use the given hand and the starting hand to infer which cards have 
         // been sent to the crib
         Hand sentToCrib = new Hand(true);
-        for (Card card : this.hand.asList()) {
+        for (Card card : this.hand.getCards()) {
             if (!hand.contains(card)) {
                 sentToCrib.addCard(card);
             }
@@ -230,7 +230,7 @@ public class SmartPlayer implements CribbageAI {
         if (sentToCrib.getCard(0).getSuit() == sentToCrib.getCard(1).getSuit()) {
             Suit sharedSuit = sentToCrib.getCard(0).getSuit();
             int cardsOfSuitAvailable = Deck.CARDS_PER_SUIT;
-            for (Card card : hand.asList()) {
+            for (Card card : hand.getCards()) {
                 if (card.getSuit() == sharedSuit) {
                     cardsOfSuitAvailable--;
                 }
@@ -251,7 +251,7 @@ public class SmartPlayer implements CribbageAI {
     private int[] rankCounts() {
         int[] counts = new int[Deck.CARDS_PER_SUIT + 1];
         Arrays.fill(counts, Deck.CARDS_PER_RANK);
-        for (Card card : this.hand.asList()) {
+        for (Card card : this.hand.getCards()) {
             counts[card.getRankValue()]--;
         }
 

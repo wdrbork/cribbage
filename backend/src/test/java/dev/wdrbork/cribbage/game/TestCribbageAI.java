@@ -50,14 +50,14 @@ public class TestCribbageAI {
         playerZero.setHand(state.getHand(0));
         playerOne.setHand(state.getHand(1));
         Hand playerZeroHand = playerZero.choosePlayingHand();
-        for (Card card : state.getHand(0).asList()) {
+        for (Card card : state.getHand(0).getCards()) {
             if (!playerZeroHand.contains(card)) {
                 state.sendCardToCrib(0, card);
             }
         }
 
         Hand playerOneHand = playerOne.choosePlayingHand();
-        for (Card card : state.getHand(1).asList()) {
+        for (Card card : state.getHand(1).getCards()) {
             if (!playerOneHand.contains(card)) {
                 state.sendCardToCrib(1, card);
             }
@@ -139,14 +139,14 @@ public class TestCribbageAI {
             random.setHand(game.getHand(RANDOM_ID));
 
             Hand smartHand = smart.choosePlayingHand();
-            for (Card card : game.getHand(SMART_ID).asList()) {
+            for (Card card : game.getHand(SMART_ID).getCards()) {
                 if (!smartHand.contains(card)) {
                     game.sendCardToCrib(SMART_ID, card);
                 }
             }
 
             Hand randomHand = random.choosePlayingHand();
-            for (Card card : game.getHand(RANDOM_ID).asList()) {
+            for (Card card : game.getHand(RANDOM_ID).getCards()) {
                 if (!randomHand.contains(card)) {
                     game.sendCardToCrib(RANDOM_ID, card);
                 }

@@ -170,7 +170,7 @@ public class MCTSAgent {
             int nextPlayer = simulator.nextToPlayCard();
             Hand hand = simulator.getHand(nextPlayer);
             List<Card> possibleCards = new ArrayList<Card>();
-            for (Card card : hand.asList()) {
+            for (Card card : hand.getCards()) {
                 if (simulator.canPlayCard(card)) {
                     possibleCards.add(card);
                 }
@@ -241,7 +241,7 @@ public class MCTSAgent {
         Set<MCTSNode> children = new HashSet<MCTSNode>();
         Hand hand = simulator.getHand(pid);
 
-        for (Card card : hand.asList()) {
+        for (Card card : hand.getCards()) {
             if (!simulator.canPlayCard(card)) {
                 continue;
             }

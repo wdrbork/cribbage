@@ -36,8 +36,8 @@ public class TestHand {
         assertTrue(hand.addCard(TEST_CARD_3));
 
         Hand copy = new Hand(hand);
-        assertTrue(hand.asList().equals(copy.asList()));
-        assertFalse(hand.asList() == copy.asList());
+        assertTrue(hand.getCards().equals(copy.getCards()));
+        assertFalse(hand.getCards() == copy.getCards());
     }
 
     @Test
