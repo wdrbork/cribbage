@@ -2,6 +2,7 @@ package dev.wdrbork.cribbage.controllers;
 
 import java.util.List;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -152,6 +153,12 @@ public class GameController {
         } catch (Exception e) {
             return new ResponseEntity<>(List.of(), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @PostMapping("ai/hands")
+    public ResponseEntity<Void> selectAIHands() {
+        game.chooseAIPlayingHands();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/move/{pid}/{suit_id}/{rank_id}")
