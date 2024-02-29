@@ -19,7 +19,6 @@ function Game({ numPlayers }) {
   const getScores = async () => {
     try {
       const response = await api.get("/game/scores");
-      console.log(response);
       setGameScores(response.data);
     } catch (err) {
       console.log(err);
@@ -29,6 +28,23 @@ function Game({ numPlayers }) {
   useEffect(() => {
     getScores();
   }, [currentStage]);
+
+  function stageSwitch(cardInfo) {
+    switch (currentStage) {
+      case DRAW_DEALER:
+        return <div className="dealer-cards">{displayDealerCards()}</div>;
+      case DEAL_CRIB:
+        return DEAL_CRIB;
+      case PLAY_ROUND:
+        return PLAY_ROUND;
+      case COUNT_HANDS:
+        return COUNT_HANDS;
+      case COUNT_CRIB:
+        return COUNT_CRIB;
+      default:
+        return null;
+    }
+  }
 
   const cardInfo = {
     suit: "DIAMOND",
@@ -41,7 +57,7 @@ function Game({ numPlayers }) {
   return (
     <div className="Game">
       <Scoreboard gameScores={gameScores} />
-      <Card cardInfo={cardInfo} />
+      {stageSwitch(cardInfo)}
     </div>
   );
 }
