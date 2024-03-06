@@ -5,7 +5,7 @@ const CARD_HEIGHT_RATIO = 1.452;
 const PATH = "/images/PNG-cards-1.3/";
 const CARD_BACK = PATH + "card_back.png";
 
-function Card({ cardInfo, hidden }) {
+function Card({ cardInfo, hidden, offset }) {
   const cardImage = hidden
     ? CARD_BACK
     : PATH +
@@ -20,6 +20,10 @@ function Card({ cardInfo, hidden }) {
         src={cardImage}
         width={CARD_WIDTH}
         height={CARD_WIDTH * CARD_HEIGHT_RATIO}
+        style={{
+          position: "absolute",
+          left: offset,
+        }}
         alt={
           hidden ? "Back of card" : cardInfo.rank + " of " + cardInfo.suit + "S"
         }

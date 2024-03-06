@@ -11,6 +11,9 @@ const PLAY_ROUND = 2;
 const COUNT_HANDS = 3;
 const COUNT_CRIB = 4;
 
+const DECK_SIZE = 52;
+const CARD_OFFSET = 20;
+
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(0);
   const [dealer, setDealer] = useState(-1);
@@ -28,6 +31,19 @@ function Game({ numPlayers }) {
   useEffect(() => {
     getScores();
   }, [currentStage]);
+
+  function displayDealerCards() {
+    let dealerCards = [];
+    for (let i = 0; i < DECK_SIZE; i++) {
+      let offset = i * CARD_OFFSET;
+      console.log(offset);
+      dealerCards.push(
+        <Card key={i} cardInfo={null} offset={offset + "px"} hidden />
+      );
+    }
+
+    return dealerCards;
+  }
 
   function stageSwitch(cardInfo) {
     switch (currentStage) {
