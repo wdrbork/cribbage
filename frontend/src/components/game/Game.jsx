@@ -36,7 +36,6 @@ function Game({ numPlayers }) {
     let dealerCards = [];
     for (let i = 0; i < DECK_SIZE; i++) {
       let offset = i * CARD_OFFSET;
-      console.log(offset);
       dealerCards.push(
         <Card key={i} cardInfo={null} offset={offset + "px"} hidden />
       );
