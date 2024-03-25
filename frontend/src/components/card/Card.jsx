@@ -31,7 +31,7 @@ function Card({ cardInfo, hidden, offset }) {
   };
 
   if (onHover) {
-    cardStyle["top"] = "-25px";
+    cardStyle["top"] = "-5px";
   }
 
   return (
