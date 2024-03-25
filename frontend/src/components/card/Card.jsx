@@ -6,15 +6,23 @@ const CARD_HEIGHT_RATIO = 1.452;
 const PATH = "/images/PNG-cards-1.3/";
 const CARD_BACK = PATH + "card_back.png";
 
-function Card({ cardInfo, hidden, offset }) {
+function Card({ cardInfo, offset, interactable, onClick, hidden }) {
   const [onHover, setOnHover] = useState(false);
+  const [clicked, setClicked] = useState(false);
 
   const handleMouseOver = () => {
-    setOnHover(true);
+    interactable && setOnHover(true);
   };
 
   const handleMouseOut = () => {
-    setOnHover(false);
+    interactable && setOnHover(false);
+  };
+
+  const handleClick = () => {
+    if (interactable) {
+      setClicked(true);
+      onClick();
+    }
   };
 
   const cardImage = hidden
@@ -34,11 +42,16 @@ function Card({ cardInfo, hidden, offset }) {
     cardStyle["top"] = "-5px";
   }
 
+  if (clicked) {
+    cardStyle["display"] = "none";
+  }
+
   return (
     <div
       className="Card"
       onMouseOver={handleMouseOver}
       onMouseOut={handleMouseOut}
+      onClick={handleClick}
     >
       <img
         src={cardImage}

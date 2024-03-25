@@ -16,35 +16,11 @@ const CARD_OFFSET = 20;
 
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(0);
+  const [interactableDealerCards, setInteractableDealerCards] = useState(true);
   const [dealer, setDealer] = useState(-1);
   const [gameScores, setGameScores] = useState(Array(numPlayers));
 
-  const getScores = async () => {
-    try {
-      const response = await api.get("/game/scores");
-      setGameScores(response.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  useEffect(() => {
-    getScores();
-  }, [currentStage]);
-
-  function displayDealerCards() {
-    let dealerCards = [];
-    for (let i = 0; i < DECK_SIZE; i++) {
-      let offset = i * CARD_OFFSET;
-      dealerCards.push(
-        <Card key={i} cardInfo={null} offset={offset + "px"} hidden />
-      );
-    }
-
-    return dealerCards;
-  }
-
-  function stageSwitch(cardInfo) {
+  function stageSwitch() {
     switch (currentStage) {
       case DRAW_DEALER:
         return <div className="dealer-cards">{displayDealerCards()}</div>;
@@ -61,6 +37,42 @@ function Game({ numPlayers }) {
     }
   }
 
+  const getScores = async () => {
+    try {
+      const response = await api.get("/game/scores");
+      setGameScores(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    getScores();
+  }, [currentStage]);
+
+  function onDealerCardClick() {
+    setInteractableDealerCards(false);
+  }
+
+  function displayDealerCards() {
+    let dealerCards = [];
+    for (let i = 0; i < DECK_SIZE; i++) {
+      let offset = i * CARD_OFFSET;
+      dealerCards.push(
+        <Card
+          key={i}
+          cardInfo={null}
+          offset={offset + "px"}
+          interactable={interactableDealerCards}
+          onClick={onDealerCardClick}
+          hidden
+        />
+      );
+    }
+
+    return dealerCards;
+  }
+
   const cardInfo = {
     suit: "DIAMOND",
     rank: "SIX",
@@ -72,7 +84,7 @@ function Game({ numPlayers }) {
   return (
     <div className="Game">
       <Scoreboard gameScores={gameScores} />
-      {stageSwitch(cardInfo)}
+      {stageSwitch()}
     </div>
   );
 }
