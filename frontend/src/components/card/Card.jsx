@@ -6,7 +6,13 @@ const CARD_HEIGHT_RATIO = 1.452;
 const PATH = "/images/PNG-cards-1.3/";
 const CARD_BACK = PATH + "card_back.png";
 
-function Card({ cardInfo, offset, interactable, onClick, hidden }) {
+function Card({
+  cardInfo = null,
+  offset = 0,
+  interactable = true,
+  onClick,
+  hidden = false,
+}) {
   const [onHover, setOnHover] = useState(false);
   const [clicked, setClicked] = useState(false);
 
