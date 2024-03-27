@@ -7,10 +7,12 @@ const PATH = "/images/PNG-cards-1.3/";
 const CARD_BACK = PATH + "card_back.png";
 
 function Card({
+  id,
   cardInfo = null,
   offset = 0,
   interactable = false,
-  onClick,
+  onClick = (cardId) => {},
+  display = true,
   hidden = false,
 }) {
   const [onHover, setOnHover] = useState(false);
@@ -27,7 +29,7 @@ function Card({
   const handleClick = () => {
     if (interactable) {
       setClicked(true);
-      onClick();
+      onClick(id);
     }
   };
 
@@ -48,7 +50,7 @@ function Card({
     cardStyle["top"] = "-5px";
   }
 
-  if (clicked) {
+  if (!display || clicked) {
     cardStyle["display"] = "none";
   }
 
