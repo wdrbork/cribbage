@@ -9,7 +9,7 @@ const CARD_BACK = PATH + "card_back.png";
 function Card({
   cardInfo = null,
   offset = 0,
-  interactable = true,
+  interactable = false,
   onClick,
   hidden = false,
 }) {

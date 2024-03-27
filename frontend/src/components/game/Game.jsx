@@ -2,7 +2,7 @@ import "./game.css";
 import api from "../../api/axiosConfig.js";
 import Scoreboard from "../scoreboard";
 import Card from "../card";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Game Stages
 const DRAW_DEALER = 0;
@@ -17,13 +17,23 @@ const CARD_OFFSET = 20;
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(0);
   const [interactableDealerCards, setInteractableDealerCards] = useState(true);
+  const [userDealerCard, setUserDealerCard] = useState(null);
   const [dealer, setDealer] = useState(-1);
   const [gameScores, setGameScores] = useState(Array(numPlayers));
 
   function stageSwitch() {
     switch (currentStage) {
       case DRAW_DEALER:
-        return <div className="dealer-cards">{displayDealerCards()}</div>;
+        return (
+          <>
+            <div className="dealer-cards">{displayDealerCards()}</div>
+            <div className="user-dealer-card">
+              {userDealerCard && (
+                <Card cardInfo={userDealerCard} onClick={onDealerCardClick} />
+              )}
+            </div>
+          </>
+        );
       case DEAL_CRIB:
         return DEAL_CRIB;
       case PLAY_ROUND:
@@ -50,6 +60,22 @@ function Game({ numPlayers }) {
     getScores();
   }, [currentStage]);
 
+  useEffect(() => {
+    console.log("test1");
+    if (!interactableDealerCards) {
+      console.log("test2");
+      api
+        .get("/game/dealer_card")
+        .then((response) => {
+          console.log(response.data);
+          setUserDealerCard(response.data);
+        })
+        .catch((err) => {
+          console.err(err);
+        });
+    }
+  }, [interactableDealerCards]);
+
   function onDealerCardClick() {
     setInteractableDealerCards(false);
   }
@@ -61,7 +87,6 @@ function Game({ numPlayers }) {
       dealerCards.push(
         <Card
           key={i}
-          cardInfo={null}
           offset={offset + "px"}
           interactable={interactableDealerCards}
           onClick={onDealerCardClick}
@@ -73,19 +98,11 @@ function Game({ numPlayers }) {
     return dealerCards;
   }
 
-  const cardInfo = {
-    suit: "DIAMOND",
-    rank: "SIX",
-    value: 6,
-    rankValue: 6,
-    suitValue: 2,
-  };
-
   return (
-    <div className="Game">
+    <>
       <Scoreboard gameScores={gameScores} />
       {stageSwitch()}
-    </div>
+    </>
   );
 }
 
