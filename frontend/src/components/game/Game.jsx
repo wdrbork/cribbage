@@ -18,6 +18,7 @@ function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(0);
   const [interactableDealerCards, setInteractableDealerCards] = useState(true);
   const [userDealerCard, setUserDealerCard] = useState(null);
+  const [aiDealerCard, setAiDealerCard] = useState(null);
   const [dealer, setDealer] = useState(-1);
   const [gameScores, setGameScores] = useState(Array(numPlayers));
 
@@ -31,6 +32,9 @@ function Game({ numPlayers }) {
             <div className="dealer-cards">{displayDealerCards()}</div>
             <div className="user-dealer-card">
               {userDealerCard && <Card cardInfo={userDealerCard} />}
+            </div>
+            <div className="ai-dealer-card">
+              {aiDealerCard && <Card cardInfo={aiDealerCard} />}
             </div>
           </>
         );
@@ -57,12 +61,10 @@ function Game({ numPlayers }) {
   };
 
   useEffect(() => {
-    console.log("Getting scores");
     getScores();
   }, [currentStage]);
 
   useEffect(() => {
-    console.log("Potentially fetching a card");
     if (!interactableDealerCards) {
       api
         .get("/game/dealer_card")
@@ -75,6 +77,19 @@ function Game({ numPlayers }) {
     }
   }, [interactableDealerCards]);
 
+  useEffect(() => {
+    if (userDealerCard) {
+      api
+        .get("/game/dealer_card")
+        .then((response) => {
+          setAiDealerCard(response.data);
+        })
+        .catch((err) => {
+          console.err(err);
+        });
+    }
+  }, [userDealerCard]);
+
   function onDealerCardClick(cardId) {
     setInteractableDealerCards(false);
     pickedDealerCard.current = cardId;
@@ -82,16 +97,14 @@ function Game({ numPlayers }) {
 
   function displayDealerCards() {
     let aiDealerCard = pickedDealerCard.current;
-    if (pickedDealerCard.current != -1 && userDealerCard !== null) {
+    if (pickedDealerCard.current !== -1 && userDealerCard !== null) {
       while (aiDealerCard === pickedDealerCard.current) {
         aiDealerCard = Math.floor(Math.random() * DECK_SIZE);
-        console.log(aiDealerCard);
       }
     }
 
     let dealerCards = [];
     let displayCard = true;
-    console.log("Rendering dealer cards");
     for (let i = 0; i < DECK_SIZE; i++) {
       if (i === aiDealerCard) {
         displayCard = false;
