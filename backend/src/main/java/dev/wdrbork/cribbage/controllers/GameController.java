@@ -327,4 +327,10 @@ public class GameController {
         return new ResponseEntity<>("Round state cleared", HttpStatus.OK);
     }
 
+    @PostMapping("/reset_deck")
+    public ResponseEntity<Void> resetDeck() {
+        game.resetDeck();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }

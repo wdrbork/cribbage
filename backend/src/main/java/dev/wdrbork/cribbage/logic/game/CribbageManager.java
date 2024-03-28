@@ -216,7 +216,7 @@ public class CribbageManager {
             throw new IllegalStateException("Dealer not decided");
         }
 
-        deck.resetDeck();
+        resetDeck();
         deck.shuffle();
 
         int handSize = TWO_PLAYER_START_SIZE;
@@ -725,5 +725,9 @@ public class CribbageManager {
         }
 
         hands.get(pid).retainAll(playedCardsByPlayer.get(pid));
+    }
+
+    public void resetDeck() {
+        deck.resetDeck();
     }
 }
