@@ -101,7 +101,7 @@ public class Deck {
 
     /**
      * Returns a random card from the remaining cards in this deck, or null if 
-     * there are no more cards.
+     * there are no more cards. This card is removed from the deck.
      * 
      * @return a random card from the deck, or null if the deck is empty
      */
