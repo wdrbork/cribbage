@@ -77,7 +77,13 @@ function Game({ numPlayers }) {
       api
         .get("/game/dealer_card")
         .then((response) => {
-          setMessage("You drew a " + response.data.rank.toLowerCase() + ". ");
+          if (response.data.rankValue === 1 || response.data.rankValue === 8) {
+            setMessage(
+              "You drew an " + response.data.rank.toLowerCase() + ". "
+            );
+          } else {
+            setMessage("You drew a " + response.data.rank.toLowerCase() + ". ");
+          }
           setUserDealerCard(response.data);
         })
         .catch((err) => {
@@ -92,14 +98,24 @@ function Game({ numPlayers }) {
         .get("/game/dealer_card")
         .then((response) => {
           setAiDealerCard(response.data);
-          let newMessage =
-            message +
-            "Your opponent drew a " +
-            response.data.rank.toLowerCase() +
-            ". ";
+
+          let newMessage = "";
+          if (response.data.rankValue === 1 || response.data.rankValue === 8) {
+            newMessage =
+              message +
+              "Your opponent drew an " +
+              response.data.rank.toLowerCase() +
+              ". ";
+          } else {
+            newMessage =
+              message +
+              "Your opponent drew a " +
+              response.data.rank.toLowerCase() +
+              ". ";
+          }
 
           if (response.data.rankValue === userDealerCard.rankValue) {
-            newMessage = "There was a tie. Please draw again.";
+            newMessage += "There was a tie; please draw again.";
             resetDealerCards();
           } else if (response.data.rankValue < userDealerCard.rankValue) {
             newMessage += "Your opponent will deal first.";
@@ -162,6 +178,7 @@ function Game({ numPlayers }) {
   function resetDealerCards() {
     setInteractableDealerCards(true);
     setUserDealerCard(null);
+    setAiDealerCard(null);
     pickedDealerCardId.current = -1;
     aiDealerCardId.current = -1;
   }
