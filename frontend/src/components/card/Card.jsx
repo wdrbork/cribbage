@@ -16,7 +16,6 @@ function Card({
   hidden = false,
 }) {
   const [onHover, setOnHover] = useState(false);
-  const [clicked, setClicked] = useState(false);
 
   const handleMouseOver = () => {
     interactable && setOnHover(true);
@@ -28,7 +27,6 @@ function Card({
 
   const handleClick = () => {
     if (interactable) {
-      setClicked(true);
       onClick(id);
     }
   };
@@ -50,7 +48,7 @@ function Card({
     cardStyle["top"] = "-5px";
   }
 
-  if (!display || clicked) {
+  if (!display) {
     cardStyle["display"] = "none";
   }
 

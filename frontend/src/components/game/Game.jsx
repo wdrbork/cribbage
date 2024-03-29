@@ -22,7 +22,8 @@ function Game({ numPlayers }) {
   const [dealer, setDealer] = useState(-1);
   const [gameScores, setGameScores] = useState(Array(numPlayers));
 
-  const pickedDealerCard = useRef(-1);
+  const pickedDealerCardId = useRef(-1);
+  const aiDealerCardId = useRef(-1);
 
   function stageSwitch() {
     switch (currentStage) {
@@ -56,7 +57,7 @@ function Game({ numPlayers }) {
       const response = await api.get("/game/scores");
       setGameScores(response.data);
     } catch (err) {
-      console.err(err);
+      console.error(err);
     }
   };
 
@@ -72,7 +73,7 @@ function Game({ numPlayers }) {
           setUserDealerCard(response.data);
         })
         .catch((err) => {
-          console.err(err);
+          console.error(err);
         });
     }
   }, [interactableDealerCards]);
@@ -82,31 +83,40 @@ function Game({ numPlayers }) {
       api
         .get("/game/dealer_card")
         .then((response) => {
+          if (response.data.rankValue === userDealerCard.rankValue) {
+            resetDealerCards();
+            return;
+          }
+
           setAiDealerCard(response.data);
         })
         .catch((err) => {
-          console.err(err);
+          console.error(err);
+        })
+        .finally(function () {
+          api.post("/game/reset_deck");
         });
     }
   }, [userDealerCard]);
 
   function onDealerCardClick(cardId) {
     setInteractableDealerCards(false);
-    pickedDealerCard.current = cardId;
+    pickedDealerCardId.current = cardId;
   }
 
   function displayDealerCards() {
-    let aiDealerCard = pickedDealerCard.current;
-    if (pickedDealerCard.current !== -1 && userDealerCard !== null) {
-      while (aiDealerCard === pickedDealerCard.current) {
-        aiDealerCard = Math.floor(Math.random() * DECK_SIZE);
+    console.log("rendering dealer cards");
+    if (userDealerCard !== null && aiDealerCard === null) {
+      aiDealerCardId.current = pickedDealerCardId.current;
+      while (aiDealerCardId.current === pickedDealerCardId.current) {
+        aiDealerCardId.current = Math.floor(Math.random() * DECK_SIZE);
       }
     }
 
     let dealerCards = [];
     let displayCard = true;
     for (let i = 0; i < DECK_SIZE; i++) {
-      if (i === aiDealerCard) {
+      if (i === aiDealerCardId.current || i === pickedDealerCardId.current) {
         displayCard = false;
       }
 
@@ -126,6 +136,12 @@ function Game({ numPlayers }) {
     }
 
     return dealerCards;
+  }
+
+  function resetDealerCards() {
+    setInteractableDealerCards(true);
+    setUserDealerCard(null);
+    pickedDealerCardId.current = -1;
   }
 
   return (
