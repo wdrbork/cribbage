@@ -14,11 +14,12 @@ function App() {
 
   return (
     <div className="App">
-      {gameStart ? (
+      <Game numPlayers={NUM_PLAYERS_DEFAULT} />
+      {/* {gameStart ? (
         <Game numPlayers={NUM_PLAYERS_DEFAULT} />
       ) : (
         <Home handleClick={startGame} />
-      )}
+      )} */}
     </div>
   );
 }

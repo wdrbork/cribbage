@@ -16,6 +16,7 @@ const CARD_OFFSET = 20;
 
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(0);
+  const [message, setMessage] = useState("");
   const [interactableDealerCards, setInteractableDealerCards] = useState(true);
   const [userDealerCard, setUserDealerCard] = useState(null);
   const [aiDealerCard, setAiDealerCard] = useState(null);
@@ -28,6 +29,12 @@ function Game({ numPlayers }) {
   function stageSwitch() {
     switch (currentStage) {
       case DRAW_DEALER:
+        if (message === "") {
+          setMessage(
+            "Pick a card to decide who is the dealer. The player with the lowest card deals first."
+          );
+        }
+
         return (
           <>
             <div className="dealer-cards">{displayDealerCards()}</div>
@@ -70,6 +77,7 @@ function Game({ numPlayers }) {
       api
         .get("/game/dealer_card")
         .then((response) => {
+          setMessage("You drew a " + response.data.rank.toLowerCase() + ". ");
           setUserDealerCard(response.data);
         })
         .catch((err) => {
@@ -83,12 +91,25 @@ function Game({ numPlayers }) {
       api
         .get("/game/dealer_card")
         .then((response) => {
+          setAiDealerCard(response.data);
+          let newMessage =
+            message +
+            "Your opponent drew a " +
+            response.data.rank.toLowerCase() +
+            ". ";
+
           if (response.data.rankValue === userDealerCard.rankValue) {
+            newMessage = "There was a tie. Please draw again.";
             resetDealerCards();
-            return;
+          } else if (response.data.rankValue < userDealerCard.rankValue) {
+            newMessage += "Your opponent will deal first.";
+            setDealer(1);
+          } else {
+            newMessage += "You will deal first.";
+            setDealer(0);
           }
 
-          setAiDealerCard(response.data);
+          setMessage(newMessage);
         })
         .catch((err) => {
           console.error(err);
@@ -142,11 +163,15 @@ function Game({ numPlayers }) {
     setInteractableDealerCards(true);
     setUserDealerCard(null);
     pickedDealerCardId.current = -1;
+    aiDealerCardId.current = -1;
   }
 
   return (
     <>
-      <Scoreboard gameScores={gameScores} />
+      <div className="top-row">
+        <Scoreboard gameScores={gameScores} />
+        <div className="message-box">{message}</div>
+      </div>
       {stageSwitch()}
     </>
   );
