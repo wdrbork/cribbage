@@ -14,6 +14,8 @@ const COUNT_CRIB = 4;
 const DECK_SIZE = 52;
 const CARD_OFFSET = 20;
 
+const PROCESS_DELAY_MS = 2000;
+
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(0);
   const [message, setMessage] = useState("");
@@ -94,47 +96,63 @@ function Game({ numPlayers }) {
 
   useEffect(() => {
     if (userDealerCard) {
-      api
-        .get("/game/dealer_card")
-        .then((response) => {
-          setAiDealerCard(response.data);
+      const timeout = setTimeout(() => {
+        api
+          .get("/game/dealer_card")
+          .then((response) => {
+            setAiDealerCard(response.data);
 
-          let newMessage = "";
-          if (response.data.rankValue === 1 || response.data.rankValue === 8) {
-            newMessage =
-              message +
-              "Your opponent drew an " +
-              response.data.rank.toLowerCase() +
-              ". ";
-          } else {
-            newMessage =
-              message +
-              "Your opponent drew a " +
-              response.data.rank.toLowerCase() +
-              ". ";
-          }
+            let newMessage = "";
+            if (
+              response.data.rankValue === 1 ||
+              response.data.rankValue === 8
+            ) {
+              newMessage =
+                "Your opponent drew an " +
+                response.data.rank.toLowerCase() +
+                ". ";
+            } else {
+              newMessage =
+                "Your opponent drew a " +
+                response.data.rank.toLowerCase() +
+                ". ";
+            }
 
-          if (response.data.rankValue === userDealerCard.rankValue) {
-            newMessage += "There was a tie; please draw again.";
-            resetDealerCards();
-          } else if (response.data.rankValue < userDealerCard.rankValue) {
-            newMessage += "Your opponent will deal first.";
-            setDealer(1);
-          } else {
-            newMessage += "You will deal first.";
-            setDealer(0);
-          }
+            if (response.data.rankValue === userDealerCard.rankValue) {
+              newMessage += "There was a tie; please draw again.";
+              resetDealerCards();
+            } else if (response.data.rankValue < userDealerCard.rankValue) {
+              newMessage += "Your opponent will deal first.";
+              setDealer(1);
+            } else {
+              newMessage += "You will deal first.";
+              setDealer(0);
+            }
 
-          setMessage(newMessage);
-        })
-        .catch((err) => {
-          console.error(err);
-        })
-        .finally(function () {
-          api.post("/game/reset_deck");
-        });
+            setMessage(newMessage);
+          })
+          .catch((err) => {
+            console.error(err);
+          })
+          .finally(function () {
+            api.post("/game/reset_deck");
+          });
+      }, PROCESS_DELAY_MS);
+
+      return () => clearTimeout(timeout);
     }
   }, [userDealerCard]);
+
+  useEffect(() => {
+    if (aiDealerCard && userDealerCard) {
+      const timeout = setTimeout(() => {
+        resetDealerCards();
+        setCurrentStage(currentStage + 1);
+      }, PROCESS_DELAY_MS);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [aiDealerCard]);
 
   function onDealerCardClick(cardId) {
     setInteractableDealerCards(false);
@@ -143,7 +161,7 @@ function Game({ numPlayers }) {
 
   function displayDealerCards() {
     console.log("rendering dealer cards");
-    if (userDealerCard !== null && aiDealerCard === null) {
+    if (userDealerCard !== null && aiDealerCard !== null) {
       aiDealerCardId.current = pickedDealerCardId.current;
       while (aiDealerCardId.current === pickedDealerCardId.current) {
         aiDealerCardId.current = Math.floor(Math.random() * DECK_SIZE);
