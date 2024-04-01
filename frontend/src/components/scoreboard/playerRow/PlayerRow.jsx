@@ -3,7 +3,11 @@ import "./playerRow.css";
 function PlayerRow({ pid, score }) {
   return (
     <div className="PlayerRow">
-      <div className="player">Player {pid + 1}</div>
+      {pid === 0 ? (
+        <div className="player">You</div>
+      ) : (
+        <div className="player">Opponent</div>
+      )}
       <div className="score">{score}</div>
     </div>
   );
