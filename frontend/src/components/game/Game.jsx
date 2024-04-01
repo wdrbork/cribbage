@@ -40,12 +40,12 @@ function Game({ numPlayers }) {
 
         return (
           <>
+            <div className="ai-dealer-card">
+              {aiDealerCard && <Card cardInfo={aiDealerCard} />}
+            </div>
             <div className="dealer-cards">{displayDealerCards()}</div>
             <div className="user-dealer-card">
               {userDealerCard && <Card cardInfo={userDealerCard} />}
-            </div>
-            <div className="ai-dealer-card">
-              {aiDealerCard && <Card cardInfo={aiDealerCard} />}
             </div>
           </>
         );
@@ -203,13 +203,13 @@ function Game({ numPlayers }) {
   }
 
   return (
-    <>
-      <div className="top-row">
+    <div className="Game">
+      <div className="main-screen">{stageSwitch()}</div>
+      <div className="right-bar">
         <Scoreboard gameScores={gameScores} />
         <Message message={message} />
       </div>
-      {stageSwitch()}
-    </>
+    </div>
   );
 }
 

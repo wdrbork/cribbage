@@ -1,7 +1,19 @@
-.top-row {
-  height: 200px;
+.Game {
   display: flex;
-  justify-content: space-between;
+  height: 100%;
+}
+
+.main-screen {
+  display: flex;
+  flex-direction: column;
+  width: 85%;
+}
+
+.right-bar {
+  display: flex;
+  flex-direction: column;
+  width: 15%;
+  min-width: 250px;
 }
 
 .dealer-cards {
@@ -10,5 +22,9 @@
 }
 
 .user-dealer-card {
+  height: 250px;
+}
+
+.ai-dealer-card {
   height: 250px;
 }

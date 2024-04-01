@@ -1,11 +1,13 @@
 .Scoreboard {
-    width: 15%;
-    min-width: 250px;
-    margin: 20px;
-    padding: .5em;
-    border: dashed red;
+  width: 15%;
+  min-width: 250px;
+  height: 10em;
+  margin: 20px;
+  margin-bottom: 5px;
+  padding: 0.5em;
+  border: dashed red;
 }
 
 .header {
-    text-align: center;
+  text-align: center;
 }
