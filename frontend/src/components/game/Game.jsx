@@ -1,6 +1,7 @@
 import "./game.css";
 import api from "../../api/axiosConfig.js";
 import Scoreboard from "../scoreboard";
+import Message from "../message";
 import Card from "../card";
 import { useState, useEffect, useRef } from "react";
 
@@ -205,7 +206,7 @@ function Game({ numPlayers }) {
     <>
       <div className="top-row">
         <Scoreboard gameScores={gameScores} />
-        <div className="message-box">{message}</div>
+        <Message message={message} />
       </div>
       {stageSwitch()}
     </>

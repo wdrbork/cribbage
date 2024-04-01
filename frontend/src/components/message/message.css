@@ -1,0 +1,10 @@
+.Message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 15%;
+  min-width: 250px;
+  margin: 20px;
+  padding: 1em;
+  border: dashed red;
+}
