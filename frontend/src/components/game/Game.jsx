@@ -13,7 +13,7 @@ const COUNT_HANDS = 3;
 const COUNT_CRIB = 4;
 
 const DECK_SIZE = 52;
-const CARD_OFFSET = 20;
+const CARD_OFFSET = window.innerWidth * 0.01;
 
 const PROCESS_DELAY_MS = 2000;
 
@@ -40,12 +40,18 @@ function Game({ numPlayers }) {
 
         return (
           <>
-            <div className="ai-dealer-card">
-              {aiDealerCard && <Card cardInfo={aiDealerCard} />}
+            <div className="top-row ai-dealer-card">
+              {aiDealerCard && (
+                <Card cardInfo={aiDealerCard} offset={CARD_OFFSET} />
+              )}
             </div>
-            <div className="dealer-cards">{displayDealerCards()}</div>
-            <div className="user-dealer-card">
-              {userDealerCard && <Card cardInfo={userDealerCard} />}
+            <div className="middle-row">
+              <div className="dealer-cards">{displayDealerCards()}</div>
+            </div>
+            <div className="bottom-row user-dealer-card">
+              {userDealerCard && (
+                <Card cardInfo={userDealerCard} offset={CARD_OFFSET} />
+              )}
             </div>
           </>
         );
@@ -148,12 +154,12 @@ function Game({ numPlayers }) {
     if (aiDealerCard && userDealerCard) {
       const timeout = setTimeout(() => {
         resetDealerCards();
-        setCurrentStage(currentStage + 1);
+        // setCurrentStage(currentStage + 1);
       }, PROCESS_DELAY_MS);
 
       return () => clearTimeout(timeout);
     }
-  }, [aiDealerCard]);
+  }, [aiDealerCard, userDealerCard]);
 
   function onDealerCardClick(cardId) {
     setInteractableDealerCards(false);

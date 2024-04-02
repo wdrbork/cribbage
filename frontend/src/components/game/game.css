@@ -1,12 +1,13 @@
 .Game {
   display: flex;
-  height: 100%;
+  height: 100vh;
 }
 
 .main-screen {
   display: flex;
   flex-direction: column;
   width: 85%;
+  height: 100vh;
 }
 
 .right-bar {
@@ -17,14 +18,19 @@
 }
 
 .dealer-cards {
+  height: 100%;
+  width: 100%;
   position: relative;
-  height: 250px;
 }
 
-.user-dealer-card {
-  height: 250px;
+.middle-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40%;
 }
 
-.ai-dealer-card {
-  height: 250px;
+.top-row,
+.bottom-row {
+  height: 30%;
 }
