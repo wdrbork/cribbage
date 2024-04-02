@@ -130,10 +130,24 @@ function Game({ numPlayers }) {
               resetDealerCards();
             } else if (response.data.rankValue < userDealerCard.rankValue) {
               newMessage += "Your opponent will deal first.";
-              setDealer(1);
+              api
+                .post("game/dealer/1")
+                .then((response) => {
+                  setDealer(response.data);
+                })
+                .catch((err) => {
+                  console.error(err);
+                });
             } else {
               newMessage += "You will deal first.";
-              setDealer(0);
+              api
+                .post("game/dealer/0")
+                .then((response) => {
+                  setDealer(response.data);
+                })
+                .catch((err) => {
+                  console.error(err);
+                });
             }
 
             setMessage(newMessage);
@@ -154,7 +168,7 @@ function Game({ numPlayers }) {
     if (aiDealerCard && userDealerCard) {
       const timeout = setTimeout(() => {
         resetDealerCards();
-        // setCurrentStage(currentStage + 1);
+        setCurrentStage(currentStage + 1);
       }, PROCESS_DELAY_MS);
 
       return () => clearTimeout(timeout);
@@ -218,5 +232,7 @@ function Game({ numPlayers }) {
     </div>
   );
 }
+
+function informServerOfDealer(dealer) {}
 
 export default Game;
