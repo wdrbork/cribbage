@@ -17,6 +17,11 @@ function Card({
 }) {
   const [onHover, setOnHover] = useState(false);
 
+  if (!hidden && !cardInfo) {
+    console.error("Cannot show card; no card info provided");
+    return;
+  }
+
   const handleMouseOver = () => {
     interactable && setOnHover(true);
   };
