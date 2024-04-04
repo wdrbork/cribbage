@@ -69,6 +69,14 @@ public class Card implements Comparable<Card> {
     }
 
     /**
+     * Returns an ID value that is unique to this specific card.
+     * @return a unique card ID
+     */
+    public int getCardId() {
+        return suit.ordinal() + getRankValue();
+    }
+
+    /**
      * Returns a rank that corresponds to the given number. For example, the 
      * number 1 would return the rank ACE, while the number 13 would return 
      * the rank KING.

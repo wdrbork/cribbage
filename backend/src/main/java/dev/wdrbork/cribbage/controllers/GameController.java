@@ -333,7 +333,7 @@ public class GameController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/reset_game")
+    @PostMapping("/reset_game")
     public ResponseEntity<Void> resetGame() {
         game = new CribbageManager();
         return new ResponseEntity<>(HttpStatus.OK);
