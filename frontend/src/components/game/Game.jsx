@@ -3,6 +3,7 @@ import api from "../../api/axiosConfig.js";
 import Scoreboard from "../scoreboard";
 import Message from "../message";
 import Card from "../card";
+import Hand from "../hand";
 import { useState, useEffect, useRef } from "react";
 
 // Game Stages
@@ -12,10 +13,11 @@ const PLAY_ROUND = 2;
 const COUNT_HANDS = 3;
 const COUNT_CRIB = 4;
 
+const USER_ID = 0;
+const OPP_ID = 1;
 const DECK_SIZE = 52;
-const CARD_OFFSET = window.innerWidth * 0.01;
 
-const PROCESS_DELAY_MS = 2000;
+const PROCESS_DELAY_MS = 1500;
 
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(0);
@@ -23,11 +25,13 @@ function Game({ numPlayers }) {
   const [interactableDealerCards, setInteractableDealerCards] = useState(true);
   const [userDealerCard, setUserDealerCard] = useState(null);
   const [aiDealerCard, setAiDealerCard] = useState(null);
-  const [dealer, setDealer] = useState(-1);
   const [gameScores, setGameScores] = useState(Array(numPlayers));
+  const [dealer, setDealer] = useState(-1);
+  const [hands, setHands] = useState([]);
 
   const pickedDealerCardId = useRef(-1);
   const aiDealerCardId = useRef(-1);
+  const cardsInPlay = useRef(0);
 
   function stageSwitch() {
     switch (currentStage) {
@@ -41,22 +45,34 @@ function Game({ numPlayers }) {
         return (
           <>
             <div className="top-row ai-dealer-card">
-              {aiDealerCard && (
-                <Card cardInfo={aiDealerCard} offset={CARD_OFFSET} />
-              )}
+              {aiDealerCard && <Card cardInfo={aiDealerCard} />}
             </div>
             <div className="middle-row">
               <div className="dealer-cards">{displayDealerCards()}</div>
             </div>
             <div className="bottom-row user-dealer-card">
-              {userDealerCard && (
-                <Card cardInfo={userDealerCard} offset={CARD_OFFSET} />
-              )}
+              {userDealerCard && <Card cardInfo={userDealerCard} />}
             </div>
           </>
         );
       case DEAL_CRIB:
-        return DEAL_CRIB;
+        return (
+          <>
+            <div className="top-row ai-hand">
+              {hands.length !== 0 && (
+                <Hand
+                  pid={OPP_ID}
+                  cards={hands[OPP_ID].cards}
+                  onCardClick={() => {}}
+                />
+              )}
+            </div>
+            <div className="middle-row">
+              <div className="deck-cards">{displayDeck()}</div>
+            </div>
+            <div className="bottom-row user-hand"></div>
+          </>
+        );
       case PLAY_ROUND:
         return PLAY_ROUND;
       case COUNT_HANDS:
@@ -69,16 +85,31 @@ function Game({ numPlayers }) {
   }
 
   const getScores = async () => {
-    try {
-      const response = await api.get("/game/scores");
-      setGameScores(response.data);
-    } catch (err) {
-      console.error(err);
-    }
+    api
+      .get("game/scores")
+      .then((response) => {
+        setGameScores(response.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   useEffect(() => {
     getScores();
+
+    if (currentStage === DRAW_DEALER) {
+      api.post("game/reset_game");
+    } else if (currentStage === DEAL_CRIB) {
+      api
+        .post("game/deal")
+        .then((response) => {
+          setHands(response.data);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
   }, [currentStage]);
 
   useEffect(() => {
@@ -180,9 +211,15 @@ function Game({ numPlayers }) {
     pickedDealerCardId.current = cardId;
   }
 
+  function onCribCardClick(cardId) {}
+
   function displayDealerCards() {
     console.log("rendering dealer cards");
-    if (userDealerCard !== null && aiDealerCard !== null) {
+    if (
+      userDealerCard !== null &&
+      aiDealerCard !== null &&
+      aiDealerCardId.current === -1
+    ) {
       aiDealerCardId.current = pickedDealerCardId.current;
       while (aiDealerCardId.current === pickedDealerCardId.current) {
         aiDealerCardId.current = Math.floor(Math.random() * DECK_SIZE);
@@ -196,12 +233,10 @@ function Game({ numPlayers }) {
         displayCard = false;
       }
 
-      let offset = i * CARD_OFFSET;
       dealerCards.push(
         <Card
           key={i}
           id={i}
-          offset={offset + "px"}
           interactable={interactableDealerCards}
           onClick={onDealerCardClick}
           display={displayCard}
@@ -212,6 +247,15 @@ function Game({ numPlayers }) {
     }
 
     return dealerCards;
+  }
+
+  function displayDeck() {
+    let deckCards = [];
+    for (let i = 0; i < DECK_SIZE - cardsInPlay.current; i++) {
+      deckCards.push(<Card key={i} id={i} hidden />);
+    }
+
+    return deckCards;
   }
 
   function resetDealerCards() {
@@ -232,7 +276,5 @@ function Game({ numPlayers }) {
     </div>
   );
 }
-
-function informServerOfDealer(dealer) {}
 
 export default Game;

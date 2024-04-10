@@ -17,17 +17,23 @@
   min-width: 250px;
 }
 
-.dealer-cards {
-  height: 100%;
+.middle-row {
+  height: 40%;
   width: 100%;
+}
+
+.dealer-cards,
+.deck-cards {
+  display: flex;
+  justify-content: space-around;
+  height: 100%;
+  width: 80%;
   position: relative;
 }
 
-.middle-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 40%;
+.deck-cards {
+  justify-content: flex-start;
+  gap: 0.01rem;
 }
 
 .top-row,

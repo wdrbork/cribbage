@@ -9,9 +9,8 @@ const CARD_BACK = PATH + "card_back.png";
 function Card({
   id,
   cardInfo = null,
-  offset = 0,
   interactable = false,
-  onClick = (cardId) => {},
+  onClick = () => {},
   display = true,
   hidden = false,
 }) {
@@ -46,7 +45,6 @@ function Card({
 
   let cardStyle = {
     position: "absolute",
-    left: offset,
   };
 
   if (onHover) {
