@@ -5,7 +5,6 @@ import { useState } from "react";
 function Hand({ pid, cards, onCardClick }) {
   function extractCardComponents() {
     let cardComponents = [];
-    console.log(cards);
     cards.forEach((card) => {
       cardComponents.push(
         <Card

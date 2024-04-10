@@ -115,6 +115,9 @@ function Game({ numPlayers }) {
         .post("game/deal")
         .then((response) => {
           setHands(response.data);
+          cardsInPlay.current =
+            response.data[USER_ID].cards.length +
+            response.data[OPP_ID].cards.length;
         })
         .catch((err) => {
           console.error(err);
