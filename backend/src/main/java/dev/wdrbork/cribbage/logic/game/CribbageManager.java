@@ -241,6 +241,10 @@ public class CribbageManager {
             crib.addCard(next);
         }
 
+        // Rearrange the decks so that the cards increase in rank from left to right
+        for (Deck hand : hands) {
+            hand.sortDeck();
+        }
         return Collections.unmodifiableList(hands);
     }
 
