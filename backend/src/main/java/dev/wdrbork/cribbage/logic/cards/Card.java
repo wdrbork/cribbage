@@ -73,7 +73,7 @@ public class Card implements Comparable<Card> {
      * @return a unique card ID
      */
     public int getCardId() {
-        return suit.ordinal() + getRankValue();
+        return suit.ordinal() * Deck.CARDS_PER_SUIT + getRankValue();
     }
 
     /**
