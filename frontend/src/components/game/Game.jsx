@@ -36,12 +36,6 @@ function Game({ numPlayers }) {
   function stageSwitch() {
     switch (currentStage) {
       case DRAW_DEALER:
-        if (message === "") {
-          setMessage(
-            "Pick a card to decide who is the dealer. The player with the lowest card deals first."
-          );
-        }
-
         return (
           <>
             <div className="top-row ai-dealer-card">
@@ -110,6 +104,9 @@ function Game({ numPlayers }) {
 
     if (currentStage === DRAW_DEALER) {
       api.post("game/reset_game");
+      setMessage(
+        "Pick a card to decide who is the dealer. The player with the lowest card deals first."
+      );
     } else if (currentStage === DEAL_CRIB) {
       api
         .post("game/deal")
@@ -122,6 +119,14 @@ function Game({ numPlayers }) {
         .catch((err) => {
           console.error(err);
         });
+
+      if (dealer === USER_ID) {
+        setMessage("Select two cards that will be sent to your crib.");
+      } else {
+        setMessage(
+          "Select two cards that will be sent to your opponent's crib"
+        );
+      }
     }
   }, [currentStage]);
 
