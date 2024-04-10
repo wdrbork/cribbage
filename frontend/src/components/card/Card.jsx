@@ -47,7 +47,7 @@ function Card({
     position: "absolute",
   };
 
-  if (onHover) {
+  if (interactable && onHover) {
     cardStyle["top"] = "-5px";
   }
 
