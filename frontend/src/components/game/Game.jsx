@@ -59,6 +59,7 @@ function Game({ numPlayers }) {
         return (
           <>
             <div className="top-row ai-hand">
+              <div className="crib-container"></div>
               {hands.length !== 0 && (
                 <Hand
                   pid={OPP_ID}
@@ -70,7 +71,16 @@ function Game({ numPlayers }) {
             <div className="middle-row">
               <div className="deck-cards">{displayDeck()}</div>
             </div>
-            <div className="bottom-row user-hand"></div>
+            <div className="bottom-row user-hand">
+              <div className="crib-container"></div>
+              {hands.length !== 0 && (
+                <Hand
+                  pid={USER_ID}
+                  cards={hands[USER_ID].cards}
+                  onCardClick={() => {}}
+                />
+              )}
+            </div>
           </>
         );
       case PLAY_ROUND:
@@ -214,7 +224,6 @@ function Game({ numPlayers }) {
   function onCribCardClick(cardId) {}
 
   function displayDealerCards() {
-    console.log("rendering dealer cards");
     if (
       userDealerCard !== null &&
       aiDealerCard !== null &&

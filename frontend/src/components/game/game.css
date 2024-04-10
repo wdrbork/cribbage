@@ -38,6 +38,11 @@
 
 .top-row,
 .bottom-row {
+  display: flex;
   margin: 1.2rem;
   height: 30%;
+}
+
+.crib-container {
+  width: 25%;
 }

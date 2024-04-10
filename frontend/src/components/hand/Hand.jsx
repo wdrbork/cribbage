@@ -11,6 +11,7 @@ function Hand({ pid, cards, onCardClick }) {
         <Card
           key={card.cardId}
           id={card.cardId}
+          cardInfo={card}
           onClick={onCardClick}
           interactable={pid === 0 ? true : false}
           hidden={pid === 1 ? true : false}

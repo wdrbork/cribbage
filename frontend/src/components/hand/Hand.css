@@ -1,4 +1,6 @@
 .Hand {
   display: flex;
-  justify-content: space-around;
+  justify-content: flex-start;
+  gap: 5%;
+  width: 100%;
 }
