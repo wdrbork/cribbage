@@ -2,9 +2,16 @@ import "./scoreboard.css";
 import PlayerRow from "./playerRow";
 import { useState, useEffect } from "react";
 
-function Scoreboard({ gameScores }) {
+function Scoreboard({ gameScores, dealer }) {
   const scoreElements = gameScores.map((score, pid) => {
-    return <PlayerRow key={pid} pid={pid} score={score} />;
+    return (
+      <PlayerRow
+        key={pid}
+        pid={pid}
+        score={score}
+        dealer={dealer === pid ? true : false}
+      />
+    );
   });
 
   return (
