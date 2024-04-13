@@ -1,0 +1,8 @@
+.Crib {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
