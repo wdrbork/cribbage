@@ -11,6 +11,7 @@ function Card({
   cardInfo = null,
   interactable = false,
   onClick = () => {},
+  selected = false,
   display = true,
   hidden = false,
 }) {
@@ -20,6 +21,18 @@ function Card({
     console.error("Cannot show card; no card info provided");
     return;
   }
+
+  const cardImage = hidden
+    ? CARD_BACK
+    : PATH +
+      cardInfo.rankValue +
+      "_of_" +
+      cardInfo.suit.toLowerCase() +
+      "s.png";
+
+  let cardStyle = {
+    position: "absolute",
+  };
 
   const handleMouseOver = () => {
     interactable && setOnHover(true);
@@ -35,20 +48,12 @@ function Card({
     }
   };
 
-  const cardImage = hidden
-    ? CARD_BACK
-    : PATH +
-      cardInfo.rankValue +
-      "_of_" +
-      cardInfo.suit.toLowerCase() +
-      "s.png";
-
-  let cardStyle = {
-    position: "absolute",
-  };
-
-  if (interactable && onHover) {
-    cardStyle["top"] = "-5px";
+  if (interactable && (onHover || selected)) {
+    if (selected) {
+      cardStyle["top"] = "-20px";
+    } else if (onHover) {
+      cardStyle["top"] = "-5px";
+    }
   }
 
   if (!display) {

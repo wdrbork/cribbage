@@ -4,6 +4,8 @@ import Scoreboard from "../scoreboard";
 import Message from "../message";
 import Card from "../card";
 import Hand from "../hand";
+import Crib from "../crib";
+import SendToCrib from "../sendToCrib";
 import { useState, useEffect, useRef } from "react";
 
 // Game Stages
@@ -16,8 +18,13 @@ const COUNT_CRIB = 4;
 const USER_ID = 0;
 const OPP_ID = 1;
 const DECK_SIZE = 52;
+const CARDS_PER_SUIT = 13;
+const CLUB_ID = 0;
+const DIAMOND_ID = 1;
+const HEART_ID = 2;
+const SPADE_ID = 3;
 
-const PROCESS_DELAY_MS = 1500;
+const PROCESS_DELAY_MS = 500;
 
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(0);
@@ -28,6 +35,8 @@ function Game({ numPlayers }) {
   const [gameScores, setGameScores] = useState(Array(numPlayers));
   const [dealer, setDealer] = useState(-1);
   const [hands, setHands] = useState([]);
+  const [selectedCards, setSelectedCards] = useState([]);
+  const [crib, setCrib] = useState([]);
 
   const pickedDealerCardId = useRef(-1);
   const aiDealerCardId = useRef(-1);
@@ -53,27 +62,34 @@ function Game({ numPlayers }) {
         return (
           <>
             <div className="top-row ai-hand">
-              <div className="crib-container"></div>
+              <div className="crib-container">
+                {dealer === OPP_ID && <Crib cards={crib} />}
+              </div>
               {hands.length !== 0 && (
-                <Hand
-                  pid={OPP_ID}
-                  cards={hands[OPP_ID].cards}
-                  onCardClick={() => {}}
-                />
+                <Hand pid={OPP_ID} cards={hands[OPP_ID].cards} />
               )}
             </div>
             <div className="middle-row">
               <div className="deck-cards">{displayDeck()}</div>
             </div>
             <div className="bottom-row user-hand">
-              <div className="crib-container"></div>
+              <div className="crib-container">
+                {dealer === USER_ID && <Crib cards={crib} />}
+              </div>
               {hands.length !== 0 && (
                 <Hand
                   pid={USER_ID}
                   cards={hands[USER_ID].cards}
-                  onCardClick={() => {}}
+                  onCardClick={onCribCardClick}
+                  selectedCards={selectedCards}
                 />
               )}
+              <div className="crib-button-container">
+                <SendToCrib
+                  selectedCards={selectedCards}
+                  onClick={onCribButtonClick}
+                />
+              </div>
             </div>
           </>
         );
@@ -124,7 +140,7 @@ function Game({ numPlayers }) {
         setMessage("Select two cards that will be sent to your crib.");
       } else {
         setMessage(
-          "Select two cards that will be sent to your opponent's crib"
+          "Select two cards that will be sent to your opponent's crib."
         );
       }
     }
@@ -229,7 +245,66 @@ function Game({ numPlayers }) {
     pickedDealerCardId.current = cardId;
   }
 
-  function onCribCardClick(cardId) {}
+  function onCribCardClick(cardId) {
+    let temp = [...selectedCards];
+
+    if (selectedCards.length == 2 && !selectedCards.includes(cardId)) {
+      setMessage(
+        "Only two cards can be sent to the crib. " +
+          "Please unselect another card and then select this card again."
+      );
+      return;
+    }
+
+    // Remove the card if it was already selected. Otherwise, add it to the array
+    let cardInfo = decipherCardById(cardId);
+    if (selectedCards.includes(cardId)) {
+      temp = temp.filter((id) => id !== cardId);
+      if (temp.length === 0) {
+        if (dealer === USER_ID) {
+          setMessage("Select two cards that will be sent to your crib.");
+        } else {
+          setMessage(
+            "Select two cards that will be sent to your opponent's crib."
+          );
+        }
+      } else {
+        setMessage("Select one more card for the crib.");
+      }
+    } else {
+      temp.push(cardId);
+      if (temp.length === 1) {
+        setMessage("Select one more card for the crib.");
+      } else {
+        setMessage(
+          'Click the "Send to Crib" button to move the selected cards to the crib.'
+        );
+      }
+    }
+
+    setSelectedCards(temp);
+  }
+
+  function onCribButtonClick() {
+    if (selectedCards.length !== 2) {
+      return;
+    }
+
+    const selectedCardObjects = hands[USER_ID].cards.filter(
+      (cardInfo) =>
+        cardInfo.cardId === selectedCards[0] ||
+        cardInfo.cardId === selectedCards[1]
+    );
+    setCrib([...selectedCardObjects]);
+
+    let newHands = [...hands];
+    newHands[USER_ID].cards = newHands[USER_ID].cards.filter(
+      (cardInfo) =>
+        cardInfo.cardId !== selectedCards[0] &&
+        cardInfo.cardId !== selectedCards[1]
+    );
+    setHands(newHands);
+  }
 
   function displayDealerCards() {
     if (
@@ -287,11 +362,33 @@ function Game({ numPlayers }) {
     <div className="Game">
       <div className="main-screen">{stageSwitch()}</div>
       <div className="right-bar">
-        <Scoreboard gameScores={gameScores} />
+        <Scoreboard gameScores={gameScores} dealer={dealer} />
         <Message message={message} />
       </div>
     </div>
   );
+}
+
+function decipherCardById(cardId) {
+  if (cardId > DECK_SIZE) {
+    throw "Invalid card ID";
+  }
+
+  let cardInfo = {};
+
+  let suitId = Math.floor(cardId / CARDS_PER_SUIT);
+  if (suitId === CLUB_ID) {
+    cardInfo["suit"] = "CLUB";
+  } else if (suitId === DIAMOND_ID) {
+    cardInfo["suit"] = "DIAMOND";
+  } else if (suitId === HEART_ID) {
+    cardInfo["suit"] = "HEART";
+  } else {
+    cardInfo["suit"] = "SPADE";
+  }
+
+  cardInfo["rank"] =
+    cardId % CARDS_PER_SUIT === 0 ? 13 : cardId % CARDS_PER_SUIT;
 }
 
 export default Game;

@@ -2,6 +2,6 @@
   position: relative;
   display: flex;
   justify-content: flex-start;
-  gap: 5%;
-  width: 100%;
+  gap: 10%;
+  width: 50%;
 }
