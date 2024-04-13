@@ -1,0 +1,8 @@
+.crib-button {
+  height: 40px;
+}
+
+.crib-button.discreet {
+  opacity: 0.5;
+  cursor: default;
+}
