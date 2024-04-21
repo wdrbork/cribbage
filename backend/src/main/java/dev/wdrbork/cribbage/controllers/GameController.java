@@ -155,9 +155,9 @@ public class GameController {
     }
 
     @PostMapping("ai/hands")
-    public ResponseEntity<Void> selectAIHands() {
-        game.chooseAIPlayingHands();
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<List<Card>> selectAIHands() {
+        List<Card> cribCards = game.chooseAIPlayingHands();
+        return new ResponseEntity<>(cribCards, HttpStatus.OK);
     }
 
     @PostMapping("/move/{pid}/{suit_id}/{rank_id}")

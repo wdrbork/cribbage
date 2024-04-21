@@ -273,16 +273,20 @@ public class CribbageManager {
      * Selects the playing hand for each AI opponent and sends the appropriate
      * cards to the crib.
      */
-    public void chooseAIPlayingHands() {
+    public List<Card> chooseAIPlayingHands() {
+        List<Card> cribCards = new LinkedList<Card>();
         for (int i = 0; i < ai.length; i++) {
             Deck currentHand = getHand(i + 1);
             Deck playingHand = ai[i].choosePlayingHand();
             for (Card card : currentHand.getCards()) {
                 if (!playingHand.contains(card)) {
+                    cribCards.add(card);
                     sendCardToCrib(i + 1, card);
                 }
             }
         }
+
+        return cribCards;
     }
 
     /**
