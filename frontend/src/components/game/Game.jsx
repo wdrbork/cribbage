@@ -85,10 +85,12 @@ function Game({ numPlayers }) {
                 />
               )}
               <div className="crib-button-container">
-                <SendToCrib
-                  selectedCards={selectedCards}
-                  onClick={onCribButtonClick}
-                />
+                {crib.length < 2 && (
+                  <SendToCrib
+                    selectedCards={selectedCards}
+                    onClick={onCribButtonClick}
+                  />
+                )}
               </div>
             </div>
           </>
@@ -240,12 +242,45 @@ function Game({ numPlayers }) {
     }
   }, [aiDealerCard, userDealerCard]);
 
+  useEffect(() => {
+    if (crib.length === 2) {
+      crib.forEach((card) => {
+        api
+          .post(
+            "game/move/" + USER_ID + "/" + card.suitValue + "/" + card.rankValue
+          )
+          .catch((err) => {
+            console.error(err);
+          });
+      });
+
+      const timeout = setTimeout(() => {
+        api.post("game/ai/hands").then((response) => {
+          let newHands = [...hands];
+          let fullCrib = [...crib];
+
+          response.data.forEach((card) => {
+            newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
+              (cardInfo) => cardInfo.cardId !== card.cardId
+            );
+            fullCrib.push(card);
+          });
+
+          setHands(newHands);
+          setCrib(fullCrib);
+        });
+      }, PROCESS_DELAY_MS);
+    }
+  }, [crib]);
+
   function onDealerCardClick(cardId) {
     setInteractableDealerCards(false);
     pickedDealerCardId.current = cardId;
   }
 
   function onCribCardClick(cardId) {
+    if (crib.length >= 2) return;
+
     let temp = [...selectedCards];
 
     if (selectedCards.length == 2 && !selectedCards.includes(cardId)) {
@@ -304,6 +339,8 @@ function Game({ numPlayers }) {
         cardInfo.cardId !== selectedCards[1]
     );
     setHands(newHands);
+
+    setSelectedCards([]);
   }
 
   function displayDealerCards() {
