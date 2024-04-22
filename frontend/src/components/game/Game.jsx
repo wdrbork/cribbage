@@ -37,6 +37,7 @@ function Game({ numPlayers }) {
   const [hands, setHands] = useState([]);
   const [selectedCards, setSelectedCards] = useState([]);
   const [crib, setCrib] = useState([]);
+  const [starterCard, setStarterCard] = useState(null);
 
   const pickedDealerCardId = useRef(-1);
   const aiDealerCardId = useRef(-1);
@@ -270,6 +271,19 @@ function Game({ numPlayers }) {
           setCrib(fullCrib);
         });
       }, PROCESS_DELAY_MS);
+
+      return () => clearTimeout(timeout);
+    }
+
+    if (crib.length === 4) {
+      api
+        .get("game/starter")
+        .then((response) => {
+          setStarterCard(response.data);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   }, [crib]);
 
@@ -341,6 +355,7 @@ function Game({ numPlayers }) {
     setHands(newHands);
 
     setSelectedCards([]);
+    setMessage("Opponent currently selecting cards for the crib...");
   }
 
   function displayDealerCards() {
@@ -380,8 +395,15 @@ function Game({ numPlayers }) {
 
   function displayDeck() {
     let deckCards = [];
-    for (let i = 0; i < DECK_SIZE - cardsInPlay.current; i++) {
+    let i = 0;
+    for (; i < DECK_SIZE - cardsInPlay.current; i++) {
       deckCards.push(<Card key={i} id={i} hidden />);
+    }
+
+    if (starterCard) {
+      deckCards.push(
+        <Card key={i} id={starterCard.cardId} cardInfo={starterCard} />
+      );
     }
 
     return deckCards;
