@@ -276,14 +276,38 @@ function Game({ numPlayers }) {
     }
 
     if (crib.length === 4) {
-      api
-        .get("game/starter")
-        .then((response) => {
-          setStarterCard(response.data);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
+      const timeout = setTimeout(() => {
+        api
+          .get("game/starter")
+          .then((response) => {
+            setStarterCard(response.data);
+            if (
+              response.data.rankValue === 1 ||
+              response.data.rankValue === 8
+            ) {
+              setMessage(
+                "The starter card is an " +
+                  response.data.rank.toLowerCase() +
+                  " of " +
+                  response.data.suit.toLowerCase() +
+                  "s. "
+              );
+            } else {
+              setMessage(
+                "The starter card is a " +
+                  response.data.rank.toLowerCase() +
+                  " of " +
+                  response.data.suit.toLowerCase() +
+                  "s. "
+              );
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }, PROCESS_DELAY_MS);
+
+      return () => clearTimeout(timeout);
     }
   }, [crib]);
 
@@ -372,7 +396,7 @@ function Game({ numPlayers }) {
 
     let dealerCards = [];
     let displayCard = true;
-    for (let i = 0; i < DECK_SIZE; i++) {
+    for (let i = 0; i < DECK_SIZE - cardsInPlay.current; i++) {
       if (i === aiDealerCardId.current || i === pickedDealerCardId.current) {
         displayCard = false;
       }
