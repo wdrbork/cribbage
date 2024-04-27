@@ -1,1 +1,15 @@
+.Card {
+  position: absolute;
+}
 
+.selected {
+  top: -20px;
+}
+
+.no-display {
+  display: none;
+}
+
+.Card.interactable:hover {
+  top: -5px;
+}
