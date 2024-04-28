@@ -1,5 +1,4 @@
 import "./card.css";
-import { useState } from "react";
 
 const CARD_WIDTH = 150;
 const CARD_HEIGHT_RATIO = 1.452;
@@ -14,9 +13,8 @@ function Card({
   selected = false,
   display = true,
   hidden = false,
+  shaded = false,
 }) {
-  const [onHover, setOnHover] = useState(false);
-
   if (!hidden && !cardInfo) {
     console.error("Cannot show card; no card info provided");
     return;
@@ -30,14 +28,6 @@ function Card({
       cardInfo.suit.toLowerCase() +
       "s.png";
 
-  // const handleMouseOver = () => {
-  //   interactable && setOnHover(true);
-  // };
-
-  // const handleMouseOut = () => {
-  //   interactable && setOnHover(false);
-  // };
-
   const handleClick = () => {
     if (interactable) {
       onClick(id);
@@ -50,16 +40,12 @@ function Card({
     className += " selected";
   }
 
-  // if (interactable) {
-  //   if (selected) {
-  //     cardStyle["top"] = "-20px";
-  //   } else if (onHover) {
-  //     cardStyle["top"] = "-5px";
-  //   }
-  // }
-
   if (!display) {
     className += " no-display";
+  }
+
+  if (shaded) {
+    className += " shaded";
   }
 
   return (

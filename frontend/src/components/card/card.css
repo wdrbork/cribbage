@@ -10,6 +10,10 @@
   display: none;
 }
 
+.shaded {
+  filter: brightness(50%);
+}
+
 .Card.interactable:hover:not(.selected) {
   top: -5px;
 }
