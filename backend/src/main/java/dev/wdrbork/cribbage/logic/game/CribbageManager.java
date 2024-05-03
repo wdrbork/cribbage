@@ -8,7 +8,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import dev.wdrbork.cribbage.logic.cards.*;
+import dev.wdrbork.cribbage.logic.cards.Card;
+import dev.wdrbork.cribbage.logic.cards.Deck;
+import dev.wdrbork.cribbage.logic.cards.Rank;
+import dev.wdrbork.cribbage.logic.cards.StandardDeck;
 import dev.wdrbork.cribbage.logic.game.ai.CribbageAI;
 import dev.wdrbork.cribbage.logic.game.ai.SmartPlayer;
 
@@ -26,6 +29,12 @@ public class CribbageManager {
     private static final int TWO_PLAYER_START_SIZE = 6;
     private static final int THREE_PLAYER_START_SIZE = 5;
     private static final int HAND_SIZE = 4;
+
+    private static final int ROUND_POINT_CATEGORIES = 4;
+    private static final int TOTAL_POINTS_IDX = 0;
+    private static final int RUNS_IDX = 1;
+    private static final int PAIRS_IDX = 2;
+    private static final int SPECIAL_IDX = 3;
 
     protected final int numPlayers;
     protected final StandardDeck deck;
@@ -366,18 +375,22 @@ public class CribbageManager {
      * Plays the passed-in card (if possible) and removes it from the player's 
      * hand. If the card cannot be played (i.e. if it causes the count to go 
      * above 31), -1 is returned. Otherwise, the total points earned from 
-     * playing that card is added to the player's game score and returned.
+     * playing that card is added to the player's game score, and an array 
+     * consisting of the total points (index 0), points earned from runs (index
+     * 1), points earned from pairs (index 2), and points earned from go's and
+     * getting the count to 15/31 (index 3) is returned.
      * 
      * @param pid the player's ID
      * @param card the card to be played
-     * @return the total points earned from playing the card
+     * @return an array consisting of the total points earned as well as where
+     *         those points came from
      * @throws IllegalArgumentException if this player cannot play the card, 
      *                                  has already played the card, or it is 
      *                                  not this player's turn
      * @throws NullPointerException if the card is null
      * @throws IllegalArgumentException if the player ID is invalid
      */
-    public int playCard(int pid, Card card) {
+    public int[] playCard(int pid, Card card) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
@@ -404,24 +417,32 @@ public class CribbageManager {
         cardStack.addFirst(card);
         playedCardsByPlayer.get(pid).addCard(card);
 
-        int totalPoints = 0;
+        int[] pointCategories = new int[ROUND_POINT_CATEGORIES];
+        
+        pointCategories[PAIRS_IDX] = CribbagePegging.countPegPairs(cardStack);
+        pointCategories[RUNS_IDX] = CribbagePegging.countPegRuns(cardStack);
         if (count == 15 || count == 31) {
-            totalPoints += 2;
+            pointCategories[SPECIAL_IDX] = 2;
         }
-        totalPoints += CribbagePegging.countPegPairs(cardStack) + 
-                CribbagePegging.countPegRuns(cardStack);
+
+        int totalPoints = pointCategories[PAIRS_IDX] + 
+                pointCategories[RUNS_IDX] + 
+                pointCategories[SPECIAL_IDX];
+        pointCategories[TOTAL_POINTS_IDX] = totalPoints;
+
         addPoints(pid, totalPoints);
         lastToPlayCard = pid;
         if (!movePossible() && count != 31) {
             awardPointsForGo();
-            totalPoints++;
+            pointCategories[SPECIAL_IDX]++;
+            pointCategories[TOTAL_POINTS_IDX]++;
         }
         determineNextPlayer();
 
         // System.out.println("Player " + (pid + 1) + " plays a " + card + " to make the count " + count);
         // System.out.println("Points earned: " + totalPoints);
         
-        return totalPoints;
+        return pointCategories;
     }
 
     /**

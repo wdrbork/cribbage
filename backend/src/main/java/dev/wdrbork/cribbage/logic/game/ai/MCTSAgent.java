@@ -184,9 +184,9 @@ public class MCTSAgent {
             }
 
             int idx = r.nextInt(possibleCards.size());
-            int points = simulator.playCard(nextPlayer, possibleCards.get(idx));
+            int[] points = simulator.playCard(nextPlayer, possibleCards.get(idx));
             if (nextPlayer == pid) {
-                pointsEarned += Math.pow(points, 2);
+                pointsEarned += Math.pow(points[0], 2);
             } else {
                 // pointsEarned -= points;
             }
@@ -346,7 +346,7 @@ public class MCTSAgent {
     }
 
     private int playCardInSimulation(MCTSNode curr) {
-        int points = 0;
+        int[] points = new int[4];
 
         // System.out.println("Play card " + curr.playedCard + " with count " + simulator.count());
 
@@ -359,7 +359,7 @@ public class MCTSAgent {
             // System.out.println("Player " + curr.pidTurn + " calls go on count " + simulator.count());
             if (simulator.getPlayedCards().get(curr.pidTurn).size() < HAND_SIZE && canResetCount(curr)) {
                 if (!simulator.countIs31()) {
-                    points++;
+                    points[0]++;
                     simulator.awardPointsForGo();
                 }
                 simulator.resetCount();
@@ -380,7 +380,7 @@ public class MCTSAgent {
 
         int nextPlayer = (curr.pidTurn + 1) % simulator.numPlayers();
         simulator.setNextPlayer(nextPlayer);
-        return points;
+        return points[0];
     }
 
     private boolean canResetCount(MCTSNode node) {
