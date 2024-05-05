@@ -20,12 +20,16 @@ const USER_ID = 0;
 const OPP_ID = 1;
 const DECK_SIZE = 52;
 const CARDS_PER_SUIT = 13;
-const CLUB_ID = 0;
-const DIAMOND_ID = 1;
-const HEART_ID = 2;
-const SPADE_ID = 3;
+const MAX_COUNT = 31;
+const WINNING_SCORE = 121;
 
-const PROCESS_DELAY_MS = 1000;
+const ROUND_POINT_CATEGORIES = 4;
+const TOTAL_POINTS_IDX = 0;
+const RUNS_IDX = 1;
+const PAIRS_IDX = 2;
+const SPECIAL_IDX = 3;
+
+const PROCESS_DELAY_MS = 500;
 
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(DRAW_DEALER);
@@ -51,8 +55,8 @@ function Game({ numPlayers }) {
   // API CALLS
   const getScores = async () => {
     try {
-      const response = await api.get("game/scores");
-      setGameScores(response.data);
+      const promise = await api.get("game/scores");
+      return promise;
     } catch (err) {
       console.error(err);
     }
@@ -60,8 +64,8 @@ function Game({ numPlayers }) {
 
   const getDealerCard = async () => {
     try {
-      const response = await api.get("/game/dealer_card");
-      return response;
+      const promise = await api.get("/game/dealer_card");
+      return promise;
     } catch (err) {
       console.error(err);
     }
@@ -69,9 +73,9 @@ function Game({ numPlayers }) {
 
   const postDealer = async (dealer) => {
     try {
-      const response = await api.post("game/dealer/" + dealer);
+      const promise = await api.post(`game/dealer/${dealer}`);
       setDealer(dealer);
-      return response;
+      return promise;
     } catch (err) {
       console.error(err);
     }
@@ -79,8 +83,8 @@ function Game({ numPlayers }) {
 
   const dealCards = async () => {
     try {
-      const response = await api.post("game/deal");
-      return response;
+      const promise = await api.post("game/deal");
+      return promise;
     } catch (err) {
       console.error(err);
     }
@@ -88,10 +92,10 @@ function Game({ numPlayers }) {
 
   const moveToCrib = async (card) => {
     try {
-      const response = await api.post(
-        "game/move/" + USER_ID + "/" + card.suitValue + "/" + card.rankValue
+      const promise = await api.post(
+        `game/move/${USER_ID}/${card.suitValue}/${card.rankValue}`
       );
-      return response;
+      return promise;
     } catch (err) {
       console.error(err);
     }
@@ -99,8 +103,8 @@ function Game({ numPlayers }) {
 
   const pickAIHand = async () => {
     try {
-      const response = await api.post("game/ai/hands");
-      return response;
+      const promise = await api.post("game/ai/hands");
+      return promise;
     } catch (err) {
       console.error(err);
     }
@@ -108,8 +112,30 @@ function Game({ numPlayers }) {
 
   const getStarterCard = async () => {
     try {
-      const response = await api.get("game/starter");
-      return response;
+      const promise = await api.get("game/starter");
+      return promise;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const playCard = async (cardInfo) => {
+    try {
+      const suitValue = cardInfo["suitValue"];
+      const rankValue = cardInfo["rankValue"];
+      const promise = await api.post(
+        `game/play/${USER_ID}/${suitValue}/${rankValue}`
+      );
+      return promise;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const playAICard = async () => {
+    try {
+      const promise = await api.get(`game/ai/play/${OPP_ID}`);
+      return promise;
     } catch (err) {
       console.error(err);
     }
@@ -125,7 +151,9 @@ function Game({ numPlayers }) {
 
   // EFFECTS
   useEffect(() => {
-    getScores();
+    getScores().then((response) => {
+      setGameScores(response.data);
+    });
 
     if (currentStage === DRAW_DEALER) {
       resetGame();
@@ -155,9 +183,9 @@ function Game({ numPlayers }) {
       getDealerCard().then((response) => {
         const card = response.data;
         if (card.rankValue === 1 || card.rankValue === 8) {
-          setMessage("You drew an " + card.rank.toLowerCase() + ". ");
+          setMessage(`You drew an ${card.rank.toLowerCase()}.`);
         } else {
-          setMessage("You drew a " + card.rank.toLowerCase() + ". ");
+          setMessage(`You drew a ${card.rank.toLowerCase()}.`);
         }
         setUserDealerCard(card);
       });
@@ -174,11 +202,9 @@ function Game({ numPlayers }) {
 
             let newMessage = "";
             if (card.rankValue === 1 || card.rankValue === 8) {
-              newMessage =
-                "Your opponent drew an " + card.rank.toLowerCase() + ". ";
+              newMessage = `Your opponent drew an ${card.rank.toLowerCase()}. `;
             } else {
-              newMessage =
-                "Your opponent drew a " + card.rank.toLowerCase() + ". ";
+              newMessage = `Your opponent drew a ${card.rank.toLowerCase()}. `;
             }
 
             if (card.rankValue === userDealerCard.rankValue) {
@@ -252,7 +278,7 @@ function Game({ numPlayers }) {
                 card.rank.toLowerCase() +
                 " of " +
                 card.suit.toLowerCase() +
-                "s. "
+                "s."
             );
           } else {
             setMessage(
@@ -260,16 +286,29 @@ function Game({ numPlayers }) {
                 card.rank.toLowerCase() +
                 " of " +
                 card.suit.toLowerCase() +
-                "s. "
+                "s."
             );
-
-            const stageTimeout = setTimeout(() => {
-              setCurrentStage(PLAY_ROUND);
-              setPlayerTurn(dealer === 0 ? 1 : 0);
-            }, PROCESS_DELAY_MS);
-
-            return () => clearTimeout(stageTimeout);
           }
+
+          let nibsTimeout;
+          if (card.rankValue === 11) {
+            nibsTimeout = setTimeout(() => {
+              setMessage("Dealer gets two points from his heels.");
+              getScores().then((response) => {
+                setGameScores(response.data);
+              });
+            });
+          }
+
+          const stageTimeout = setTimeout(() => {
+            setCurrentStage(PLAY_ROUND);
+            setPlayerTurn(dealer === 0 ? 1 : 0);
+          }, PROCESS_DELAY_MS);
+
+          return () => {
+            clearTimeout(stageTimeout);
+            clearTimeout(nibsTimeout);
+          };
         });
       }, PROCESS_DELAY_MS);
 
@@ -278,10 +317,17 @@ function Game({ numPlayers }) {
   }, [crib]);
 
   useEffect(() => {
-    if (playerTurn === 0) {
-    }
-  }, [playerTurn, playedCards]);
+    setMessage(
+      playerTurn === USER_ID
+        ? "It is your turn. Please select a card."
+        : "It is your opponent's turn to select a card"
+    );
 
+    if (playerTurn === OPP_ID) {
+    }
+  }, [playerTurn, count]);
+
+  // UI FUNCTIONALITY
   function onDealerCardClick(cardId) {
     setInteractableDealerCards(false);
     pickedDealerCardId.current = cardId;
@@ -326,6 +372,38 @@ function Game({ numPlayers }) {
     }
 
     setSelectedCards(temp);
+  }
+
+  function onHandCardClick(cardId) {
+    if (playerTurn !== USER_ID) {
+      return;
+    }
+
+    const card = hands[USER_ID].cards.find(
+      (cardInfo) => cardInfo["cardId"] === cardId
+    );
+
+    if (count + card["rankValue"] > MAX_COUNT) {
+      setMessage(
+        "This card cannot be played because it would cause the " +
+          "count to exceed 31. Please select another card."
+      );
+      return;
+    }
+
+    playCard(card);
+
+    const newHands = [...hands];
+    newHands[USER_ID].cards = newHands[USER_ID].cards.filter(
+      (cardInfo) => cardInfo["cardId"] !== cardId
+    );
+    setHands(newHands);
+
+    const newPlayedCards = [...playedCards];
+    newPlayedCards.push(card);
+    setPlayedCards(newPlayedCards);
+
+    setCount(count + card["rankValue"]);
   }
 
   function onCribButtonClick() {
@@ -476,6 +554,7 @@ function Game({ numPlayers }) {
               )}
             </div>
             <div className="middle-row">
+              <div className="deck-cards">{displayDeck()}</div>
               <PlayedCards cards={playedCards} oldCards={oldPlayedCards} />
               <div className="count">{count}</div>
             </div>
@@ -487,7 +566,7 @@ function Game({ numPlayers }) {
                 <Hand
                   pid={USER_ID}
                   cards={hands[USER_ID].cards}
-                  onCardClick={onCribCardClick}
+                  onCardClick={onHandCardClick}
                   selectedCards={selectedCards}
                 />
               )}
@@ -521,19 +600,14 @@ function decipherCardById(cardId) {
 
   let cardInfo = {};
 
-  let suitId = Math.floor(cardId / CARDS_PER_SUIT);
-  if (suitId === CLUB_ID) {
-    cardInfo["suit"] = "CLUB";
-  } else if (suitId === DIAMOND_ID) {
-    cardInfo["suit"] = "DIAMOND";
-  } else if (suitId === HEART_ID) {
-    cardInfo["suit"] = "HEART";
-  } else {
-    cardInfo["suit"] = "SPADE";
-  }
+  cardInfo["suit"] = Math.floor(cardId / CARDS_PER_SUIT);
 
   cardInfo["rank"] =
     cardId % CARDS_PER_SUIT === 0 ? 13 : cardId % CARDS_PER_SUIT;
+
+  cardInfo["rankValue"] = cardInfo["rank"] > 10 ? 10 : cardInfo["rank"];
+
+  return cardInfo;
 }
 
 export default Game;

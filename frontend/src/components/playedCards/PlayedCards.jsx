@@ -21,7 +21,7 @@ function PlayedCards({ cards, oldCards }) {
     return playedCards;
   }
 
-  return <div className="PlayedCards">{extractCardComponents()}</div>;
+  return <div className="played-cards">{extractCardComponents()}</div>;
 }
 
 export default PlayedCards;

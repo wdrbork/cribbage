@@ -1,0 +1,8 @@
+.played-cards {
+  display: flex;
+  justify-content: flex-start;
+  gap: 5%;
+  height: 100%;
+  width: 60%;
+  position: relative;
+}
