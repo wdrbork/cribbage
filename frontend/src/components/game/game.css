@@ -19,6 +19,7 @@
 
 .middle-row {
   display: flex;
+  justify-content: flex-start;
   height: 40%;
   width: 100%;
 }

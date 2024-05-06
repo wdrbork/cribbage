@@ -45,8 +45,8 @@ function Game({ numPlayers }) {
   const [starterCard, setStarterCard] = useState(null);
   const [playerTurn, setPlayerTurn] = useState(-1);
   const [count, setCount] = useState(0);
-  const [playedCards, setPlayedCards] = useState([]);
-  const [oldPlayedCards, setOldPlayedCards] = useState([]);
+  const [playedCards, setPlayedCards] = useState([[], []]);
+  const [oldPlayedCards, setOldPlayedCards] = useState([[], []]);
 
   const pickedDealerCardId = useRef(-1);
   const aiDealerCardId = useRef(-1);
@@ -302,7 +302,7 @@ function Game({ numPlayers }) {
 
           const stageTimeout = setTimeout(() => {
             setCurrentStage(PLAY_ROUND);
-            setPlayerTurn(dealer === 0 ? 1 : 0);
+            setPlayerTurn(dealer === USER_ID ? OPP_ID : USER_ID);
           }, PROCESS_DELAY_MS);
 
           return () => {
@@ -317,15 +317,12 @@ function Game({ numPlayers }) {
   }, [crib]);
 
   useEffect(() => {
-    setMessage(
-      playerTurn === USER_ID
-        ? "It is your turn. Please select a card."
-        : "It is your opponent's turn to select a card"
-    );
-
     if (playerTurn === OPP_ID) {
+      setMessage("It is your opponent's turn to select a card.");
+    } else if (playerTurn === USER_ID) {
+      setMessage("It is your turn. Please select a card.");
     }
-  }, [playerTurn, count]);
+  }, [playedCards]);
 
   // UI FUNCTIONALITY
   function onDealerCardClick(cardId) {
@@ -400,7 +397,7 @@ function Game({ numPlayers }) {
     setHands(newHands);
 
     const newPlayedCards = [...playedCards];
-    newPlayedCards.push(card);
+    newPlayedCards[USER_ID].push(card);
     setPlayedCards(newPlayedCards);
 
     setCount(count + card["rankValue"]);
