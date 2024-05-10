@@ -24,10 +24,10 @@ const MAX_COUNT = 31;
 const WINNING_SCORE = 121;
 
 const ROUND_POINT_CATEGORIES = 4;
-const TOTAL_POINTS_IDX = 0;
-const RUNS_IDX = 1;
-const PAIRS_IDX = 2;
-const SPECIAL_IDX = 3;
+const TOTAL_POINTS = 0;
+const RUNS = 1;
+const PAIRS = 2;
+const SPECIAL = 3;
 
 const PROCESS_DELAY_MS = 500;
 
@@ -47,10 +47,12 @@ function Game({ numPlayers }) {
   const [count, setCount] = useState(0);
   const [playedCards, setPlayedCards] = useState([[], []]);
   const [oldPlayedCards, setOldPlayedCards] = useState([[], []]);
+  const [winner, setWinner] = useState(-1);
 
   const pickedDealerCardId = useRef(-1);
   const aiDealerCardId = useRef(-1);
   const cardsInPlay = useRef(0);
+  const playerOnGo = useRef(false);
 
   // API CALLS
   const getScores = async () => {
@@ -274,19 +276,11 @@ function Game({ numPlayers }) {
           setStarterCard(card);
           if (card.rankValue === 1 || card.rankValue === 8) {
             setMessage(
-              "The starter card is an " +
-                card.rank.toLowerCase() +
-                " of " +
-                card.suit.toLowerCase() +
-                "s."
+              `The starter card is an ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`
             );
           } else {
             setMessage(
-              "The starter card is a " +
-                card.rank.toLowerCase() +
-                " of " +
-                card.suit.toLowerCase() +
-                "s."
+              `The starter card is a ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`
             );
           }
 
@@ -322,7 +316,7 @@ function Game({ numPlayers }) {
     } else if (playerTurn === USER_ID) {
       setMessage("It is your turn. Please select a card.");
     }
-  }, [playedCards]);
+  }, [playerTurn, playedCards]);
 
   // UI FUNCTIONALITY
   function onDealerCardClick(cardId) {
@@ -377,10 +371,10 @@ function Game({ numPlayers }) {
     }
 
     const card = hands[USER_ID].cards.find(
-      (cardInfo) => cardInfo["cardId"] === cardId
+      (cardInfo) => cardInfo.cardId === cardId
     );
 
-    if (count + card["rankValue"] > MAX_COUNT) {
+    if (count + card.rankValue > MAX_COUNT) {
       setMessage(
         "This card cannot be played because it would cause the " +
           "count to exceed 31. Please select another card."
@@ -388,11 +382,56 @@ function Game({ numPlayers }) {
       return;
     }
 
-    playCard(card);
+    playCard(card).then((response) => {
+      let newMessage;
+      if (card.rankValue === 1 || card.rankValue === 8) {
+        newMessage = `You played an ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`;
+      } else {
+        newMessage = `You played a ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`;
+      }
+
+      const pointCategories = response.data;
+      if (pointCategories[TOTAL_POINTS] === 0) {
+        setMessage(newMessage);
+        return;
+      }
+
+      if (pointCategories[RUNS] > 0) {
+        newMessage += `\n\nYou earned ${pointCategories[RUNS]} points for the run.`;
+      }
+
+      if (pointCategories[PAIRS] === 2) {
+        newMessage += `\n\nYou earned ${pointCategories[PAIRS]} points for the pair.`;
+      } else if (pointCategories[PAIRS] === 6) {
+        newMessage += `\n\nYou earned ${pointCategories[PAIRS]} points for the pair royal.`;
+      } else if (pointCategories[PAIRS] === 12) {
+        newMessage += `\n\nYou earned ${pointCategories[PAIRS]} points for the double pair royal.`;
+      }
+
+      if (pointCategories[SPECIAL] >= 2) {
+        newMessage += `\n\nYou earned 2 points for making the count ${
+          count + card.value
+        }.`;
+      }
+
+      // If this value is odd, the user must have earned a point from go
+      if (pointCategories[SPECIAL] % 2 === 1) {
+        if (hands[OPP_ID].cards.length > 0 || hands[USER_ID].cards.length > 0) {
+          playerOnGo.current = true;
+          pointCategories[TOTAL_POINTS]--;
+          pointCategories[SPECIAL]--;
+        } else {
+          newMessage += `\n\nYou earned 1 point for playing the last card.`;
+        }
+      }
+
+      let newGameScores = [...gameScores];
+      newGameScores[USER_ID] += pointCategories[TOTAL_POINTS];
+    });
 
     const newHands = [...hands];
     newHands[USER_ID].cards = newHands[USER_ID].cards.filter(
-      (cardInfo) => cardInfo["cardId"] !== cardId
+      (cardInfo) => cardInfo.cardId !== cardId
     );
     setHands(newHands);
 
@@ -400,7 +439,7 @@ function Game({ numPlayers }) {
     newPlayedCards[USER_ID].push(card);
     setPlayedCards(newPlayedCards);
 
-    setCount(count + card["rankValue"]);
+    setCount(count + card.value);
   }
 
   function onCribButtonClick() {
