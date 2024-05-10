@@ -4,7 +4,8 @@
   align-items: center;
   width: 15%;
   min-width: 250px;
-  height: 10rem;
+  /* min-height: 10rem; */
+  height: auto;
   margin: 1.2rem;
   margin-top: 0.4rem;
   padding: 1rem;
