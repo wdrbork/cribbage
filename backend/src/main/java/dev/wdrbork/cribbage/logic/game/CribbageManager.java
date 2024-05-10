@@ -31,10 +31,10 @@ public class CribbageManager {
     private static final int HAND_SIZE = 4;
 
     private static final int ROUND_POINT_CATEGORIES = 4;
-    private static final int TOTAL_POINTS_IDX = 0;
-    private static final int RUNS_IDX = 1;
-    private static final int PAIRS_IDX = 2;
-    private static final int SPECIAL_IDX = 3;
+    private static final int TOTAL_POINTS = 0;
+    private static final int RUNS = 1;
+    private static final int PAIRS = 2;
+    private static final int SPECIAL = 3;
 
     protected final int numPlayers;
     protected final StandardDeck deck;
@@ -419,23 +419,23 @@ public class CribbageManager {
 
         int[] pointCategories = new int[ROUND_POINT_CATEGORIES];
         
-        pointCategories[PAIRS_IDX] = CribbagePegging.countPegPairs(cardStack);
-        pointCategories[RUNS_IDX] = CribbagePegging.countPegRuns(cardStack);
+        pointCategories[PAIRS] = CribbagePegging.countPegPairs(cardStack);
+        pointCategories[RUNS] = CribbagePegging.countPegRuns(cardStack);
         if (count == 15 || count == 31) {
-            pointCategories[SPECIAL_IDX] = 2;
+            pointCategories[SPECIAL] = 2;
         }
 
-        int totalPoints = pointCategories[PAIRS_IDX] + 
-                pointCategories[RUNS_IDX] + 
-                pointCategories[SPECIAL_IDX];
-        pointCategories[TOTAL_POINTS_IDX] = totalPoints;
+        int totalPoints = pointCategories[PAIRS] + 
+                pointCategories[RUNS] + 
+                pointCategories[SPECIAL];
+        pointCategories[TOTAL_POINTS] = totalPoints;
 
         addPoints(pid, totalPoints);
         lastToPlayCard = pid;
         if (!movePossible() && count != 31) {
             awardPointsForGo();
-            pointCategories[SPECIAL_IDX]++;
-            pointCategories[TOTAL_POINTS_IDX]++;
+            pointCategories[SPECIAL]++;
+            pointCategories[TOTAL_POINTS]++;
         }
         determineNextPlayer();
 
