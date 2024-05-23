@@ -270,51 +270,47 @@ function Game({ numPlayers }) {
         moveToCrib(card);
       });
 
-      setTimeout(() => {
-        pickAIHand().then((response) => {
-          let newHands = [...hands];
-          let fullCrib = [...crib];
+      pickAIHand().then((response) => {
+        let newHands = [...hands];
+        let fullCrib = [...crib];
 
-          response.data.forEach((card) => {
-            newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
-              (cardInfo) => cardInfo.cardId !== card.cardId
-            );
-            fullCrib.push(card);
-          });
+        response.data.forEach((card) => {
+          newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
+            (cardInfo) => cardInfo.cardId !== card.cardId
+          );
+          fullCrib.push(card);
+        });
 
+        setTimeout(() => {
           setHands(newHands);
           setCrib(fullCrib);
-        });
-      }, PROCESS_DELAY_MS);
+        }, PROCESS_DELAY_MS);
+      });
     }
 
     if (crib.length === 4) {
-      setTimeout(() => {
-        getStarterCard().then((response) => {
-          // const card = response.data;
-          let card = response.data;
-          card.rankValue = 11;
-
-          cardsInPlay.current++;
+      getStarterCard().then((response) => {
+        const card = response.data;
+        cardsInPlay.current++;
+        let newMessage = "";
+        setTimeout(() => {
           setStarterCard(card);
           if (card.rankValue === 1 || card.rankValue === 8) {
-            setMessage(
-              `The starter card is an ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`
-            );
+            newMessage = `The starter card is an ${card.rank.toLowerCase()} 
+                of ${card.suit.toLowerCase()}s.`;
           } else {
-            setMessage(
-              `The starter card is a ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`
-            );
+            newMessage = `The starter card is a ${card.rank.toLowerCase()} 
+                of ${card.suit.toLowerCase()}s.`;
             if (card.rankValue === 11) {
               setTimeout(() => {
-                setMessage("Dealer gets two points from his heels.");
+                newMessage += " Dealer gets two points from his heels.";
                 getScores().then((response) => {
                   setGameScores(response.data);
                 });
               });
             }
           }
-
+          setMessage(newMessage);
           setTimeout(() => {
             setCurrentStage(PLAY_ROUND);
             const nextPlayer = (dealer + 1) % 2;
@@ -325,8 +321,8 @@ function Game({ numPlayers }) {
               setMessage("It is your turn. Please select a card.");
             }
           }, PROCESS_DELAY_MS);
-        });
-      }, PROCESS_DELAY_MS);
+        }, PROCESS_DELAY_MS);
+      });
     }
   }, [crib]);
 
