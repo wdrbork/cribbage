@@ -62,7 +62,7 @@ public class GameController {
     @GetMapping("/next")
     public ResponseEntity<Object> nextToPlayCard() {
         return new ResponseEntity<>(
-            String.valueOf(game.nextToPlayCard()), 
+            game.nextToPlayCard(), 
             HttpStatus.OK
         );
     }
@@ -123,14 +123,14 @@ public class GameController {
         return new ResponseEntity<>(game.getLastPlayedCard(), HttpStatus.OK);
     }
 
+    /**************************************************************************
+    * GAME FLOW
+    **************************************************************************/
     @GetMapping("/dealer_card")
     public ResponseEntity<Object> pickCardForDealer() {
         return new ResponseEntity<>(game.pickCardForDealer(), HttpStatus.OK);
     }
 
-    /**************************************************************************
-    * GAME FLOW
-    **************************************************************************/
     @PostMapping("/dealer/{pid}")
     public ResponseEntity<Object> setDealer(@PathVariable String pid) {
         try {
@@ -310,7 +310,7 @@ public class GameController {
                 HttpStatus.OK
             );
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 

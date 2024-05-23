@@ -599,8 +599,11 @@ public class CribbageManager {
     }
 
     private void determineNextPlayer() {
-        for (int i = (nextToPlayCard + 1) % numPlayers; i != nextToPlayCard; 
-                i = (i + 1) % numPlayers) {
+        for (
+            int i = (nextToPlayCard + 1) % numPlayers;
+            i != nextToPlayCard; 
+            i = (i + 1) % numPlayers
+        ) {
             if (hasPlayableCard(i)) {
                 nextToPlayCard = i;
                 return;

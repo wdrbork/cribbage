@@ -29,7 +29,7 @@ const RUNS = 1;
 const PAIRS = 2;
 const SPECIAL = 3;
 
-const PROCESS_DELAY_MS = 500;
+const PROCESS_DELAY_MS = 1000;
 
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(DRAW_DEALER);
@@ -143,6 +143,33 @@ function Game({ numPlayers }) {
     }
   };
 
+  const getNextPlayer = async () => {
+    try {
+      const promise = await api.get(`game/next`);
+      return promise;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const movePossible = async () => {
+    try {
+      const promise = await api.get(`game/move_possible`);
+      return promise;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const resetCount = async () => {
+    try {
+      const promise = await api.get(`game/reset_count`);
+      return promise;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const resetDeck = async () => {
     await api.post("/game/reset_deck");
   };
@@ -196,12 +223,10 @@ function Game({ numPlayers }) {
 
   useEffect(() => {
     if (userDealerCard) {
-      const timeout = setTimeout(async () => {
-        getDealerCard()
-          .then((response) => {
-            const card = response.data;
-            setAiDealerCard(card);
-
+      getDealerCard()
+        .then((response) => {
+          const card = response.data;
+          setTimeout(() => {
             let newMessage = "";
             if (card.rankValue === 1 || card.rankValue === 8) {
               newMessage = `Your opponent drew an ${card.rank.toLowerCase()}. `;
@@ -221,24 +246,21 @@ function Game({ numPlayers }) {
             }
 
             setMessage(newMessage);
-          })
-          .finally(() => {
-            resetDeck();
-          });
-      }, PROCESS_DELAY_MS);
-
-      return () => clearTimeout(timeout);
+            setAiDealerCard(card);
+          }, PROCESS_DELAY_MS);
+        })
+        .finally(() => {
+          resetDeck();
+        });
     }
   }, [userDealerCard]);
 
   useEffect(() => {
     if (aiDealerCard && userDealerCard) {
-      const timeout = setTimeout(() => {
+      setTimeout(() => {
         resetDealerCards();
         setCurrentStage(DEAL_CRIB);
       }, PROCESS_DELAY_MS);
-
-      return () => clearTimeout(timeout);
     }
   }, [aiDealerCard, userDealerCard]);
 
@@ -248,7 +270,7 @@ function Game({ numPlayers }) {
         moveToCrib(card);
       });
 
-      const timeout = setTimeout(() => {
+      setTimeout(() => {
         pickAIHand().then((response) => {
           let newHands = [...hands];
           let fullCrib = [...crib];
@@ -264,14 +286,15 @@ function Game({ numPlayers }) {
           setCrib(fullCrib);
         });
       }, PROCESS_DELAY_MS);
-
-      return () => clearTimeout(timeout);
     }
 
     if (crib.length === 4) {
-      const starterTimeout = setTimeout(async () => {
+      setTimeout(() => {
         getStarterCard().then((response) => {
-          const card = response.data;
+          // const card = response.data;
+          let card = response.data;
+          card.rankValue = 11;
+
           cardsInPlay.current++;
           setStarterCard(card);
           if (card.rankValue === 1 || card.rankValue === 8) {
@@ -282,41 +305,120 @@ function Game({ numPlayers }) {
             setMessage(
               `The starter card is a ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`
             );
-          }
-
-          let nibsTimeout;
-          if (card.rankValue === 11) {
-            nibsTimeout = setTimeout(() => {
-              setMessage("Dealer gets two points from his heels.");
-              getScores().then((response) => {
-                setGameScores(response.data);
+            if (card.rankValue === 11) {
+              setTimeout(() => {
+                setMessage("Dealer gets two points from his heels.");
+                getScores().then((response) => {
+                  setGameScores(response.data);
+                });
               });
-            });
+            }
           }
 
-          const stageTimeout = setTimeout(() => {
+          setTimeout(() => {
             setCurrentStage(PLAY_ROUND);
-            setPlayerTurn(dealer === USER_ID ? OPP_ID : USER_ID);
+            const nextPlayer = (dealer + 1) % 2;
+            setPlayerTurn(nextPlayer);
+            if (nextPlayer === OPP_ID) {
+              setMessage("It is your opponent's turn to select a card.");
+            } else if (nextPlayer === USER_ID) {
+              setMessage("It is your turn. Please select a card.");
+            }
           }, PROCESS_DELAY_MS);
-
-          return () => {
-            clearTimeout(stageTimeout);
-            clearTimeout(nibsTimeout);
-          };
         });
       }, PROCESS_DELAY_MS);
-
-      return () => clearTimeout(starterTimeout);
     }
   }, [crib]);
 
   useEffect(() => {
-    if (playerTurn === OPP_ID) {
-      setMessage("It is your opponent's turn to select a card.");
-    } else if (playerTurn === USER_ID) {
-      setMessage("It is your turn. Please select a card.");
+    if (playerTurn === -1) {
+      return;
     }
-  }, [playerTurn, playedCards]);
+
+    /*
+     * Cases to consider:
+     * - Player 1 plays a card, Player 2 can play a card
+     * - Player 1 plays a card, Player 2 cannot play a card, Player 1 cannot play a card, go is awarded and round is reset
+     * - Player 1 plays a card, Player 2 cannot play a card, Player 1 can play a card
+     * - See scenario 2, but Player 2 has no cards going into the next round
+     * - See scenario 2, but neither player has a card in their hand (i.e. playing stage is over)
+     */
+    if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
+      setTimeout(() => {
+        setMessage("The round is over.");
+        setTimeout(() => {
+          setCurrentStage(COUNT_HANDS);
+        }, PROCESS_DELAY_MS);
+      }, PROCESS_DELAY_MS);
+      return;
+    }
+
+    Promise.all([getNextPlayer(), movePossible()]).then((responses) => {
+      const nextPlayer = responses[0].data;
+      const movePossible = responses[1].data;
+      const otherPlayer = (nextPlayer + 1) % 2;
+
+      if (
+        nextPlayer === playerTurn &&
+        hands[otherPlayer].cards.length > 0 &&
+        !playerOnGo.current &&
+        count !== 31
+      ) {
+        setTimeout(() => {
+          playerOnGo.current = true;
+          if (playerTurn === USER_ID) {
+            setMessage("Your opponent calls go.");
+          } else {
+            setMessage("You cannot play a card, so you call go.");
+          }
+        }, PROCESS_DELAY_MS);
+      }
+
+      if (!movePossible) {
+        if (count !== 31) {
+          setTimeout(() => {
+            playerOnGo.current = false;
+            let newGameScores = [...gameScores];
+            newGameScores[nextPlayer]++;
+            setGameScores(newGameScores);
+            if (playerTurn === USER_ID) {
+              setMessage(
+                "Your opponent earns 1 point for playing the last card."
+              );
+            } else {
+              setMessage("You earn 1 point for playing the last card.");
+            }
+          }, PROCESS_DELAY_MS);
+        }
+
+        resetCount().then(() => {
+          const userPlayedCards = [...playedCards[USER_ID]];
+          const oppPlayedCards = [...playedCards[OPP_ID]];
+          let userOldCards = [...oldPlayedCards[USER_ID]];
+          let oppOldCards = [...oldPlayedCards[OPP_ID]];
+          userOldCards.push(userPlayedCards);
+          oppOldCards.push(oppPlayedCards);
+          setOldPlayedCards([userOldCards, oppOldCards]);
+          setPlayedCards([], []);
+        });
+
+        setCount(0);
+      }
+
+      if (count === 0 && hands[otherPlayer].cards.length > 0) {
+        nextPlayer = otherPlayer;
+      }
+
+      setPlayerTurn(nextPlayer);
+      if (nextPlayer === OPP_ID) {
+        setMessage("It is your opponent's turn to select a card.");
+      } else if (nextPlayer === USER_ID) {
+        setMessage("It is your turn. Please select a card.");
+      }
+
+      return;
+    });
+  }, [playedCards]);
 
   // UI FUNCTIONALITY
   function onDealerCardClick(cardId) {
@@ -415,18 +517,21 @@ function Game({ numPlayers }) {
       }
 
       // If this value is odd, the user must have earned a point from go
+      // (special = 1 means the user only earned a point from go, special = 2
+      // means the user earned points from getting to 15 or 31, special = 3
+      // means the count is 15 AND go was called)
       if (pointCategories[SPECIAL] % 2 === 1) {
-        if (hands[OPP_ID].cards.length > 0 || hands[USER_ID].cards.length > 0) {
-          playerOnGo.current = true;
+        if (hands[OPP_ID].cards.length > 0) {
           pointCategories[TOTAL_POINTS]--;
           pointCategories[SPECIAL]--;
-        } else {
+        } else if (hands[USER_ID].cards.length === 0) {
           newMessage += `\n\nYou earned 1 point for playing the last card.`;
         }
       }
 
       let newGameScores = [...gameScores];
       newGameScores[USER_ID] += pointCategories[TOTAL_POINTS];
+      setGameScores(newGameScores);
     });
 
     const newHands = [...hands];
@@ -517,6 +622,7 @@ function Game({ numPlayers }) {
     return deckCards;
   }
 
+  // UTIL FUNCTIONS
   function resetDealerCards() {
     setInteractableDealerCards(true);
     setUserDealerCard(null);
@@ -629,21 +735,21 @@ function Game({ numPlayers }) {
   );
 }
 
-function decipherCardById(cardId) {
-  if (cardId > DECK_SIZE) {
-    throw "Invalid card ID";
-  }
+// function decipherCardById(cardId) {
+//   if (cardId > DECK_SIZE) {
+//     throw "Invalid card ID";
+//   }
 
-  let cardInfo = {};
+//   let cardInfo = {};
 
-  cardInfo["suit"] = Math.floor(cardId / CARDS_PER_SUIT);
+//   cardInfo["suit"] = Math.floor(cardId / CARDS_PER_SUIT);
 
-  cardInfo["rank"] =
-    cardId % CARDS_PER_SUIT === 0 ? 13 : cardId % CARDS_PER_SUIT;
+//   cardInfo["rank"] =
+//     cardId % CARDS_PER_SUIT === 0 ? 13 : cardId % CARDS_PER_SUIT;
 
-  cardInfo["rankValue"] = cardInfo["rank"] > 10 ? 10 : cardInfo["rank"];
+//   cardInfo["rankValue"] = cardInfo["rank"] > 10 ? 10 : cardInfo["rank"];
 
-  return cardInfo;
-}
+//   return cardInfo;
+// }
 
 export default Game;
