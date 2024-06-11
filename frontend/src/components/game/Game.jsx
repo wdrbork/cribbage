@@ -43,6 +43,7 @@ function Game({ numPlayers }) {
   const [selectedCards, setSelectedCards] = useState([]);
   const [crib, setCrib] = useState([]);
   const [starterCard, setStarterCard] = useState(null);
+  const [handsFinalized, setHandsFinalized] = useState(false);
   const [playerTurn, setPlayerTurn] = useState(-1);
   const [count, setCount] = useState(0);
   const [playedCards, setPlayedCards] = useState([[], []]);
@@ -179,6 +180,8 @@ function Game({ numPlayers }) {
   };
 
   // EFFECTS
+
+  // For when the game stage changes
   useEffect(() => {
     getScores().then((response) => {
       setGameScores(response.data);
@@ -207,6 +210,7 @@ function Game({ numPlayers }) {
     }
   }, [currentStage]);
 
+  // For when the user selects a dealer card
   useEffect(() => {
     if (!interactableDealerCards) {
       getDealerCard().then((response) => {
@@ -221,11 +225,12 @@ function Game({ numPlayers }) {
     }
   }, [interactableDealerCards]);
 
+  // For when the user dealer card is retrieved from the backend
   useEffect(() => {
     if (userDealerCard) {
       getDealerCard()
         .then((response) => {
-          const card = response.data;
+          let card = response.data;
           setTimeout(() => {
             let newMessage = "";
             if (card.rankValue === 1 || card.rankValue === 8) {
@@ -237,6 +242,7 @@ function Game({ numPlayers }) {
             if (card.rankValue === userDealerCard.rankValue) {
               newMessage += "There was a tie; please draw again.";
               resetDealerCards();
+              card = null;
             } else if (card.rankValue < userDealerCard.rankValue) {
               newMessage += "Your opponent will deal first.";
               postDealer(OPP_ID);
@@ -255,6 +261,7 @@ function Game({ numPlayers }) {
     }
   }, [userDealerCard]);
 
+  // For when both the user and AI have selected a dealer card
   useEffect(() => {
     if (aiDealerCard && userDealerCard) {
       setTimeout(() => {
@@ -264,6 +271,7 @@ function Game({ numPlayers }) {
     }
   }, [aiDealerCard, userDealerCard]);
 
+  // For when the user selects their cards for the crib
   useEffect(() => {
     if (crib.length === 2) {
       crib.forEach((card) => {
@@ -282,6 +290,7 @@ function Game({ numPlayers }) {
         });
 
         setTimeout(() => {
+          setHandsFinalized(true);
           setHands(newHands);
           setCrib(fullCrib);
         }, PROCESS_DELAY_MS);
@@ -289,6 +298,8 @@ function Game({ numPlayers }) {
     }
 
     if (crib.length === 4) {
+      // Wait for the backend server to acknowledge the final hands
+      while (!handsFinalized) {}
       getStarterCard().then((response) => {
         const card = response.data;
         cardsInPlay.current++;
@@ -326,6 +337,7 @@ function Game({ numPlayers }) {
     }
   }, [crib]);
 
+  // For after when a card has been played
   useEffect(() => {
     if (playerTurn === -1) {
       return;
@@ -350,7 +362,7 @@ function Game({ numPlayers }) {
     }
 
     Promise.all([getNextPlayer(), movePossible()]).then((responses) => {
-      const nextPlayer = responses[0].data;
+      let nextPlayer = responses[0].data;
       const movePossible = responses[1].data;
       const otherPlayer = (nextPlayer + 1) % 2;
 
