@@ -16,6 +16,7 @@ import dev.wdrbork.cribbage.logic.cards.Card;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -340,7 +341,10 @@ public class GameController {
     @AllArgsConstructor
     @EqualsAndHashCode
     private class PlayResults {
+        @Getter
         private Card playedCard;
+
+        @Getter
         private int[] pointsEarned;
     }
 }
