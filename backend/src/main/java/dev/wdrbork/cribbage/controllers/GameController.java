@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.wdrbork.cribbage.logic.cards.Card;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -223,7 +225,7 @@ public class GameController {
 
         try {
             int[] points = game.playCard(Integer.valueOf(pid), card);
-            return new ResponseEntity<>(points, HttpStatus.OK);
+            return new ResponseEntity<>(new PlayResults(card, points), HttpStatus.OK);
         } catch (NullPointerException e) {
             return new ResponseEntity<>(
                 e.getMessage(), 
@@ -248,7 +250,7 @@ public class GameController {
             int truePid = Integer.valueOf(pid);
             Card card = game.chooseAICard(truePid);
             int[] points = game.playCard(truePid, card);
-            return new ResponseEntity<>(points, HttpStatus.OK);
+            return new ResponseEntity<>(new PlayResults(card, points), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(
                 e.getMessage(), 
@@ -332,4 +334,13 @@ public class GameController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**************************************************************************
+    * UTILITY CLASS
+    **************************************************************************/
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    private class PlayResults {
+        private Card playedCard;
+        private int[] pointsEarned;
+    }
 }
