@@ -244,7 +244,7 @@ public class GameController {
         }
     }
 
-    @GetMapping("/ai/play/{pid}")
+    @PostMapping("/ai/play/{pid}")
     public ResponseEntity<Object> playAICard(@PathVariable String pid) {
         try {
             int truePid = Integer.valueOf(pid);
