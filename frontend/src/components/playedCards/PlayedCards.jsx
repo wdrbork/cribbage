@@ -6,6 +6,8 @@ function PlayedCards({ cards, oldCards }) {
   function extractCardComponents() {
     let playedCards = [];
 
+    console.log(cards);
+    console.log(oldCards);
     oldCards.forEach((player) => {
       player.forEach((card) => {
         playedCards.push(

@@ -137,7 +137,7 @@ function Game({ numPlayers }) {
 
   const playAICard = async () => {
     try {
-      const promise = await api.get(`game/ai/play/${OPP_ID}`);
+      const promise = await api.post(`game/ai/play/${OPP_ID}`);
       return promise;
     } catch (err) {
       console.error(err);
@@ -164,7 +164,7 @@ function Game({ numPlayers }) {
 
   const resetCount = async () => {
     try {
-      const promise = await api.get(`game/reset_count`);
+      const promise = await api.post(`game/reset_count`);
       return promise;
     } catch (err) {
       console.error(err);
@@ -339,7 +339,10 @@ function Game({ numPlayers }) {
 
   // For after when a card has been played
   useEffect(() => {
-    if (playerTurn === -1) {
+    if (
+      playerTurn === -1 ||
+      (playedCards[USER_ID].length === 0 && playedCards[OPP_ID].length === 0)
+    ) {
       return;
     }
 
@@ -400,14 +403,14 @@ function Game({ numPlayers }) {
         }
 
         resetCount().then(() => {
-          const userPlayedCards = [...playedCards[USER_ID]];
-          const oppPlayedCards = [...playedCards[OPP_ID]];
-          let userOldCards = [...oldPlayedCards[USER_ID]];
-          let oppOldCards = [...oldPlayedCards[OPP_ID]];
-          userOldCards.push(userPlayedCards);
-          oppOldCards.push(oppPlayedCards);
+          const userPlayedCards = playedCards[USER_ID];
+          const oppPlayedCards = playedCards[OPP_ID];
+          let userOldCards = oldPlayedCards[USER_ID];
+          let oppOldCards = oldPlayedCards[OPP_ID];
+          userOldCards.push(...userPlayedCards);
+          oppOldCards.push(...oppPlayedCards);
           setOldPlayedCards([userOldCards, oppOldCards]);
-          setPlayedCards([], []);
+          setPlayedCards([[], []]);
         });
 
         setCount(0);
@@ -419,14 +422,85 @@ function Game({ numPlayers }) {
 
       setPlayerTurn(nextPlayer);
       if (nextPlayer === OPP_ID) {
-        setMessage("It is your opponent's turn to select a card.");
+        setTimeout(() => {
+          setMessage("It is your opponent's turn to select a card.");
+        }, PROCESS_DELAY_MS);
       } else if (nextPlayer === USER_ID) {
-        setMessage("It is your turn. Please select a card.");
+        setTimeout(() => {
+          setMessage("It is your turn. Please select a card.");
+        }, PROCESS_DELAY_MS);
       }
 
       return;
     });
   }, [playedCards]);
+
+  // For when it is the AI's turn to play a card
+  useEffect(() => {
+    if (playerTurn !== OPP_ID) return;
+
+    playAICard().then((response) => {
+      setTimeout(() => {
+        let newMessage;
+        let playedCard = response.data.playedCard;
+        if (playedCard.rankValue === 1 || playedCard.rankValue === 8) {
+          newMessage = `Your opponent played an ${playedCard.rank.toLowerCase()} of ${playedCard.suit.toLowerCase()}s.`;
+        } else {
+          newMessage = `Your opponent played a ${playedCard.rank.toLowerCase()} of ${playedCard.suit.toLowerCase()}s.`;
+        }
+
+        const pointCategories = response.data.pointsEarned;
+
+        if (pointCategories[RUNS] > 0) {
+          newMessage += `\n\nYour opponent earned ${pointCategories[RUNS]} points for the run.`;
+        }
+
+        if (pointCategories[PAIRS] === 2) {
+          newMessage += `\n\nYour opponent earned ${pointCategories[PAIRS]} points for the pair.`;
+        } else if (pointCategories[PAIRS] === 6) {
+          newMessage += `\n\nYour opponent earned ${pointCategories[PAIRS]} points for the pair royal.`;
+        } else if (pointCategories[PAIRS] === 12) {
+          newMessage += `\n\nYour opponent earned ${pointCategories[PAIRS]} points for the double pair royal.`;
+        }
+
+        if (pointCategories[SPECIAL] >= 2) {
+          newMessage += `\n\nYour opponent earned 2 points for making the count ${
+            count + playedCard.value
+          }.`;
+        }
+
+        if (pointCategories[SPECIAL] % 2 === 1) {
+          if (hands[USER_ID].cards.length > 0) {
+            pointCategories[TOTAL_POINTS]--;
+            pointCategories[SPECIAL]--;
+          } else if (hands[OPP_ID].cards.length === 0) {
+            newMessage += `\n\nYour opponent earned 1 point for playing the last card.`;
+          }
+        }
+
+        if (pointCategories[TOTAL_POINTS] > 0) {
+          let newGameScores = [...gameScores];
+          newGameScores[OPP_ID] += pointCategories[TOTAL_POINTS];
+          setGameScores(newGameScores);
+        }
+
+        setMessage(newMessage);
+
+        const newHands = [...hands];
+        newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
+          (cardInfo) => cardInfo.cardId !== playedCard.cardId
+        );
+        setHands(newHands);
+
+        const newPlayedCards = [...playedCards];
+        newPlayedCards[OPP_ID].push(playedCard);
+        setPlayedCards(newPlayedCards);
+
+        setCount(count + playedCard.value);
+        console.log("AI played a card");
+      }, PROCESS_DELAY_MS);
+    });
+  }, [playerTurn]);
 
   // UI FUNCTIONALITY
   function onDealerCardClick(cardId) {
@@ -480,6 +554,7 @@ function Game({ numPlayers }) {
       return;
     }
 
+    console.log("User played a card");
     const card = hands[USER_ID].cards.find(
       (cardInfo) => cardInfo.cardId === cardId
     );
@@ -500,11 +575,7 @@ function Game({ numPlayers }) {
         newMessage = `You played a ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`;
       }
 
-      const pointCategories = response.data;
-      if (pointCategories[TOTAL_POINTS] === 0) {
-        setMessage(newMessage);
-        return;
-      }
+      const pointCategories = response.data.pointsEarned;
 
       if (pointCategories[RUNS] > 0) {
         newMessage += `\n\nYou earned ${pointCategories[RUNS]} points for the run.`;
@@ -540,19 +611,21 @@ function Game({ numPlayers }) {
       let newGameScores = [...gameScores];
       newGameScores[USER_ID] += pointCategories[TOTAL_POINTS];
       setGameScores(newGameScores);
+
+      setMessage(newMessage);
+
+      const newHands = [...hands];
+      newHands[USER_ID].cards = newHands[USER_ID].cards.filter(
+        (cardInfo) => cardInfo.cardId !== cardId
+      );
+      setHands(newHands);
+
+      const newPlayedCards = [...playedCards];
+      newPlayedCards[USER_ID].push(card);
+      setPlayedCards(newPlayedCards);
+
+      setCount(count + card.value);
     });
-
-    const newHands = [...hands];
-    newHands[USER_ID].cards = newHands[USER_ID].cards.filter(
-      (cardInfo) => cardInfo.cardId !== cardId
-    );
-    setHands(newHands);
-
-    const newPlayedCards = [...playedCards];
-    newPlayedCards[USER_ID].push(card);
-    setPlayedCards(newPlayedCards);
-
-    setCount(count + card.value);
   }
 
   function onCribButtonClick() {
