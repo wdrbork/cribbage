@@ -6,23 +6,33 @@ function PlayedCards({ cards, oldCards }) {
   function extractCardComponents() {
     let playedCards = [];
 
-    console.log(cards);
-    console.log(oldCards);
-    oldCards.forEach((player) => {
-      player.forEach((card) => {
-        playedCards.push(
-          <Card key={card.cardId} id={card.cardId} cardInfo={card} shaded />
-        );
-      });
+    oldCards.forEach((card) => {
+      playedCards.push(
+        <Card key={card.cardId} id={card.cardId} cardInfo={card} shaded />
+      );
     });
 
-    cards.forEach((player) => {
-      player.forEach((card) => {
-        playedCards.push(
-          <Card key={card.cardId} id={card.cardId} cardInfo={card} />
-        );
-      });
+    cards.forEach((card) => {
+      playedCards.push(
+        <Card key={card.cardId} id={card.cardId} cardInfo={card} />
+      );
     });
+
+    // oldCards.forEach((player) => {
+    //   player.forEach((card) => {
+    //     playedCards.push(
+    //       <Card key={card.cardId} id={card.cardId} cardInfo={card} shaded />
+    //     );
+    //   });
+    // });
+
+    // cards.forEach((player) => {
+    //   player.forEach((card) => {
+    //     playedCards.push(
+    //       <Card key={card.cardId} id={card.cardId} cardInfo={card} />
+    //     );
+    //   });
+    // });
 
     return playedCards;
   }

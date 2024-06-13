@@ -46,8 +46,8 @@ function Game({ numPlayers }) {
   const [handsFinalized, setHandsFinalized] = useState(false);
   const [playerTurn, setPlayerTurn] = useState(-1);
   const [count, setCount] = useState(0);
-  const [playedCards, setPlayedCards] = useState([[], []]);
-  const [oldPlayedCards, setOldPlayedCards] = useState([[], []]);
+  const [playedCards, setPlayedCards] = useState([]);
+  const [oldPlayedCards, setOldPlayedCards] = useState([]);
   const [winner, setWinner] = useState(-1);
 
   const pickedDealerCardId = useRef(-1);
@@ -289,17 +289,20 @@ function Game({ numPlayers }) {
           fullCrib.push(card);
         });
 
+        setHandsFinalized(true);
+
         setTimeout(() => {
-          setHandsFinalized(true);
           setHands(newHands);
           setCrib(fullCrib);
         }, PROCESS_DELAY_MS);
       });
     }
 
-    if (crib.length === 4) {
+    if (crib.length === 4 && !starterCard) {
       // Wait for the backend server to acknowledge the final hands
-      while (!handsFinalized) {}
+      while (!handsFinalized) {
+        console.log("test");
+      }
       getStarterCard().then((response) => {
         const card = response.data;
         cardsInPlay.current++;
@@ -339,12 +342,8 @@ function Game({ numPlayers }) {
 
   // For after when a card has been played
   useEffect(() => {
-    if (
-      playerTurn === -1 ||
-      (playedCards[USER_ID].length === 0 && playedCards[OPP_ID].length === 0)
-    ) {
+    if (playerTurn === -1 || playedCards.length + oldPlayedCards.length === 0)
       return;
-    }
 
     /*
      * Cases to consider:
@@ -403,21 +402,26 @@ function Game({ numPlayers }) {
         }
 
         resetCount().then(() => {
-          const userPlayedCards = playedCards[USER_ID];
-          const oppPlayedCards = playedCards[OPP_ID];
-          let userOldCards = oldPlayedCards[USER_ID];
-          let oppOldCards = oldPlayedCards[OPP_ID];
-          userOldCards.push(...userPlayedCards);
-          oppOldCards.push(...oppPlayedCards);
-          setOldPlayedCards([userOldCards, oppOldCards]);
-          setPlayedCards([[], []]);
+          let oldCards = [...oldPlayedCards];
+          oldCards.push(...playedCards);
+          setOldPlayedCards(oldCards);
+          setPlayedCards([]);
+          // const userPlayedCards = playedCards[USER_ID];
+          // const oppPlayedCards = playedCards[OPP_ID];
+          // let userOldCards = oldPlayedCards[USER_ID];
+          // let oppOldCards = oldPlayedCards[OPP_ID];
+          // userOldCards.push(...userPlayedCards);
+          // oppOldCards.push(...oppPlayedCards);
+          // setOldPlayedCards([userOldCards, oppOldCards]);
+          // setPlayedCards([[], []]);
         });
 
         setCount(0);
-      }
-
-      if (count === 0 && hands[otherPlayer].cards.length > 0) {
-        nextPlayer = otherPlayer;
+        console.log(nextPlayer);
+        console.log(otherPlayer);
+        if (hands[otherPlayer].length > 0) {
+          nextPlayer = otherPlayer;
+        }
       }
 
       setPlayerTurn(nextPlayer);
@@ -430,8 +434,6 @@ function Game({ numPlayers }) {
           setMessage("It is your turn. Please select a card.");
         }, PROCESS_DELAY_MS);
       }
-
-      return;
     });
   }, [playedCards]);
 
@@ -441,6 +443,7 @@ function Game({ numPlayers }) {
 
     playAICard().then((response) => {
       setTimeout(() => {
+        console.log("AI played a card");
         let newMessage;
         let playedCard = response.data.playedCard;
         if (playedCard.rankValue === 1 || playedCard.rankValue === 8) {
@@ -449,6 +452,7 @@ function Game({ numPlayers }) {
           newMessage = `Your opponent played a ${playedCard.rank.toLowerCase()} of ${playedCard.suit.toLowerCase()}s.`;
         }
 
+        console.log(response.data);
         const pointCategories = response.data.pointsEarned;
 
         if (pointCategories[RUNS] > 0) {
@@ -493,11 +497,10 @@ function Game({ numPlayers }) {
         setHands(newHands);
 
         const newPlayedCards = [...playedCards];
-        newPlayedCards[OPP_ID].push(playedCard);
+        newPlayedCards.push(playedCard);
         setPlayedCards(newPlayedCards);
 
         setCount(count + playedCard.value);
-        console.log("AI played a card");
       }, PROCESS_DELAY_MS);
     });
   }, [playerTurn]);
@@ -576,6 +579,7 @@ function Game({ numPlayers }) {
       }
 
       const pointCategories = response.data.pointsEarned;
+      console.log(response.data);
 
       if (pointCategories[RUNS] > 0) {
         newMessage += `\n\nYou earned ${pointCategories[RUNS]} points for the run.`;
@@ -621,7 +625,7 @@ function Game({ numPlayers }) {
       setHands(newHands);
 
       const newPlayedCards = [...playedCards];
-      newPlayedCards[USER_ID].push(card);
+      newPlayedCards.push(card);
       setPlayedCards(newPlayedCards);
 
       setCount(count + card.value);
