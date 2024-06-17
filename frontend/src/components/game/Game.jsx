@@ -417,8 +417,6 @@ function Game({ numPlayers }) {
         });
 
         setCount(0);
-        console.log(nextPlayer);
-        console.log(otherPlayer);
         if (hands[otherPlayer].length > 0) {
           nextPlayer = otherPlayer;
         }
@@ -443,7 +441,6 @@ function Game({ numPlayers }) {
 
     playAICard().then((response) => {
       setTimeout(() => {
-        console.log("AI played a card");
         let newMessage;
         let playedCard = response.data.playedCard;
         if (playedCard.rankValue === 1 || playedCard.rankValue === 8) {
@@ -452,7 +449,6 @@ function Game({ numPlayers }) {
           newMessage = `Your opponent played a ${playedCard.rank.toLowerCase()} of ${playedCard.suit.toLowerCase()}s.`;
         }
 
-        console.log(response.data);
         const pointCategories = response.data.pointsEarned;
 
         if (pointCategories[RUNS] > 0) {
@@ -557,7 +553,6 @@ function Game({ numPlayers }) {
       return;
     }
 
-    console.log("User played a card");
     const card = hands[USER_ID].cards.find(
       (cardInfo) => cardInfo.cardId === cardId
     );
@@ -579,7 +574,6 @@ function Game({ numPlayers }) {
       }
 
       const pointCategories = response.data.pointsEarned;
-      console.log(response.data);
 
       if (pointCategories[RUNS] > 0) {
         newMessage += `\n\nYou earned ${pointCategories[RUNS]} points for the run.`;

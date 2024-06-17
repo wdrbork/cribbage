@@ -5,9 +5,9 @@ import { useState } from "react";
 function Crib({ cards }) {
   function extractCardComponents() {
     let cardComponents = [];
-    cards.forEach((card) => {
+    cards.forEach((card, i) => {
       cardComponents.push(
-        <Card key={card.cardId} id={card.cardId} cardInfo={card} hidden />
+        <Card key={i} id={card.cardId} cardInfo={card} hidden />
       );
     });
 
