@@ -56,9 +56,6 @@ function Card({
         width={CARD_WIDTH}
         height={CARD_WIDTH * CARD_HEIGHT_RATIO}
         onClick={handleClick}
-        alt={
-          hidden ? "Back of card" : cardInfo.rank + " of " + cardInfo.suit + "S"
-        }
       />
     </div>
   );
