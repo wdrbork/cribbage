@@ -29,7 +29,7 @@ const RUNS = 1;
 const PAIRS = 2;
 const SPECIAL = 3;
 
-const PROCESS_DELAY_MS = 1000;
+const PROCESS_DELAY_MS = 2000;
 
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(DRAW_DEALER);
@@ -229,31 +229,31 @@ function Game({ numPlayers }) {
   useEffect(() => {
     if (userDealerCard) {
       getDealerCard()
-        .then((response) => {
+        .then(async (response) => {
           let card = response.data;
-          setTimeout(() => {
-            let newMessage = "";
-            if (card.rankValue === 1 || card.rankValue === 8) {
-              newMessage = `Your opponent drew an ${card.rank.toLowerCase()}. `;
-            } else {
-              newMessage = `Your opponent drew a ${card.rank.toLowerCase()}. `;
-            }
+          await timeout(PROCESS_DELAY_MS);
 
-            if (card.rankValue === userDealerCard.rankValue) {
-              newMessage += "There was a tie; please draw again.";
-              resetDealerCards();
-              card = null;
-            } else if (card.rankValue < userDealerCard.rankValue) {
-              newMessage += "Your opponent will deal first.";
-              postDealer(OPP_ID);
-            } else {
-              newMessage += "You will deal first.";
-              postDealer(USER_ID);
-            }
+          let newMessage = "";
+          if (card.rankValue === 1 || card.rankValue === 8) {
+            newMessage = `Your opponent drew an ${card.rank.toLowerCase()}. `;
+          } else {
+            newMessage = `Your opponent drew a ${card.rank.toLowerCase()}. `;
+          }
 
-            setMessage(newMessage);
-            setAiDealerCard(card);
-          }, PROCESS_DELAY_MS);
+          if (card.rankValue === userDealerCard.rankValue) {
+            newMessage += "There was a tie; please draw again.";
+            resetDealerCards();
+            card = null;
+          } else if (card.rankValue < userDealerCard.rankValue) {
+            newMessage += "Your opponent will deal first.";
+            postDealer(OPP_ID);
+          } else {
+            newMessage += "You will deal first.";
+            postDealer(USER_ID);
+          }
+
+          setMessage(newMessage);
+          setAiDealerCard(card);
         })
         .finally(() => {
           resetDeck();
@@ -264,10 +264,13 @@ function Game({ numPlayers }) {
   // For when both the user and AI have selected a dealer card
   useEffect(() => {
     if (aiDealerCard && userDealerCard) {
-      setTimeout(() => {
+      const cleanupDealerCards = async () => {
+        await timeout(PROCESS_DELAY_MS);
         resetDealerCards();
         setCurrentStage(DEAL_CRIB);
-      }, PROCESS_DELAY_MS);
+      };
+
+      cleanupDealerCards();
     }
   }, [aiDealerCard, userDealerCard]);
 
@@ -278,7 +281,8 @@ function Game({ numPlayers }) {
         moveToCrib(card);
       });
 
-      pickAIHand().then((response) => {
+      pickAIHand().then(async (response) => {
+        await timeout(PROCESS_DELAY_MS);
         let newHands = [...hands];
         let fullCrib = [...crib];
 
@@ -290,52 +294,46 @@ function Game({ numPlayers }) {
         });
 
         setHandsFinalized(true);
-
-        setTimeout(() => {
-          setHands(newHands);
-          setCrib(fullCrib);
-        }, PROCESS_DELAY_MS);
+        setHands(newHands);
+        setCrib(fullCrib);
       });
     }
 
     if (crib.length === 4 && !starterCard) {
       // Wait for the backend server to acknowledge the final hands
-      while (!handsFinalized) {
-        console.log("test");
-      }
-      getStarterCard().then((response) => {
+      while (!handsFinalized) {}
+      getStarterCard().then(async (response) => {
         const card = response.data;
         cardsInPlay.current++;
         let newMessage = "";
-        setTimeout(() => {
-          setStarterCard(card);
-          if (card.rankValue === 1 || card.rankValue === 8) {
-            newMessage = `The starter card is an ${card.rank.toLowerCase()} 
-                of ${card.suit.toLowerCase()}s.`;
-          } else {
-            newMessage = `The starter card is a ${card.rank.toLowerCase()} 
-                of ${card.suit.toLowerCase()}s.`;
-            if (card.rankValue === 11) {
-              setTimeout(() => {
-                newMessage += " Dealer gets two points from his heels.";
-                getScores().then((response) => {
-                  setGameScores(response.data);
-                });
-              });
-            }
+
+        await timeout(PROCESS_DELAY_MS);
+        setStarterCard(card);
+        if (card.rankValue === 1 || card.rankValue === 8) {
+          newMessage = `The starter card is an ${card.rank.toLowerCase()} 
+              of ${card.suit.toLowerCase()}s.`;
+        } else {
+          newMessage = `The starter card is a ${card.rank.toLowerCase()} 
+              of ${card.suit.toLowerCase()}s.`;
+          if (card.rankValue === 11) {
+            await timeout(PROCESS_DELAY_MS);
+            newMessage += " Dealer gets two points from his heels.";
+            getScores().then((response) => {
+              setGameScores(response.data);
+            });
           }
-          setMessage(newMessage);
-          setTimeout(() => {
-            setCurrentStage(PLAY_ROUND);
-            const nextPlayer = (dealer + 1) % 2;
-            setPlayerTurn(nextPlayer);
-            if (nextPlayer === OPP_ID) {
-              setMessage("It is your opponent's turn to select a card.");
-            } else if (nextPlayer === USER_ID) {
-              setMessage("It is your turn. Please select a card.");
-            }
-          }, PROCESS_DELAY_MS);
-        }, PROCESS_DELAY_MS);
+        }
+        setMessage(newMessage);
+
+        await timeout(PROCESS_DELAY_MS);
+        setCurrentStage(PLAY_ROUND);
+        const nextPlayer = (dealer + 1) % 2;
+        setPlayerTurn(nextPlayer);
+        if (nextPlayer === OPP_ID) {
+          setMessage("It is your opponent's turn to select a card.");
+        } else if (nextPlayer === USER_ID) {
+          setMessage("It is your turn. Please select a card.");
+        }
       });
     }
   }, [crib]);
@@ -345,60 +343,55 @@ function Game({ numPlayers }) {
     if (playerTurn === -1 || playedCards.length + oldPlayedCards.length === 0)
       return;
 
-    /*
-     * Cases to consider:
-     * - Player 1 plays a card, Player 2 can play a card
-     * - Player 1 plays a card, Player 2 cannot play a card, Player 1 cannot play a card, go is awarded and round is reset
-     * - Player 1 plays a card, Player 2 cannot play a card, Player 1 can play a card
-     * - See scenario 2, but Player 2 has no cards going into the next round
-     * - See scenario 2, but neither player has a card in their hand (i.e. playing stage is over)
-     */
     if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
-      setTimeout(() => {
+      const endRound = async () => {
         setMessage("The round is over.");
-        setTimeout(() => {
-          setCurrentStage(COUNT_HANDS);
-        }, PROCESS_DELAY_MS);
-      }, PROCESS_DELAY_MS);
+        await timeout(PROCESS_DELAY_MS);
+        setCurrentStage(COUNT_HANDS);
+      };
+
+      endRound();
       return;
     }
 
-    Promise.all([getNextPlayer(), movePossible()]).then((responses) => {
+    Promise.all([getNextPlayer(), movePossible()]).then(async (responses) => {
       let nextPlayer = responses[0].data;
       const movePossible = responses[1].data;
       const otherPlayer = (nextPlayer + 1) % 2;
 
+      // Set message box if a player calls go but the other player can still play a card
+      // (if the server says that the next player is the same one that played the most
+      // recent card, then the other player must not be able to play a card)
       if (
         nextPlayer === playerTurn &&
         hands[otherPlayer].cards.length > 0 &&
         !playerOnGo.current &&
-        count !== 31
+        movePossible
       ) {
-        setTimeout(() => {
-          playerOnGo.current = true;
-          if (playerTurn === USER_ID) {
-            setMessage("Your opponent calls go.");
-          } else {
-            setMessage("You cannot play a card, so you call go.");
-          }
-        }, PROCESS_DELAY_MS);
+        playerOnGo.current = true;
+        if (playerTurn === USER_ID) {
+          setMessage("Your opponent calls go.");
+        } else {
+          setMessage("You cannot play a card, so you call go.");
+        }
+        await timeout(PROCESS_DELAY_MS);
+        return;
       }
 
       if (!movePossible) {
         if (count !== 31) {
-          setTimeout(() => {
-            playerOnGo.current = false;
-            let newGameScores = [...gameScores];
-            newGameScores[nextPlayer]++;
-            setGameScores(newGameScores);
-            if (playerTurn === USER_ID) {
-              setMessage(
-                "Your opponent earns 1 point for playing the last card."
-              );
-            } else {
-              setMessage("You earn 1 point for playing the last card.");
-            }
-          }, PROCESS_DELAY_MS);
+          playerOnGo.current = false;
+          let newGameScores = [...gameScores];
+          newGameScores[nextPlayer]++;
+          setGameScores(newGameScores);
+          if (playerTurn === USER_ID) {
+            setMessage(
+              "Your opponent earns 1 point for playing the last card."
+            );
+          } else {
+            setMessage("You earn 1 point for playing the last card.");
+          }
+          await timeout(PROCESS_DELAY_MS);
         }
 
         resetCount().then(() => {
@@ -406,14 +399,6 @@ function Game({ numPlayers }) {
           oldCards.push(...playedCards);
           setOldPlayedCards(oldCards);
           setPlayedCards([]);
-          // const userPlayedCards = playedCards[USER_ID];
-          // const oppPlayedCards = playedCards[OPP_ID];
-          // let userOldCards = oldPlayedCards[USER_ID];
-          // let oppOldCards = oldPlayedCards[OPP_ID];
-          // userOldCards.push(...userPlayedCards);
-          // oppOldCards.push(...oppPlayedCards);
-          // setOldPlayedCards([userOldCards, oppOldCards]);
-          // setPlayedCards([[], []]);
         });
 
         setCount(0);
@@ -424,13 +409,9 @@ function Game({ numPlayers }) {
 
       setPlayerTurn(nextPlayer);
       if (nextPlayer === OPP_ID) {
-        setTimeout(() => {
-          setMessage("It is your opponent's turn to select a card.");
-        }, PROCESS_DELAY_MS);
+        setMessage("It is your opponent's turn to select a card.");
       } else if (nextPlayer === USER_ID) {
-        setTimeout(() => {
-          setMessage("It is your turn. Please select a card.");
-        }, PROCESS_DELAY_MS);
+        setMessage("It is your turn. Please select a card.");
       }
     });
   }, [playedCards]);
@@ -439,65 +420,67 @@ function Game({ numPlayers }) {
   useEffect(() => {
     if (playerTurn !== OPP_ID) return;
 
-    playAICard().then((response) => {
-      setTimeout(() => {
-        let newMessage;
-        let playedCard = response.data.playedCard;
-        if (playedCard.rankValue === 1 || playedCard.rankValue === 8) {
-          newMessage = `Your opponent played an ${playedCard.rank.toLowerCase()} of ${playedCard.suit.toLowerCase()}s.`;
-        } else {
-          newMessage = `Your opponent played a ${playedCard.rank.toLowerCase()} of ${playedCard.suit.toLowerCase()}s.`;
+    playAICard().then(async (response) => {
+      await timeout(PROCESS_DELAY_MS);
+
+      const newHands = [...hands];
+      newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
+        (cardInfo) => cardInfo.cardId !== playedCard.cardId
+      );
+      setHands(newHands);
+
+      const newPlayedCards = [...playedCards];
+      newPlayedCards.push(playedCard);
+      setPlayedCards(newPlayedCards);
+
+      let newMessage;
+      let playedCard = response.data.playedCard;
+      if (playedCard.rankValue === 1 || playedCard.rankValue === 8) {
+        newMessage = `Your opponent played an ${playedCard.rank.toLowerCase()} of ${playedCard.suit.toLowerCase()}s.`;
+      } else {
+        newMessage = `Your opponent played a ${playedCard.rank.toLowerCase()} of ${playedCard.suit.toLowerCase()}s.`;
+      }
+
+      const pointCategories = response.data.pointsEarned;
+
+      if (pointCategories[RUNS] > 0) {
+        newMessage += `\n\nYour opponent earned ${pointCategories[RUNS]} points for the run.`;
+      }
+
+      if (pointCategories[PAIRS] === 2) {
+        newMessage += `\n\nYour opponent earned ${pointCategories[PAIRS]} points for the pair.`;
+      } else if (pointCategories[PAIRS] === 6) {
+        newMessage += `\n\nYour opponent earned ${pointCategories[PAIRS]} points for the pair royal.`;
+      } else if (pointCategories[PAIRS] === 12) {
+        newMessage += `\n\nYour opponent earned ${pointCategories[PAIRS]} points for the double pair royal.`;
+      }
+
+      if (pointCategories[SPECIAL] >= 2) {
+        newMessage += `\n\nYour opponent earned 2 points for making the count ${
+          count + playedCard.value
+        }.`;
+      }
+
+      if (pointCategories[SPECIAL] % 2 === 1) {
+        if (hands[USER_ID].cards.length > 0) {
+          pointCategories[TOTAL_POINTS]--;
+          pointCategories[SPECIAL]--;
+        } else if (hands[OPP_ID].cards.length === 0) {
+          newMessage += `\n\nYour opponent earned 1 point for playing the last card.`;
         }
+      }
 
-        const pointCategories = response.data.pointsEarned;
+      if (pointCategories[TOTAL_POINTS] > 0) {
+        let newGameScores = [...gameScores];
+        newGameScores[OPP_ID] += pointCategories[TOTAL_POINTS];
+        setGameScores(newGameScores);
+      }
 
-        if (pointCategories[RUNS] > 0) {
-          newMessage += `\n\nYour opponent earned ${pointCategories[RUNS]} points for the run.`;
-        }
+      setMessage(newMessage);
 
-        if (pointCategories[PAIRS] === 2) {
-          newMessage += `\n\nYour opponent earned ${pointCategories[PAIRS]} points for the pair.`;
-        } else if (pointCategories[PAIRS] === 6) {
-          newMessage += `\n\nYour opponent earned ${pointCategories[PAIRS]} points for the pair royal.`;
-        } else if (pointCategories[PAIRS] === 12) {
-          newMessage += `\n\nYour opponent earned ${pointCategories[PAIRS]} points for the double pair royal.`;
-        }
+      setCount(count + playedCard.value);
 
-        if (pointCategories[SPECIAL] >= 2) {
-          newMessage += `\n\nYour opponent earned 2 points for making the count ${
-            count + playedCard.value
-          }.`;
-        }
-
-        if (pointCategories[SPECIAL] % 2 === 1) {
-          if (hands[USER_ID].cards.length > 0) {
-            pointCategories[TOTAL_POINTS]--;
-            pointCategories[SPECIAL]--;
-          } else if (hands[OPP_ID].cards.length === 0) {
-            newMessage += `\n\nYour opponent earned 1 point for playing the last card.`;
-          }
-        }
-
-        if (pointCategories[TOTAL_POINTS] > 0) {
-          let newGameScores = [...gameScores];
-          newGameScores[OPP_ID] += pointCategories[TOTAL_POINTS];
-          setGameScores(newGameScores);
-        }
-
-        setMessage(newMessage);
-
-        const newHands = [...hands];
-        newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
-          (cardInfo) => cardInfo.cardId !== playedCard.cardId
-        );
-        setHands(newHands);
-
-        const newPlayedCards = [...playedCards];
-        newPlayedCards.push(playedCard);
-        setPlayedCards(newPlayedCards);
-
-        setCount(count + playedCard.value);
-      }, PROCESS_DELAY_MS);
+      await timeout(PROCESS_DELAY_MS);
     });
   }, [playerTurn]);
 
@@ -565,7 +548,7 @@ function Game({ numPlayers }) {
       return;
     }
 
-    playCard(card).then((response) => {
+    playCard(card).then(async (response) => {
       let newMessage;
       if (card.rankValue === 1 || card.rankValue === 8) {
         newMessage = `You played an ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`;
@@ -623,6 +606,8 @@ function Game({ numPlayers }) {
       setPlayedCards(newPlayedCards);
 
       setCount(count + card.value);
+
+      await timeout(PROCESS_DELAY_MS);
     });
   }
 
@@ -812,6 +797,10 @@ function Game({ numPlayers }) {
       </div>
     </div>
   );
+}
+
+function timeout(ms) {
+  return new Promise((res) => setTimeout(res, ms));
 }
 
 // function decipherCardById(cardId) {
