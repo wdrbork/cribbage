@@ -234,7 +234,7 @@ public class GameController {
             );
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(
-                "Player " + pid + " cannot play " + card + ". Try again.", 
+                e.getMessage(), 
                 HttpStatus.OK
             );
         } catch (IllegalStateException e) {
