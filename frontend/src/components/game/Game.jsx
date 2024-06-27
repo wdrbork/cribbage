@@ -1,5 +1,24 @@
 import "./game.css";
 import api from "../../api/axiosConfig.js";
+import { useState, useEffect, useRef } from "react";
+
+import {
+  USER_ID,
+  OPP_ID,
+  DECK_SIZE,
+  PROCESS_DELAY_MS,
+} from "../../global/vars.js";
+
+import {
+  DRAW_DEALER,
+  DEAL_CRIB,
+  PLAY_ROUND,
+  COUNT_HANDS,
+  COUNT_CRIB,
+} from "../../global/stages.js";
+
+import timeout from "../../global/timeout.js";
+
 import Scoreboard from "../scoreboard";
 import Message from "../message";
 import Card from "../card";
@@ -7,18 +26,9 @@ import Hand from "../hand";
 import Crib from "../crib";
 import SendToCrib from "../sendToCrib";
 import PlayedCards from "../playedCards";
-import { useState, useEffect, useRef } from "react";
 
-// Game Stages
-const DRAW_DEALER = 0;
-const DEAL_CRIB = 1;
-const PLAY_ROUND = 2;
-const COUNT_HANDS = 3;
-const COUNT_CRIB = 4;
+import DrawDealer from "../stages/drawDealer";
 
-const USER_ID = 0;
-const OPP_ID = 1;
-const DECK_SIZE = 52;
 const CARDS_PER_SUIT = 13;
 const MAX_COUNT = 31;
 const WINNING_SCORE = 121;
@@ -29,14 +39,9 @@ const RUNS = 1;
 const PAIRS = 2;
 const SPECIAL = 3;
 
-const PROCESS_DELAY_MS = 2000;
-
 function Game({ numPlayers }) {
   const [currentStage, setCurrentStage] = useState(DRAW_DEALER);
   const [message, setMessage] = useState("");
-  const [interactableDealerCards, setInteractableDealerCards] = useState(true);
-  const [userDealerCard, setUserDealerCard] = useState(null);
-  const [aiDealerCard, setAiDealerCard] = useState(null);
   const [gameScores, setGameScores] = useState(Array(numPlayers));
   const [dealer, setDealer] = useState(-1);
   const [hands, setHands] = useState([]);
@@ -50,8 +55,6 @@ function Game({ numPlayers }) {
   const [oldPlayedCards, setOldPlayedCards] = useState([]);
   const [winner, setWinner] = useState(-1);
 
-  const pickedDealerCardId = useRef(-1);
-  const aiDealerCardId = useRef(-1);
   const cardsInPlay = useRef(0);
   const playerOnGo = useRef(false);
 
@@ -59,25 +62,6 @@ function Game({ numPlayers }) {
   const getScores = async () => {
     try {
       const promise = await api.get("game/scores");
-      return promise;
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const getDealerCard = async () => {
-    try {
-      const promise = await api.get("/game/dealer_card");
-      return promise;
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const postDealer = async (dealer) => {
-    try {
-      const promise = await api.post(`game/dealer/${dealer}`);
-      setDealer(dealer);
       return promise;
     } catch (err) {
       console.error(err);
@@ -209,70 +193,6 @@ function Game({ numPlayers }) {
       }
     }
   }, [currentStage]);
-
-  // For when the user selects a dealer card
-  useEffect(() => {
-    if (!interactableDealerCards) {
-      getDealerCard().then((response) => {
-        const card = response.data;
-        if (card.rankValue === 1 || card.rankValue === 8) {
-          setMessage(`You drew an ${card.rank.toLowerCase()}.`);
-        } else {
-          setMessage(`You drew a ${card.rank.toLowerCase()}.`);
-        }
-        setUserDealerCard(card);
-      });
-    }
-  }, [interactableDealerCards]);
-
-  // For when the user dealer card is retrieved from the backend
-  useEffect(() => {
-    if (userDealerCard) {
-      getDealerCard()
-        .then(async (response) => {
-          let card = response.data;
-          await timeout(PROCESS_DELAY_MS);
-
-          let newMessage = "";
-          if (card.rankValue === 1 || card.rankValue === 8) {
-            newMessage = `Your opponent drew an ${card.rank.toLowerCase()}. `;
-          } else {
-            newMessage = `Your opponent drew a ${card.rank.toLowerCase()}. `;
-          }
-
-          if (card.rankValue === userDealerCard.rankValue) {
-            newMessage += "There was a tie; please draw again.";
-            resetDealerCards();
-            card = null;
-          } else if (card.rankValue < userDealerCard.rankValue) {
-            newMessage += "Your opponent will deal first.";
-            postDealer(OPP_ID);
-          } else {
-            newMessage += "You will deal first.";
-            postDealer(USER_ID);
-          }
-
-          setMessage(newMessage);
-          setAiDealerCard(card);
-        })
-        .finally(() => {
-          resetDeck();
-        });
-    }
-  }, [userDealerCard]);
-
-  // For when both the user and AI have selected a dealer card
-  useEffect(() => {
-    if (aiDealerCard && userDealerCard) {
-      const cleanupDealerCards = async () => {
-        await timeout(PROCESS_DELAY_MS);
-        resetDealerCards();
-        setCurrentStage(DEAL_CRIB);
-      };
-
-      cleanupDealerCards();
-    }
-  }, [aiDealerCard, userDealerCard]);
 
   // For when the user selects their cards for the crib
   useEffect(() => {
@@ -484,12 +404,6 @@ function Game({ numPlayers }) {
     });
   }, [playerTurn]);
 
-  // UI FUNCTIONALITY
-  function onDealerCardClick(cardId) {
-    setInteractableDealerCards(false);
-    pickedDealerCardId.current = cardId;
-  }
-
   function onCribCardClick(cardId) {
     if (crib.length >= 2) return;
 
@@ -635,41 +549,6 @@ function Game({ numPlayers }) {
     setMessage("Opponent currently selecting cards for the crib...");
   }
 
-  function displayDealerCards() {
-    if (
-      userDealerCard !== null &&
-      aiDealerCard !== null &&
-      aiDealerCardId.current === -1
-    ) {
-      aiDealerCardId.current = pickedDealerCardId.current;
-      while (aiDealerCardId.current === pickedDealerCardId.current) {
-        aiDealerCardId.current = Math.floor(Math.random() * DECK_SIZE);
-      }
-    }
-
-    let dealerCards = [];
-    let displayCard = true;
-    for (let i = 0; i < DECK_SIZE - cardsInPlay.current; i++) {
-      if (i === aiDealerCardId.current || i === pickedDealerCardId.current) {
-        displayCard = false;
-      }
-
-      dealerCards.push(
-        <Card
-          key={i}
-          id={i}
-          interactable={interactableDealerCards}
-          onClick={onDealerCardClick}
-          display={displayCard}
-          hidden
-        />
-      );
-      displayCard = true;
-    }
-
-    return dealerCards;
-  }
-
   function displayDeck() {
     let deckCards = [];
     let i = 0;
@@ -686,30 +565,16 @@ function Game({ numPlayers }) {
     return deckCards;
   }
 
-  // UTIL FUNCTIONS
-  function resetDealerCards() {
-    setInteractableDealerCards(true);
-    setUserDealerCard(null);
-    setAiDealerCard(null);
-    pickedDealerCardId.current = -1;
-    aiDealerCardId.current = -1;
-  }
-
   function stageSwitch() {
     switch (currentStage) {
       case DRAW_DEALER:
         return (
-          <>
-            <div className="top-row ai-dealer-card">
-              {aiDealerCard && <Card cardInfo={aiDealerCard} />}
-            </div>
-            <div className="middle-row">
-              <div className="dealer-cards">{displayDealerCards()}</div>
-            </div>
-            <div className="bottom-row user-dealer-card">
-              {userDealerCard && <Card cardInfo={userDealerCard} />}
-            </div>
-          </>
+          <DrawDealer
+            setMessage={setMessage}
+            setDealer={setDealer}
+            setStage={setCurrentStage}
+            cardsInPlay={cardsInPlay}
+          />
         );
       case DEAL_CRIB:
         return (
@@ -797,10 +662,6 @@ function Game({ numPlayers }) {
       </div>
     </div>
   );
-}
-
-function timeout(ms) {
-  return new Promise((res) => setTimeout(res, ms));
 }
 
 // function decipherCardById(cardId) {

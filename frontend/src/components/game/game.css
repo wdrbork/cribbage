@@ -35,9 +35,6 @@
 
 .deck-cards {
   width: 20%;
-}
-
-.deck-cards {
   justify-content: flex-start;
   gap: 0.01rem;
 }
