@@ -404,6 +404,7 @@ function Game({ numPlayers }) {
     });
   }, [playerTurn]);
 
+  // INTERACTION
   function onCribCardClick(cardId) {
     if (crib.length >= 2) return;
 
@@ -663,22 +664,5 @@ function Game({ numPlayers }) {
     </div>
   );
 }
-
-// function decipherCardById(cardId) {
-//   if (cardId > DECK_SIZE) {
-//     throw "Invalid card ID";
-//   }
-
-//   let cardInfo = {};
-
-//   cardInfo["suit"] = Math.floor(cardId / CARDS_PER_SUIT);
-
-//   cardInfo["rank"] =
-//     cardId % CARDS_PER_SUIT === 0 ? 13 : cardId % CARDS_PER_SUIT;
-
-//   cardInfo["rankValue"] = cardInfo["rank"] > 10 ? 10 : cardInfo["rank"];
-
-//   return cardInfo;
-// }
 
 export default Game;

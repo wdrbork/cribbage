@@ -111,6 +111,7 @@ function DrawDealer({ setMessage, setDealer, setStage, cardsInPlay }) {
     }
   }, [aiDealerCard, userDealerCard]);
 
+  // INTERACTION
   function onDealerCardClick(cardId) {
     setInteractableDealerCards(false);
     pickedDealerCardId.current = cardId;
