@@ -24,10 +24,10 @@ import Message from "../message";
 import Card from "../card";
 import Hand from "../hand";
 import Crib from "../crib";
-import SendToCrib from "../sendToCrib";
 import PlayedCards from "../playedCards";
 
 import DrawDealer from "../stages/drawDealer";
+import DealCrib from "../stages/dealCrib";
 
 const CARDS_PER_SUIT = 13;
 const MAX_COUNT = 31;
@@ -48,7 +48,6 @@ function Game({ numPlayers }) {
   const [selectedCards, setSelectedCards] = useState([]);
   const [crib, setCrib] = useState([]);
   const [starterCard, setStarterCard] = useState(null);
-  const [handsFinalized, setHandsFinalized] = useState(false);
   const [playerTurn, setPlayerTurn] = useState(-1);
   const [count, setCount] = useState(0);
   const [playedCards, setPlayedCards] = useState([]);
@@ -71,35 +70,6 @@ function Game({ numPlayers }) {
   const dealCards = async () => {
     try {
       const promise = await api.post("game/deal");
-      return promise;
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const moveToCrib = async (card) => {
-    try {
-      const promise = await api.post(
-        `game/move/${USER_ID}/${card.suitValue}/${card.rankValue}`
-      );
-      return promise;
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const pickAIHand = async () => {
-    try {
-      const promise = await api.post("game/ai/hands");
-      return promise;
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const getStarterCard = async () => {
-    try {
-      const promise = await api.get("game/starter");
       return promise;
     } catch (err) {
       console.error(err);
@@ -194,70 +164,6 @@ function Game({ numPlayers }) {
     }
   }, [currentStage]);
 
-  // For when the user selects their cards for the crib
-  useEffect(() => {
-    if (crib.length === 2) {
-      crib.forEach((card) => {
-        moveToCrib(card);
-      });
-
-      pickAIHand().then(async (response) => {
-        await timeout(PROCESS_DELAY_MS);
-        let newHands = [...hands];
-        let fullCrib = [...crib];
-
-        response.data.forEach((card) => {
-          newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
-            (cardInfo) => cardInfo.cardId !== card.cardId
-          );
-          fullCrib.push(card);
-        });
-
-        setHandsFinalized(true);
-        setHands(newHands);
-        setCrib(fullCrib);
-      });
-    }
-
-    if (crib.length === 4 && !starterCard) {
-      // Wait for the backend server to acknowledge the final hands
-      while (!handsFinalized) {}
-      getStarterCard().then(async (response) => {
-        const card = response.data;
-        cardsInPlay.current++;
-        let newMessage = "";
-
-        await timeout(PROCESS_DELAY_MS);
-        setStarterCard(card);
-        if (card.rankValue === 1 || card.rankValue === 8) {
-          newMessage = `The starter card is an ${card.rank.toLowerCase()} 
-              of ${card.suit.toLowerCase()}s.`;
-        } else {
-          newMessage = `The starter card is a ${card.rank.toLowerCase()} 
-              of ${card.suit.toLowerCase()}s.`;
-          if (card.rankValue === 11) {
-            await timeout(PROCESS_DELAY_MS);
-            newMessage += " Dealer gets two points from his heels.";
-            getScores().then((response) => {
-              setGameScores(response.data);
-            });
-          }
-        }
-        setMessage(newMessage);
-
-        await timeout(PROCESS_DELAY_MS);
-        setCurrentStage(PLAY_ROUND);
-        const nextPlayer = (dealer + 1) % 2;
-        setPlayerTurn(nextPlayer);
-        if (nextPlayer === OPP_ID) {
-          setMessage("It is your opponent's turn to select a card.");
-        } else if (nextPlayer === USER_ID) {
-          setMessage("It is your turn. Please select a card.");
-        }
-      });
-    }
-  }, [crib]);
-
   // For after when a card has been played
   useEffect(() => {
     if (playerTurn === -1 || playedCards.length + oldPlayedCards.length === 0)
@@ -343,6 +249,7 @@ function Game({ numPlayers }) {
     playAICard().then(async (response) => {
       await timeout(PROCESS_DELAY_MS);
 
+      let playedCard = response.data.playedCard;
       const newHands = [...hands];
       newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
         (cardInfo) => cardInfo.cardId !== playedCard.cardId
@@ -354,7 +261,6 @@ function Game({ numPlayers }) {
       setPlayedCards(newPlayedCards);
 
       let newMessage;
-      let playedCard = response.data.playedCard;
       if (playedCard.rankValue === 1 || playedCard.rankValue === 8) {
         newMessage = `Your opponent played an ${playedCard.rank.toLowerCase()} of ${playedCard.suit.toLowerCase()}s.`;
       } else {
@@ -405,47 +311,6 @@ function Game({ numPlayers }) {
   }, [playerTurn]);
 
   // INTERACTION
-  function onCribCardClick(cardId) {
-    if (crib.length >= 2) return;
-
-    let temp = [...selectedCards];
-
-    if (selectedCards.length === 2 && !selectedCards.includes(cardId)) {
-      setMessage(
-        "Only two cards can be sent to the crib. " +
-          "Please unselect another card and then select this card again."
-      );
-      return;
-    }
-
-    // Remove the card if it was already selected. Otherwise, add it to the array
-    if (selectedCards.includes(cardId)) {
-      temp = temp.filter((id) => id !== cardId);
-      if (temp.length === 0) {
-        if (dealer === USER_ID) {
-          setMessage("Select two cards that will be sent to your crib.");
-        } else {
-          setMessage(
-            "Select two cards that will be sent to your opponent's crib."
-          );
-        }
-      } else {
-        setMessage("Select one more card for the crib.");
-      }
-    } else {
-      temp.push(cardId);
-      if (temp.length === 1) {
-        setMessage("Select one more card for the crib.");
-      } else {
-        setMessage(
-          'Click the "Send to Crib" button to move the selected cards to the crib.'
-        );
-      }
-    }
-
-    setSelectedCards(temp);
-  }
-
   function onHandCardClick(cardId) {
     if (playerTurn !== USER_ID) {
       return;
@@ -526,30 +391,6 @@ function Game({ numPlayers }) {
     });
   }
 
-  function onCribButtonClick() {
-    if (selectedCards.length !== 2) {
-      return;
-    }
-
-    const selectedCardObjects = hands[USER_ID].cards.filter(
-      (cardInfo) =>
-        cardInfo.cardId === selectedCards[0] ||
-        cardInfo.cardId === selectedCards[1]
-    );
-    setCrib([...selectedCardObjects]);
-
-    let newHands = [...hands];
-    newHands[USER_ID].cards = newHands[USER_ID].cards.filter(
-      (cardInfo) =>
-        cardInfo.cardId !== selectedCards[0] &&
-        cardInfo.cardId !== selectedCards[1]
-    );
-    setHands(newHands);
-
-    setSelectedCards([]);
-    setMessage("Opponent currently selecting cards for the crib...");
-  }
-
   function displayDeck() {
     let deckCards = [];
     let i = 0;
@@ -579,40 +420,22 @@ function Game({ numPlayers }) {
         );
       case DEAL_CRIB:
         return (
-          <>
-            <div className="top-row ai-hand">
-              <div className="crib-container">
-                {dealer === OPP_ID && <Crib cards={crib} />}
-              </div>
-              {hands.length !== 0 && (
-                <Hand pid={OPP_ID} cards={hands[OPP_ID].cards} />
-              )}
-            </div>
-            <div className="middle-row">
-              <div className="deck-cards">{displayDeck()}</div>
-            </div>
-            <div className="bottom-row user-hand">
-              <div className="crib-container">
-                {dealer === USER_ID && <Crib cards={crib} />}
-              </div>
-              {hands.length !== 0 && (
-                <Hand
-                  pid={USER_ID}
-                  cards={hands[USER_ID].cards}
-                  onCardClick={onCribCardClick}
-                  selectedCards={selectedCards}
-                />
-              )}
-              <div className="crib-button-container">
-                {crib.length < 2 && (
-                  <SendToCrib
-                    selectedCards={selectedCards}
-                    onClick={onCribButtonClick}
-                  />
-                )}
-              </div>
-            </div>
-          </>
+          <DealCrib
+            dealer={dealer}
+            hands={hands}
+            crib={crib}
+            starterCard={starterCard}
+            getScores={getScores}
+            setHands={setHands}
+            setCrib={setCrib}
+            setStarterCard={setStarterCard}
+            setPlayerTurn={setPlayerTurn}
+            setGameScores={setGameScores}
+            setMessage={setMessage}
+            setStage={setCurrentStage}
+            displayDeck={displayDeck}
+            cardsInPlay={cardsInPlay}
+          />
         );
       case PLAY_ROUND:
         return (
