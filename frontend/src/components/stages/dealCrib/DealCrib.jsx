@@ -19,7 +19,6 @@ function DealCrib({
   setHands,
   setCrib,
   setStarterCard,
-  setPlayerTurn,
   setGameScores,
   setMessage,
   setStage,
@@ -120,13 +119,6 @@ function DealCrib({
 
         await timeout(PROCESS_DELAY_MS);
         setStage(PLAY_ROUND);
-        const nextPlayer = (dealer + 1) % 2;
-        setPlayerTurn(nextPlayer);
-        if (nextPlayer === OPP_ID) {
-          setMessage("It is your opponent's turn to select a card.");
-        } else if (nextPlayer === USER_ID) {
-          setMessage("It is your turn. Please select a card.");
-        }
       });
     }
   }, [crib]);
