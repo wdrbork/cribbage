@@ -11,9 +11,32 @@ import Hand from "../../hand";
 import Crib from "../../crib";
 import SendToCrib from "../../sendToCrib";
 
-function DealCrib(props) {
+function DealCrib({
+  dealer,
+  hands,
+  crib,
+  starterCard,
+  setHands,
+  setCrib,
+  setStarterCard,
+  setPlayerTurn,
+  setGameScores,
+  setMessage,
+  setStage,
+  displayDeck,
+  cardsInPlay,
+}) {
   const [selectedCards, setSelectedCards] = useState([]);
   const [handsFinalized, setHandsFinalized] = useState(false);
+
+  const getScores = async () => {
+    try {
+      const promise = await api.get("game/scores");
+      return promise;
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const moveToCrib = async (card) => {
     try {
@@ -46,15 +69,15 @@ function DealCrib(props) {
 
   // For when the user selects their cards for the crib
   useEffect(() => {
-    if (props.crib.length === 2) {
-      props.crib.forEach((card) => {
+    if (crib.length === 2) {
+      crib.forEach((card) => {
         moveToCrib(card);
       });
 
       pickAIHand().then(async (response) => {
         await timeout(PROCESS_DELAY_MS);
-        let newHands = [...props.hands];
-        let fullCrib = [...props.crib];
+        let newHands = [...hands];
+        let fullCrib = [...crib];
 
         response.data.forEach((card) => {
           newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
@@ -64,21 +87,21 @@ function DealCrib(props) {
         });
 
         setHandsFinalized(true);
-        props.setHands(newHands);
-        props.setCrib(fullCrib);
+        setHands(newHands);
+        setCrib(fullCrib);
       });
     }
 
-    if (props.crib.length === 4 && !props.starterCard) {
+    if (crib.length === 4 && !starterCard) {
       // Wait for the backend server to acknowledge the final hands
       while (!handsFinalized) {}
       getStarterCard().then(async (response) => {
         const card = response.data;
-        props.cardsInPlay.current++;
+        cardsInPlay.current++;
         let newMessage = "";
 
         await timeout(PROCESS_DELAY_MS);
-        props.setStarterCard(card);
+        setStarterCard(card);
         if (card.rankValue === 1 || card.rankValue === 8) {
           newMessage = `The starter card is an ${card.rank.toLowerCase()} 
               of ${card.suit.toLowerCase()}s.`;
@@ -88,33 +111,33 @@ function DealCrib(props) {
           if (card.rankValue === 11) {
             await timeout(PROCESS_DELAY_MS);
             newMessage += " Dealer gets two points from his heels.";
-            props.getScores().then((response) => {
-              props.setGameScores(response.data);
+            getScores().then((response) => {
+              setGameScores(response.data);
             });
           }
         }
-        props.setMessage(newMessage);
+        setMessage(newMessage);
 
         await timeout(PROCESS_DELAY_MS);
-        props.setStage(PLAY_ROUND);
-        const nextPlayer = (props.dealer + 1) % 2;
-        props.setPlayerTurn(nextPlayer);
+        setStage(PLAY_ROUND);
+        const nextPlayer = (dealer + 1) % 2;
+        setPlayerTurn(nextPlayer);
         if (nextPlayer === OPP_ID) {
-          props.setMessage("It is your opponent's turn to select a card.");
+          setMessage("It is your opponent's turn to select a card.");
         } else if (nextPlayer === USER_ID) {
-          props.setMessage("It is your turn. Please select a card.");
+          setMessage("It is your turn. Please select a card.");
         }
       });
     }
-  }, [props.crib]);
+  }, [crib]);
 
   function onCribCardClick(cardId) {
-    if (props.crib.length >= 2) return;
+    if (crib.length >= 2) return;
 
     let temp = [...selectedCards];
 
     if (selectedCards.length === 2 && !selectedCards.includes(cardId)) {
-      props.setMessage(
+      setMessage(
         "Only two cards can be sent to the crib. " +
           "Please unselect another card and then select this card again."
       );
@@ -125,22 +148,22 @@ function DealCrib(props) {
     if (selectedCards.includes(cardId)) {
       temp = temp.filter((id) => id !== cardId);
       if (temp.length === 0) {
-        if (props.dealer === USER_ID) {
-          props.setMessage("Select two cards that will be sent to your crib.");
+        if (dealer === USER_ID) {
+          setMessage("Select two cards that will be sent to your crib.");
         } else {
-          props.setMessage(
+          setMessage(
             "Select two cards that will be sent to your opponent's crib."
           );
         }
       } else {
-        props.setMessage("Select one more card for the crib.");
+        setMessage("Select one more card for the crib.");
       }
     } else {
       temp.push(cardId);
       if (temp.length === 1) {
-        props.setMessage("Select one more card for the crib.");
+        setMessage("Select one more card for the crib.");
       } else {
-        props.setMessage(
+        setMessage(
           'Click the "Send to Crib" button to move the selected cards to the crib.'
         );
       }
@@ -154,52 +177,52 @@ function DealCrib(props) {
       return;
     }
 
-    const selectedCardObjects = props.hands[USER_ID].cards.filter(
+    const selectedCardObjects = hands[USER_ID].cards.filter(
       (cardInfo) =>
         cardInfo.cardId === selectedCards[0] ||
         cardInfo.cardId === selectedCards[1]
     );
-    props.setCrib([...selectedCardObjects]);
+    setCrib([...selectedCardObjects]);
 
-    let newHands = [...props.hands];
+    let newHands = [...hands];
     newHands[USER_ID].cards = newHands[USER_ID].cards.filter(
       (cardInfo) =>
         cardInfo.cardId !== selectedCards[0] &&
         cardInfo.cardId !== selectedCards[1]
     );
-    props.setHands(newHands);
+    setHands(newHands);
 
     setSelectedCards([]);
-    props.setMessage("Opponent currently selecting cards for the crib...");
+    setMessage("Opponent currently selecting cards for the crib...");
   }
 
   return (
     <>
       <div className="top-row ai-hand">
         <div className="crib-container">
-          {props.dealer === OPP_ID && <Crib cards={props.crib} />}
+          {dealer === OPP_ID && <Crib cards={crib} />}
         </div>
-        {props.hands.length !== 0 && (
-          <Hand pid={OPP_ID} cards={props.hands[OPP_ID].cards} />
+        {hands.length !== 0 && (
+          <Hand pid={OPP_ID} cards={hands[OPP_ID].cards} />
         )}
       </div>
       <div className="middle-row">
-        <div className="deck-cards">{props.displayDeck()}</div>
+        <div className="deck-cards">{displayDeck()}</div>
       </div>
       <div className="bottom-row user-hand">
         <div className="crib-container">
-          {props.dealer === USER_ID && <Crib cards={props.crib} />}
+          {dealer === USER_ID && <Crib cards={crib} />}
         </div>
-        {props.hands.length !== 0 && (
+        {hands.length !== 0 && (
           <Hand
             pid={USER_ID}
-            cards={props.hands[USER_ID].cards}
+            cards={hands[USER_ID].cards}
             onCardClick={onCribCardClick}
             selectedCards={selectedCards}
           />
         )}
         <div className="crib-button-container">
-          {props.crib.length < 2 && (
+          {crib.length < 2 && (
             <SendToCrib
               selectedCards={selectedCards}
               onClick={onCribButtonClick}
