@@ -7,7 +7,6 @@ import { USER_ID, OPP_ID, PROCESS_DELAY_MS } from "../../../global/vars.js";
 import { PLAY_ROUND } from "../../../global/stages.js";
 import timeout from "../../../global/timeout.js";
 
-import Card from "../../card";
 import Hand from "../../hand";
 import Crib from "../../crib";
 import SendToCrib from "../../sendToCrib";

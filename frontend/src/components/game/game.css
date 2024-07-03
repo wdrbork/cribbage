@@ -49,10 +49,3 @@
 .crib-container {
   width: 25%;
 }
-
-.crib-button-container {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  width: 25%;
-}
