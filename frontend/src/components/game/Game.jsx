@@ -85,6 +85,12 @@ function Game({ numPlayers }) {
           "Select two cards that will be sent to your opponent's crib."
         );
       }
+    } else if (currentStage === PLAY_ROUND) {
+      if (dealer === USER_ID) {
+        setMessage("It is your opponent's turn to select a card.");
+      } else if (dealer === OPP_ID) {
+        setMessage("It is your turn. Please select a card.");
+      }
     }
   }, [currentStage]);
 

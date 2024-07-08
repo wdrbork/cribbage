@@ -34,6 +34,7 @@ function PlayRound({
   const [playedCards, setPlayedCards] = useState([]);
   const [oldPlayedCards, setOldPlayedCards] = useState([]);
   const playerOnGo = useRef(false);
+  const timeoutFinished = useRef(true);
 
   // API CALLS
   const playCard = async (cardInfo) => {
@@ -96,7 +97,13 @@ function PlayRound({
 
   // For after when a card has been played
   useEffect(() => {
-    if (playerTurn === -1 || playedCards.length + oldPlayedCards.length === 0)
+    // We do not want to run anything if it is the start of the round and the user's turn.
+    // We want all this to run if it is the AI's turn so that they are forced into playing a card
+    // at the end of this function.
+    if (
+      playedCards.length + oldPlayedCards.length === 0 &&
+      playerTurn !== OPP_ID
+    )
       return;
 
     if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
@@ -165,6 +172,7 @@ function PlayRound({
       setPlayerTurn(nextPlayer);
       if (nextPlayer === OPP_ID) {
         setMessage("It is your opponent's turn to select a card.");
+        manageAITurn();
       } else if (nextPlayer === USER_ID) {
         setMessage("It is your turn. Please select a card.");
       }
@@ -172,9 +180,7 @@ function PlayRound({
   }, [playedCards]);
 
   // For when it is the AI's turn to play a card
-  useEffect(() => {
-    if (playerTurn !== OPP_ID) return;
-
+  function manageAITurn() {
     playAICard().then(async (response) => {
       await timeout(PROCESS_DELAY_MS);
 
@@ -237,7 +243,7 @@ function PlayRound({
 
       await timeout(PROCESS_DELAY_MS);
     });
-  }, [playerTurn]);
+  }
 
   // INTERACTION
   function onHandCardClick(cardId) {
