@@ -100,11 +100,9 @@ function PlayRound({
     // We do not want to run anything if it is the start of the round and the user's turn.
     // We want all this to run if it is the AI's turn so that they are forced into playing a card
     // at the end of this function.
-    if (
-      playedCards.length + oldPlayedCards.length === 0 &&
-      playerTurn !== OPP_ID
-    )
-      return;
+    const startOfRound = playedCards.length + oldPlayedCards.length === 0;
+
+    if (startOfRound && playerTurn !== OPP_ID) return;
 
     if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
       const endRound = async () => {
@@ -126,12 +124,14 @@ function PlayRound({
       // (if the server says that the next player is the same one that played the most
       // recent card, then the other player must not be able to play a card)
       if (
+        !startOfRound &&
         nextPlayer === playerTurn &&
         hands[otherPlayer].cards.length > 0 &&
         !playerOnGo.current &&
         movePossible
       ) {
         playerOnGo.current = true;
+        console.log("test");
         if (playerTurn === USER_ID) {
           setMessage("Your opponent calls go.");
         } else {
@@ -240,8 +240,6 @@ function PlayRound({
       setMessage(newMessage);
 
       setCount(count + playedCard.value);
-
-      await timeout(PROCESS_DELAY_MS);
     });
   }
 
