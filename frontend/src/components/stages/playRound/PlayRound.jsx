@@ -18,6 +18,7 @@ const PAIRS = 2;
 const SPECIAL = 3;
 
 const MAX_COUNT = 31;
+const MAX_RETRIES = 100;
 
 function PlayRound({
   dealer,
@@ -34,10 +35,9 @@ function PlayRound({
   const [playedCards, setPlayedCards] = useState([]);
   const [oldPlayedCards, setOldPlayedCards] = useState([]);
   const playerOnGo = useRef(false);
-  const timeoutFinished = useRef(true);
 
   // API CALLS
-  const playCard = async (cardInfo) => {
+  const playCard = async (cardInfo, attempts = 0) => {
     try {
       const suitValue = cardInfo["suitValue"];
       const rankValue = cardInfo["rankValue"];
@@ -46,16 +46,20 @@ function PlayRound({
       );
       return promise;
     } catch (err) {
-      console.error(err);
+      if (attempts === MAX_RETRIES) throw err;
+
+      return playCard(cardInfo, attempts + 1);
     }
   };
 
-  const playAICard = async () => {
+  const playAICard = async (attempts = 0) => {
     try {
       const promise = await api.post(`game/ai/play/${OPP_ID}`);
       return promise;
     } catch (err) {
-      console.error(err);
+      if (attempts === MAX_RETRIES) throw err;
+
+      return playAICard(attempts + 1);
     }
   };
 
@@ -107,7 +111,6 @@ function PlayRound({
     if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
       const endRound = async () => {
         setMessage("The round is over.");
-        await timeout(PROCESS_DELAY_MS);
         setStage(COUNT_HANDS);
       };
 
@@ -131,13 +134,11 @@ function PlayRound({
         movePossible
       ) {
         playerOnGo.current = true;
-        console.log("test");
         if (playerTurn === USER_ID) {
           setMessage("Your opponent calls go.");
         } else {
           setMessage("You cannot play a card, so you call go.");
         }
-        await timeout(PROCESS_DELAY_MS);
       }
 
       if (!movePossible) {
@@ -152,7 +153,6 @@ function PlayRound({
             } else {
               setMessage("You earn 1 point for playing the last card.");
             }
-            await timeout(PROCESS_DELAY_MS);
           });
         }
 
@@ -161,18 +161,18 @@ function PlayRound({
           oldCards.push(...playedCards);
           setOldPlayedCards(oldCards);
           setPlayedCards([]);
-        });
 
-        setCount(0);
-        if (hands[otherPlayer].length > 0) {
-          nextPlayer = otherPlayer;
-        }
+          setCount(0);
+          if (hands[otherPlayer].length > 0) {
+            nextPlayer = otherPlayer;
+          }
+        });
       }
 
       setPlayerTurn(nextPlayer);
       if (nextPlayer === OPP_ID) {
         setMessage("It is your opponent's turn to select a card.");
-        manageAITurn();
+        manageAITurn(0);
       } else if (nextPlayer === USER_ID) {
         setMessage("It is your turn. Please select a card.");
       }
@@ -182,8 +182,6 @@ function PlayRound({
   // For when it is the AI's turn to play a card
   function manageAITurn() {
     playAICard().then(async (response) => {
-      await timeout(PROCESS_DELAY_MS);
-
       let playedCard = response.data.playedCard;
       const newHands = [...hands];
       newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
@@ -319,8 +317,6 @@ function PlayRound({
       setPlayedCards(newPlayedCards);
 
       setCount(count + card.value);
-
-      await timeout(PROCESS_DELAY_MS);
     });
   }
 
