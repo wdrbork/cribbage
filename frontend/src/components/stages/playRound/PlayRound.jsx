@@ -108,17 +108,8 @@ function PlayRound({
 
     if (startOfRound && playerTurn !== OPP_ID) return;
 
-    if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
-      const endRound = async () => {
-        setMessage("The round is over.");
-        setStage(COUNT_HANDS);
-      };
-
-      endRound();
-      return;
-    }
-
     Promise.all([getNextPlayer(), movePossible()]).then(async (responses) => {
+      await timeout(PROCESS_DELAY_MS);
       let nextPlayer = responses[0].data;
       const movePossible = responses[1].data;
       const otherPlayer = (nextPlayer + 1) % 2;
@@ -139,6 +130,7 @@ function PlayRound({
         } else {
           setMessage("You cannot play a card, so you call go.");
         }
+        await timeout(PROCESS_DELAY_MS);
       }
 
       if (!movePossible) {
@@ -146,13 +138,14 @@ function PlayRound({
           playerOnGo.current = false;
           getScores().then(async (response) => {
             setGameScores(response.data);
-            if (playerTurn === USER_ID) {
+            if (playerTurn === OPP_ID) {
               setMessage(
                 "Your opponent earns 1 point for playing the last card."
               );
             } else {
               setMessage("You earn 1 point for playing the last card.");
             }
+            await timeout(PROCESS_DELAY_MS);
           });
         }
 
@@ -167,6 +160,16 @@ function PlayRound({
             nextPlayer = otherPlayer;
           }
         });
+      }
+
+      if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
+        const endRound = async () => {
+          setMessage("The round is over.");
+          setStage(COUNT_HANDS);
+        };
+
+        endRound();
+        return;
       }
 
       setPlayerTurn(nextPlayer);
