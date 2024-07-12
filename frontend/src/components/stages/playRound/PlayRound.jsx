@@ -18,7 +18,7 @@ const PAIRS = 2;
 const SPECIAL = 3;
 
 const MAX_COUNT = 31;
-const MAX_RETRIES = 100;
+const MAX_RETRIES = 20;
 
 function PlayRound({
   dealer,
@@ -122,7 +122,7 @@ function PlayRound({
         nextPlayer === playerTurn &&
         hands[otherPlayer].cards.length > 0 &&
         !playerOnGo.current &&
-        movePossible
+        count !== 31
       ) {
         playerOnGo.current = true;
         if (playerTurn === USER_ID) {
@@ -149,17 +149,21 @@ function PlayRound({
           });
         }
 
-        resetCount().then(() => {
-          let oldCards = [...oldPlayedCards];
-          oldCards.push(...playedCards);
-          setOldPlayedCards(oldCards);
-          setPlayedCards([]);
+        resetCount();
 
-          setCount(0);
-          if (hands[otherPlayer].length > 0) {
-            nextPlayer = otherPlayer;
-          }
-        });
+        let oldCards = [...oldPlayedCards];
+        oldCards.push(...playedCards);
+        setOldPlayedCards(oldCards);
+        setPlayedCards([]);
+        setCount(0);
+      } else {
+        setPlayerTurn(nextPlayer);
+        if (nextPlayer === OPP_ID) {
+          setMessage("It is your opponent's turn to select a card.");
+          manageAITurn();
+        } else if (nextPlayer === USER_ID) {
+          setMessage("It is your turn. Please select a card.");
+        }
       }
 
       if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
@@ -170,14 +174,6 @@ function PlayRound({
 
         endRound();
         return;
-      }
-
-      setPlayerTurn(nextPlayer);
-      if (nextPlayer === OPP_ID) {
-        setMessage("It is your opponent's turn to select a card.");
-        manageAITurn(0);
-      } else if (nextPlayer === USER_ID) {
-        setMessage("It is your turn. Please select a card.");
       }
     });
   }, [playedCards]);
