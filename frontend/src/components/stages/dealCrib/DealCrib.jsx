@@ -26,7 +26,6 @@ function DealCrib({
   cardsInPlay,
 }) {
   const [selectedCards, setSelectedCards] = useState([]);
-  const [handsFinalized, setHandsFinalized] = useState(false);
 
   const getScores = async () => {
     try {
@@ -63,6 +62,7 @@ function DealCrib({
       return promise;
     } catch (err) {
       console.error(err);
+      getStarterCard();
     }
   };
 
@@ -85,15 +85,12 @@ function DealCrib({
           fullCrib.push(card);
         });
 
-        setHandsFinalized(true);
         setHands(newHands);
         setCrib(fullCrib);
       });
     }
 
     if (crib.length === 4 && !starterCard) {
-      // Wait for the backend server to acknowledge the final hands
-      while (!handsFinalized) {}
       getStarterCard().then(async (response) => {
         const card = response.data;
         cardsInPlay.current++;
