@@ -23,26 +23,16 @@ import PlayRound from "../stages/playRound";
 const CARDS_PER_SUIT = 13;
 const WINNING_SCORE = 121;
 
-function Game({ numPlayers }) {
+function Game() {
   const [currentStage, setCurrentStage] = useState(DRAW_DEALER);
   const [message, setMessage] = useState("");
-  const [gameScores, setGameScores] = useState(Array(numPlayers));
+  const [gameScores, setGameScores] = useState([0, 0]);
   const [dealer, setDealer] = useState(-1);
   const [hands, setHands] = useState([]);
   const [crib, setCrib] = useState([]);
   const [starterCard, setStarterCard] = useState(null);
   const [winner, setWinner] = useState(-1);
   const cardsInPlay = useRef(0);
-
-  // API CALLS
-  const getScores = async () => {
-    try {
-      const promise = await api.get("game/scores");
-      return promise;
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const dealCards = async () => {
     try {
@@ -61,10 +51,6 @@ function Game({ numPlayers }) {
 
   // For when the game stage changes
   useEffect(() => {
-    getScores().then((response) => {
-      setGameScores(response.data);
-    });
-
     if (currentStage === DRAW_DEALER) {
       resetGame();
       setMessage(
@@ -152,7 +138,6 @@ function Game({ numPlayers }) {
           />
         );
       case COUNT_HANDS:
-        console.log(hands);
         return COUNT_HANDS;
       case COUNT_CRIB:
         return COUNT_CRIB;
