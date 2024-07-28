@@ -168,7 +168,9 @@ function PlayRound({
 
       if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
         const endRound = async () => {
+          await timeout(PROCESS_DELAY_MS);
           setMessage("The round is over.");
+          await timeout(PROCESS_DELAY_MS);
           setStage(COUNT_HANDS);
         };
 
@@ -250,7 +252,7 @@ function PlayRound({
       (cardInfo) => cardInfo.cardId === cardId
     );
 
-    if (count + card.rankValue > MAX_COUNT) {
+    if (count + card.value > MAX_COUNT) {
       setMessage(
         "This card cannot be played because it would cause the " +
           "count to exceed 31. Please select another card."
@@ -289,14 +291,12 @@ function PlayRound({
       // If this value is odd, the user must have earned a point from go
       // (special = 1 means the user only earned a point from go, special = 2
       // means the user earned points from getting to 15 or 31, special = 3
-      // means the count is 15 AND go was called)
-      if (pointCategories[SPECIAL] % 2 === 1) {
-        if (hands[OPP_ID].cards.length > 0) {
-          pointCategories[TOTAL_POINTS]--;
-          pointCategories[SPECIAL]--;
-        } else if (hands[USER_ID].cards.length === 0) {
-          newMessage += `\n\nYou earned 1 point for playing the last card.`;
-        }
+      // means the count is 15 or 31 AND go was called)
+      if (
+        pointCategories[SPECIAL] % 2 === 1 &&
+        hands[USER_ID].cards.length === 0
+      ) {
+        newMessage += `\n\nYou earned 1 point for playing the last card.`;
       }
 
       getScores().then((response) => {
