@@ -6,7 +6,7 @@ import { USER_ID, OPP_ID, DECK_SIZE } from "../../global/vars.js";
 
 import {
   DRAW_DEALER,
-  DEAL_CRIB,
+  DEAL_HANDS,
   PLAY_ROUND,
   COUNT_HANDS,
   COUNT_CRIB,
@@ -17,7 +17,7 @@ import Message from "../message";
 import Card from "../card";
 
 import DrawDealer from "../stages/drawDealer";
-import DealCrib from "../stages/dealCrib";
+import DealCrib from "../stages/dealHands";
 import PlayRound from "../stages/playRound";
 
 const CARDS_PER_SUIT = 13;
@@ -70,7 +70,7 @@ function Game({ numPlayers }) {
       setMessage(
         "Pick a card to decide who is the dealer. The player with the lowest card deals first."
       );
-    } else if (currentStage === DEAL_CRIB) {
+    } else if (currentStage === DEAL_HANDS) {
       dealCards().then((response) => {
         const hands = response.data;
         setHands(hands);
@@ -122,7 +122,7 @@ function Game({ numPlayers }) {
             cardsInPlay={cardsInPlay}
           />
         );
-      case DEAL_CRIB:
+      case DEAL_HANDS:
         return (
           <DealCrib
             dealer={dealer}

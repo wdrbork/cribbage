@@ -1,4 +1,4 @@
-import "./dealCrib.css";
+import "./dealHands.css";
 import api from "../../../api/axiosConfig.js";
 import { useState, useEffect } from "react";
 
@@ -7,9 +7,9 @@ import { USER_ID, OPP_ID, PROCESS_DELAY_MS } from "../../../global/vars.js";
 import { PLAY_ROUND } from "../../../global/stages.js";
 import timeout from "../../../global/timeout.js";
 
-import Hand from "../../hand";
-import Crib from "../../crib";
-import SendToCrib from "../../sendToCrib";
+import Hand from "../../hand/index.js";
+import Crib from "../../crib/index.js";
+import SendToCrib from "../../sendToCrib/index.js";
 
 function DealCrib({
   dealer,

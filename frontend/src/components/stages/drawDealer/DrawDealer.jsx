@@ -10,7 +10,7 @@ import {
   PROCESS_DELAY_MS,
 } from "../../../global/vars.js";
 
-import { DEAL_CRIB } from "../../../global/stages.js";
+import { DEAL_HANDS } from "../../../global/stages.js";
 import timeout from "../../../global/timeout.js";
 
 function DrawDealer({ setMessage, setDealer, setStage, cardsInPlay }) {
@@ -104,7 +104,7 @@ function DrawDealer({ setMessage, setDealer, setStage, cardsInPlay }) {
       const cleanupDealerCards = async () => {
         await timeout(PROCESS_DELAY_MS);
         resetDealerCards();
-        setStage(DEAL_CRIB);
+        setStage(DEAL_HANDS);
       };
 
       cleanupDealerCards();
