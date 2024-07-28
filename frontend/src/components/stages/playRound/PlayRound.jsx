@@ -22,14 +22,14 @@ const MAX_RETRIES = 20;
 
 function PlayRound({
   dealer,
-  hands,
+  startingHands,
   crib,
-  setHands,
   setGameScores,
   setMessage,
   setStage,
   displayDeck,
 }) {
+  const [currentHands, setCurrentHands] = useState(startingHands);
   const [playerTurn, setPlayerTurn] = useState((dealer + 1) % 2);
   const [count, setCount] = useState(0);
   const [playedCards, setPlayedCards] = useState([]);
@@ -121,7 +121,7 @@ function PlayRound({
       if (
         !startOfRound &&
         nextPlayer === playerTurn &&
-        hands[otherPlayer].cards.length > 0 &&
+        currentHands[otherPlayer].cards.length > 0 &&
         !playerOnGo.current &&
         count !== 31
       ) {
@@ -168,7 +168,11 @@ function PlayRound({
         }
       }
 
-      if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
+      if (
+        currentHands[USER_ID].cards.length +
+          currentHands[OPP_ID].cards.length ===
+        0
+      ) {
         const endRound = async () => {
           setRoundOver(true);
           await timeout(PROCESS_DELAY_MS);
@@ -187,11 +191,11 @@ function PlayRound({
   function manageAITurn() {
     playAICard().then(async (response) => {
       let playedCard = response.data.playedCard;
-      const newHands = [...hands];
+      const newHands = [...currentHands];
       newHands[OPP_ID].cards = newHands[OPP_ID].cards.filter(
         (cardInfo) => cardInfo.cardId !== playedCard.cardId
       );
-      setHands(newHands);
+      setCurrentHands(newHands);
 
       const newPlayedCards = [...playedCards];
       newPlayedCards.push(playedCard);
@@ -225,10 +229,10 @@ function PlayRound({
       }
 
       // if (pointCategories[SPECIAL] % 2 === 1) {
-      //   if (hands[USER_ID].cards.length > 0) {
+      //   if (currentHands[USER_ID].cards.length > 0) {
       //     pointCategories[TOTAL_POINTS]--;
       //     pointCategories[SPECIAL]--;
-      //   } else if (hands[OPP_ID].cards.length === 0) {
+      //   } else if (currentHands[OPP_ID].cards.length === 0) {
       //     console.log("In AI function");
       //     newMessage += `\n\nYour opponent earned 1 point for playing the last card.`;
       //   }
@@ -252,7 +256,7 @@ function PlayRound({
       return;
     }
 
-    const card = hands[USER_ID].cards.find(
+    const card = currentHands[USER_ID].cards.find(
       (cardInfo) => cardInfo.cardId === cardId
     );
 
@@ -298,7 +302,7 @@ function PlayRound({
       // // means the count is 15 or 31 AND go was called)
       // if (
       //   pointCategories[SPECIAL] % 2 === 1 &&
-      //   hands[USER_ID].cards.length === 0
+      //   currentHands[USER_ID].cards.length === 0
       // ) {
       //   console.log("In user function");
       //   newMessage += `\n\nYou earned 1 point for playing the last card.`;
@@ -310,11 +314,11 @@ function PlayRound({
 
       setMessage(newMessage);
 
-      const newHands = [...hands];
+      const newHands = [...currentHands];
       newHands[USER_ID].cards = newHands[USER_ID].cards.filter(
         (cardInfo) => cardInfo.cardId !== cardId
       );
-      setHands(newHands);
+      setCurrentHands(newHands);
 
       const newPlayedCards = [...playedCards];
       newPlayedCards.push(card);
@@ -330,8 +334,8 @@ function PlayRound({
         <div className="crib-container">
           {dealer === OPP_ID && <Crib cards={crib} />}
         </div>
-        {hands.length !== 0 && (
-          <Hand pid={OPP_ID} cards={hands[OPP_ID].cards} />
+        {currentHands.length !== 0 && (
+          <Hand pid={OPP_ID} cards={currentHands[OPP_ID].cards} />
         )}
       </div>
       <div className="middle-row">
@@ -343,10 +347,10 @@ function PlayRound({
         <div className="crib-container">
           {dealer === USER_ID && <Crib cards={crib} />}
         </div>
-        {hands.length !== 0 && (
+        {currentHands.length !== 0 && (
           <Hand
             pid={USER_ID}
-            cards={hands[USER_ID].cards}
+            cards={currentHands[USER_ID].cards}
             onCardClick={onHandCardClick}
           />
         )}

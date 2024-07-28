@@ -143,9 +143,8 @@ function Game({ numPlayers }) {
         return (
           <PlayRound
             dealer={dealer}
-            hands={hands}
+            startingHands={structuredClone(hands)}
             crib={crib}
-            setHands={setHands}
             setGameScores={setGameScores}
             setMessage={setMessage}
             setStage={setCurrentStage}
@@ -153,6 +152,7 @@ function Game({ numPlayers }) {
           />
         );
       case COUNT_HANDS:
+        console.log(hands);
         return COUNT_HANDS;
       case COUNT_CRIB:
         return COUNT_CRIB;
