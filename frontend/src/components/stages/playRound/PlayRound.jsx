@@ -105,6 +105,7 @@ function PlayRound({
     // We want all this to run if it is the AI's turn so that they are forced into playing a card
     // at the end of this function.
     const startOfRound = playedCards.length + oldPlayedCards.length === 0;
+    console.log("Card has been played");
 
     if (startOfRound && playerTurn !== OPP_ID) return;
 
