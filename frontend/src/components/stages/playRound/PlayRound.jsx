@@ -34,6 +34,7 @@ function PlayRound({
   const [count, setCount] = useState(0);
   const [playedCards, setPlayedCards] = useState([]);
   const [oldPlayedCards, setOldPlayedCards] = useState([]);
+  const [roundOver, setRoundOver] = useState(false);
   const playerOnGo = useRef(false);
 
   // API CALLS
@@ -105,9 +106,8 @@ function PlayRound({
     // We want all this to run if it is the AI's turn so that they are forced into playing a card
     // at the end of this function.
     const startOfRound = playedCards.length + oldPlayedCards.length === 0;
-    console.log("Card has been played");
 
-    if (startOfRound && playerTurn !== OPP_ID) return;
+    if ((startOfRound && playerTurn !== OPP_ID) || roundOver) return;
 
     Promise.all([getNextPlayer(), movePossible()]).then(async (responses) => {
       await timeout(PROCESS_DELAY_MS);
@@ -139,6 +139,7 @@ function PlayRound({
           playerOnGo.current = false;
           getScores().then(async (response) => {
             setGameScores(response.data);
+            console.log("In effect");
             if (playerTurn === OPP_ID) {
               setMessage(
                 "Your opponent earns 1 point for playing the last card."
@@ -169,6 +170,7 @@ function PlayRound({
 
       if (hands[USER_ID].cards.length + hands[OPP_ID].cards.length === 0) {
         const endRound = async () => {
+          setRoundOver(true);
           await timeout(PROCESS_DELAY_MS);
           setMessage("The round is over.");
           await timeout(PROCESS_DELAY_MS);
@@ -222,14 +224,15 @@ function PlayRound({
         }.`;
       }
 
-      if (pointCategories[SPECIAL] % 2 === 1) {
-        if (hands[USER_ID].cards.length > 0) {
-          pointCategories[TOTAL_POINTS]--;
-          pointCategories[SPECIAL]--;
-        } else if (hands[OPP_ID].cards.length === 0) {
-          newMessage += `\n\nYour opponent earned 1 point for playing the last card.`;
-        }
-      }
+      // if (pointCategories[SPECIAL] % 2 === 1) {
+      //   if (hands[USER_ID].cards.length > 0) {
+      //     pointCategories[TOTAL_POINTS]--;
+      //     pointCategories[SPECIAL]--;
+      //   } else if (hands[OPP_ID].cards.length === 0) {
+      //     console.log("In AI function");
+      //     newMessage += `\n\nYour opponent earned 1 point for playing the last card.`;
+      //   }
+      // }
 
       if (pointCategories[TOTAL_POINTS] > 0) {
         getScores().then((response) => {
@@ -289,16 +292,17 @@ function PlayRound({
         }.`;
       }
 
-      // If this value is odd, the user must have earned a point from go
-      // (special = 1 means the user only earned a point from go, special = 2
-      // means the user earned points from getting to 15 or 31, special = 3
-      // means the count is 15 or 31 AND go was called)
-      if (
-        pointCategories[SPECIAL] % 2 === 1 &&
-        hands[USER_ID].cards.length === 0
-      ) {
-        newMessage += `\n\nYou earned 1 point for playing the last card.`;
-      }
+      // // If this value is odd, the user must have earned a point from go
+      // // (special = 1 means the user only earned a point from go, special = 2
+      // // means the user earned points from getting to 15 or 31, special = 3
+      // // means the count is 15 or 31 AND go was called)
+      // if (
+      //   pointCategories[SPECIAL] % 2 === 1 &&
+      //   hands[USER_ID].cards.length === 0
+      // ) {
+      //   console.log("In user function");
+      //   newMessage += `\n\nYou earned 1 point for playing the last card.`;
+      // }
 
       getScores().then((response) => {
         setGameScores(response.data);
