@@ -139,7 +139,6 @@ function PlayRound({
           playerOnGo.current = false;
           getScores().then(async (response) => {
             setGameScores(response.data);
-            console.log("In effect");
             if (playerTurn === OPP_ID) {
               setMessage(
                 "Your opponent earns 1 point for playing the last card."
