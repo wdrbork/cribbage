@@ -2,7 +2,16 @@ import "./hand.css";
 import Card from "../card";
 import { useState } from "react";
 
-function Hand({ pid, cards, onCardClick = () => {}, selectedCards = [] }) {
+import { USER_ID, OPP_ID } from "../../global/vars.js";
+
+function Hand({
+  pid,
+  cards,
+  interactable = pid === USER_ID,
+  hidden = pid === OPP_ID,
+  onCardClick = () => {},
+  selectedCards = [],
+}) {
   function extractCardComponents() {
     let cardComponents = [];
     cards.forEach((card, i) => {
@@ -10,11 +19,11 @@ function Hand({ pid, cards, onCardClick = () => {}, selectedCards = [] }) {
         <Card
           key={pid === 0 ? card.cardId : i}
           id={card.cardId}
-          cardInfo={pid === 0 ? card : null}
+          cardInfo={pid === 0 || !hidden ? card : null}
           onClick={onCardClick}
           selected={selectedCards.includes(card.cardId) ? true : false}
-          interactable={pid === 0 ? true : false}
-          hidden={pid === 0 ? false : true}
+          interactable={interactable}
+          hidden={hidden}
         />
       );
     });

@@ -9,7 +9,6 @@ import {
   DEAL_HANDS,
   PLAY_ROUND,
   COUNT_HANDS,
-  COUNT_CRIB,
 } from "../../global/stages.js";
 
 import Scoreboard from "../scoreboard";
@@ -19,6 +18,7 @@ import Card from "../card";
 import DrawDealer from "../stages/drawDealer";
 import DealCrib from "../stages/dealHands";
 import PlayRound from "../stages/playRound";
+import CountHands from "../stages/countHands";
 
 const CARDS_PER_SUIT = 13;
 const WINNING_SCORE = 121;
@@ -138,7 +138,16 @@ function Game() {
           />
         );
       case COUNT_HANDS:
-        return COUNT_HANDS;
+        return (
+          <CountHands
+            dealer={dealer}
+            hands={hands}
+            crib={crib}
+            setGameScores={setGameScores}
+            setMessage={setMessage}
+            setStage={setCurrentStage}
+          />
+        );
       default:
         return null;
     }
