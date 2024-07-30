@@ -139,8 +139,6 @@ function Game() {
         );
       case COUNT_HANDS:
         return COUNT_HANDS;
-      case COUNT_CRIB:
-        return COUNT_CRIB;
       default:
         return null;
     }
