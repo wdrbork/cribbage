@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import dev.wdrbork.cribbage.logic.game.CribbageScoring;
-
 /**
  * Represents a deck of cards.
  */
