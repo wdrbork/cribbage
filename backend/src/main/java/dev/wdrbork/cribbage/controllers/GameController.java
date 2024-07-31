@@ -282,8 +282,8 @@ public class GameController {
     @GetMapping("/hand/score/{pid}")
     public ResponseEntity<Object> countHand(@PathVariable String pid) {
         try {
-            int score = game.countHand(Integer.valueOf(pid));
-            return new ResponseEntity<>(String.valueOf(score), HttpStatus.OK);
+            int[] scores = game.countHand(Integer.valueOf(pid));
+            return new ResponseEntity<>(String.valueOf(scores), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(
                 e.getMessage(), 
@@ -295,8 +295,8 @@ public class GameController {
     @GetMapping("/crib/score")
     public ResponseEntity<Object> countCrib() {
         try {
-            int score = game.countCrib();
-            return new ResponseEntity<>(String.valueOf(score), HttpStatus.OK);
+            int[] scores = game.countCrib();
+            return new ResponseEntity<>(scores, HttpStatus.OK);
         } catch (IllegalStateException e) {
             return new ResponseEntity<>(
                 e.getMessage(), 

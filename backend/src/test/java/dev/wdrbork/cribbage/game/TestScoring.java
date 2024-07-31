@@ -22,7 +22,7 @@ public class TestScoring {
             super(numPlayers);
         }
 
-        public void setHand(int pid, Deck hand) { hands.set(pid, hand); }
+        public void setHand(int pid, CribbageHand hand) { hands.set(pid, hand); }
 
         public void setStarterCard(Card card) { starterCard = card; }
     }
@@ -30,7 +30,7 @@ public class TestScoring {
     @Test
     public void test29Hand() {
         man = new CribbageManagerScoreTest(NUM_PLAYERS);
-        Deck hand = new Deck();
+        CribbageHand hand = new CribbageHand();
         hand.addCard(new Card(Suit.HEART, Rank.JACK));
         hand.addCard(new Card(Suit.DIAMOND, Rank.FIVE));
         hand.addCard(new Card(Suit.SPADE, Rank.FIVE));
@@ -44,7 +44,7 @@ public class TestScoring {
         assertEquals(CribbageScoring.countFlush(hand, starter, false), 0);
         assertEquals(CribbageScoring.countNobs(hand, starter), 1);
         assertEquals(CribbageScoring.countPairs(hand, starter), 12);
-        assertEquals(man.countHand(PLAYER_ONE_ID, false), 29);
+        assertEquals(man.countHand(PLAYER_ONE_ID, false)[0], 29);
     }
 
     @Test
@@ -53,18 +53,18 @@ public class TestScoring {
         man = new CribbageManagerScoreTest(NUM_PLAYERS);
         man.setDealer(PLAYER_ONE_ID);
         for (int i = 0; i < TRIALS; i++) {
-            List<Deck> hands = man.dealHands();
+            List<CribbageHand> hands = man.dealHands();
             man.setStarterCard(man.pickCardForDealer());
             for (int j = 0; j < hands.size(); j++) {
-                Deck hand = hands.get(j);
+                CribbageHand hand = hands.get(j);
                 man.sendCardToCrib(j, hand.getCard(0));
                 man.sendCardToCrib(j, hand.getCard(1));
 
-                int score = man.countHand(j, false);
-                assertNotEquals(score, 19);
-                assertNotEquals(score, 25);
-                assertNotEquals(score, 26);
-                assertNotEquals(score, 27);
+                int[] scores = man.countHand(j, false);
+                assertNotEquals(scores[0], 19);
+                assertNotEquals(scores[0], 25);
+                assertNotEquals(scores[0], 26);
+                assertNotEquals(scores[0], 27);
             }
 
             man.clearRoundState();
@@ -78,21 +78,21 @@ public class TestScoring {
 
         man.setStarterCard(new Card(Suit.HEART, Rank.TWO));
 
-        Deck playerOneHand = new Deck();
+        CribbageHand playerOneHand = new CribbageHand();
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.ACE));
         playerOneHand.addCard(new Card(Suit.CLUB, Rank.FOUR));
         playerOneHand.addCard(new Card(Suit.SPADE, Rank.TEN));
         playerOneHand.addCard(new Card(Suit.HEART, Rank.KING));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
-        assertEquals(man.countHand(PLAYER_ONE_ID, false), 4);
+        assertEquals(man.countHand(PLAYER_ONE_ID, false)[0], 4);
 
-        Deck playerTwoHand = new Deck();
+        CribbageHand playerTwoHand = new CribbageHand();
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.ACE));
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.FOUR));
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.FOUR));
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.QUEEN));
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
-        assertEquals(man.countHand(PLAYER_TWO_ID, false), 6);
+        assertEquals(man.countHand(PLAYER_TWO_ID, false)[0], 6);
 
         man.clearRoundState();
         man.setStarterCard(new Card(Suit.CLUB, Rank.NINE));
@@ -102,14 +102,14 @@ public class TestScoring {
         playerOneHand.addCard(new Card(Suit.HEART, Rank.SIX));
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.SIX));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
-        assertEquals(man.countHand(PLAYER_ONE_ID, false), 16);
+        assertEquals(man.countHand(PLAYER_ONE_ID, false)[0], 16);
 
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.THREE));
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.THREE));
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.SEVEN));
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.KING));
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
-        assertEquals(man.countHand(PLAYER_TWO_ID, false), 4);
+        assertEquals(man.countHand(PLAYER_TWO_ID, false)[0], 4);
 
         man.clearRoundState();
         man.setStarterCard(new Card(Suit.SPADE, Rank.JACK));
@@ -119,14 +119,14 @@ public class TestScoring {
         playerOneHand.addCard(new Card(Suit.CLUB, Rank.FIVE));
         playerOneHand.addCard(new Card(Suit.DIAMOND, Rank.KING));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
-        assertEquals(man.countHand(PLAYER_ONE_ID, false), 8);
+        assertEquals(man.countHand(PLAYER_ONE_ID, false)[0], 8);
 
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.THREE));
         playerTwoHand.addCard(new Card(Suit.CLUB, Rank.FOUR));
         playerTwoHand.addCard(new Card(Suit.SPADE, Rank.FIVE));
         playerTwoHand.addCard(new Card(Suit.HEART, Rank.QUEEN));
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
-        assertEquals(man.countHand(PLAYER_TWO_ID, false), 7);
+        assertEquals(man.countHand(PLAYER_TWO_ID, false)[0], 7);
 
         man.clearRoundState();
         man.setStarterCard(new Card(Suit.SPADE, Rank.SEVEN));
@@ -136,13 +136,13 @@ public class TestScoring {
         playerOneHand.addCard(new Card(Suit.CLUB, Rank.SIX));
         playerOneHand.addCard(new Card(Suit.HEART, Rank.SEVEN));
         man.setHand(PLAYER_ONE_ID, playerOneHand);
-        assertEquals(man.countHand(PLAYER_ONE_ID, false), 16);
+        assertEquals(man.countHand(PLAYER_ONE_ID, false)[0], 16);
 
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.ACE));
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.TWO));
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.NINE));
         playerTwoHand.addCard(new Card(Suit.DIAMOND, Rank.JACK));
         man.setHand(PLAYER_TWO_ID, playerTwoHand);
-        assertEquals(man.countHand(PLAYER_TWO_ID, false), 4);
+        assertEquals(man.countHand(PLAYER_TWO_ID, false)[0], 4);
     }
 }

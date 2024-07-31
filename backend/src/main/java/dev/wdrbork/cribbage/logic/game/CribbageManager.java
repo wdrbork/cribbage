@@ -12,6 +12,7 @@ import dev.wdrbork.cribbage.logic.cards.Card;
 import dev.wdrbork.cribbage.logic.cards.Deck;
 import dev.wdrbork.cribbage.logic.cards.Rank;
 import dev.wdrbork.cribbage.logic.cards.StandardDeck;
+import dev.wdrbork.cribbage.logic.cards.CribbageHand;
 import dev.wdrbork.cribbage.logic.game.ai.CribbageAI;
 import dev.wdrbork.cribbage.logic.game.ai.SmartPlayer;
 
@@ -40,8 +41,8 @@ public class CribbageManager {
     protected final StandardDeck deck;
     protected final int[] gameScores;
     protected final CribbageAI[] ai;
-    protected final List<Deck> hands;
-    protected final Deck crib;
+    protected final List<CribbageHand> hands;
+    protected final CribbageHand crib;
     protected LinkedList<Card> cardStack;
     protected List<Deck> playedCardsByPlayer;
     protected int lastToPlayCard;
@@ -85,14 +86,14 @@ public class CribbageManager {
             ai[0] = new SmartPlayer(this, i + 1);
         }
 
-        hands = new ArrayList<Deck>(numPlayers);
+        hands = new ArrayList<CribbageHand>(numPlayers);
         playedCardsByPlayer = new ArrayList<Deck>(numPlayers);
         for (int i = 0; i < numPlayers; i++) {
-            hands.add(new Deck());
-            playedCardsByPlayer.add(new Deck());
+            hands.add(new CribbageHand());
+            playedCardsByPlayer.add(new CribbageHand());
         }
 
-        crib = new Deck();
+        crib = new CribbageHand();
         cardStack = new LinkedList<Card>();
     }
 
@@ -114,7 +115,7 @@ public class CribbageManager {
         this.dealerId = copy.dealerId;
         this.hands = copy.getAllHands();
         this.playedCardsByPlayer = copy.getPlayedCards();
-        this.crib = new Deck(copy.crib);
+        this.crib = new CribbageHand(copy.crib);
         this.cardStack = new LinkedList<Card>(copy.cardStack);
         this.count = copy.count;
         this.starterCard = copy.starterCard;
@@ -144,10 +145,10 @@ public class CribbageManager {
         return gameScores[pid]; 
     }
 
-    public List<Deck> getAllHands() { 
-        List<Deck> deepCopy = new ArrayList<Deck>();
-        for (Deck hand : hands) {
-            deepCopy.add(new Deck(hand));
+    public List<CribbageHand> getAllHands() { 
+        List<CribbageHand> deepCopy = new ArrayList<CribbageHand>();
+        for (CribbageHand hand : hands) {
+            deepCopy.add(new CribbageHand(hand));
         }
         return deepCopy;
     }
@@ -160,17 +161,17 @@ public class CribbageManager {
         return deepCopy;
     }
 
-    public Deck getHand(int pid) {
+    public CribbageHand getHand(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
         }
 
-        return new Deck(hands.get(pid));
+        return new CribbageHand(hands.get(pid));
     }
 
-    public Deck getCrib() {
-        return new Deck(crib);
+    public CribbageHand getCrib() {
+        return new CribbageHand(crib);
     }
 
     public Card getLastPlayedCard() {
@@ -216,7 +217,7 @@ public class CribbageManager {
      * @throws IllegalArgumentException if a player or the crib still has cards
      * @throws IllegalStateException if no dealer has been declared
      */
-    public List<Deck> dealHands() {
+    public List<CribbageHand> dealHands() {
         if (!checkEmptyHands()) {
             throw new IllegalArgumentException("Players still have cards in their hands");
         } else if (!crib.isEmpty()) {
@@ -251,7 +252,7 @@ public class CribbageManager {
         }
 
         // Rearrange the decks so that the cards increase in rank from left to right
-        for (Deck hand : hands) {
+        for (CribbageHand hand : hands) {
             hand.sortDeck();
         }
         return Collections.unmodifiableList(hands);
@@ -285,8 +286,8 @@ public class CribbageManager {
     public List<Card> chooseAIPlayingHands() {
         List<Card> cribCards = new LinkedList<Card>();
         for (int i = 0; i < ai.length; i++) {
-            Deck currentHand = getHand(i + 1);
-            Deck playingHand = ai[i].choosePlayingHand();
+            CribbageHand currentHand = getHand(i + 1);
+            CribbageHand playingHand = ai[i].choosePlayingHand();
             for (Card card : currentHand.getCards()) {
                 if (!playingHand.contains(card)) {
                     cribCards.add(card);
@@ -633,9 +634,10 @@ public class CribbageManager {
      * player's overall total for the game.
      * 
      * @param pid the ID of the player whose hand will be counted up
-     * @return the number of points present in the given player's hand
+     * @return the number of points present in the given player's hand, split 
+     *         into categories
      */
-    public int countHand(int pid) {
+    public int[] countHand(int pid) {
         if (pid < 0 || pid >= numPlayers) {
             throw new IllegalArgumentException("Invalid player ID of " + 
                     pid + "; must be between 0 and " + numPlayers + " exclusive");
@@ -654,13 +656,13 @@ public class CribbageManager {
      *                   player's total score for the game; false otherwise
      * @return the number of points present in the given player's hand
      */
-    public int countHand(int pid, boolean addToScore) {
-        int score = hands.get(pid).countCribbageHand(starterCard, false);
+    public int[] countHand(int pid, boolean addToScore) {
+        int[] scores = hands.get(pid).countCribbageHand(starterCard, false);
         if (addToScore) {
-            addPoints(pid, score);
+            addPoints(pid, scores[TOTAL_POINTS]);
         }
         
-        return score;
+        return scores;
     }
 
     /**
@@ -668,19 +670,19 @@ public class CribbageManager {
      * combination with the starter card. Points earned from the crib are 
      * added to the current dealer's total.
      * 
-     * @return the number of points present in the crib
+     * @return the number of points present in the crib, split into categories
      */
-    public int countCrib() {
+    public int[] countCrib() {
         if (dealerId < 0 || dealerId >= numPlayers) {
             throw new IllegalStateException("Dealer ID is invalid");
         } else if (crib.size() != 4) {
             throw new IllegalStateException("Crib does not have four cards");
         }
 
-        int score = crib.countCribbageHand(starterCard, true);
-        addPoints(dealerId, score);
+        int[] scores = crib.countCribbageHand(starterCard, true);
+        addPoints(dealerId, scores[TOTAL_POINTS]);
 
-        return score;
+        return scores;
     }
 
     /**
@@ -736,7 +738,7 @@ public class CribbageManager {
      * Clears the hands of all players in the game.
      */
     public void clearAllHands() {
-        for (Deck hand : hands) {
+        for (CribbageHand hand : hands) {
             hand.clearDeck();
         }
     }

@@ -74,13 +74,13 @@ public class TestGameSetup {
     }
 
     private void setupGame(int numPlayers) {
-        List<Deck> hands = man.dealHands();
+        List<CribbageHand> hands = man.dealHands();
         assertThrows(UnsupportedOperationException.class, () -> {
-            hands.add(new Deck());
+            hands.add(new CribbageHand());
         });
 
         Set<Card> dealtCards = new HashSet<Card>();
-        for (Deck hand : hands) {
+        for (CribbageHand hand : hands) {
             if (numPlayers == 2) {
                 assertEquals(hand.size(), 6);
             } else {
@@ -94,7 +94,7 @@ public class TestGameSetup {
             }
         }
 
-        Deck crib = man.getCrib();
+        CribbageHand crib = man.getCrib();
         if (numPlayers == 2) {
             assertEquals(crib.size(), 0);
             man.sendCardToCrib(0, hands.get(0).getCard(0));
@@ -111,7 +111,7 @@ public class TestGameSetup {
         crib = man.getCrib();
         System.out.println("Crib = " + crib);
         assertEquals(crib.size(), 4);
-        for (Deck hand : hands) {
+        for (CribbageHand hand : hands) {
             assertEquals(hand.size(), 4);
         }
     }

@@ -13,7 +13,7 @@ public class RandomPlayer implements CribbageAI {
     private CribbageManager gameState;
     private Random rng;
     private int pid;
-    private Deck hand;
+    private CribbageHand hand;
 
     public RandomPlayer(CribbageManager gameState, int pid) {
         int numPlayers = gameState.numPlayers();
@@ -29,11 +29,11 @@ public class RandomPlayer implements CribbageAI {
         this.hand = gameState.getHand(pid);
     }
 
-    public void setHand(Deck hand) {
+    public void setHand(CribbageHand hand) {
         this.hand = hand;
     }
 
-    public Deck choosePlayingHand() {
+    public CribbageHand choosePlayingHand() {
         if (this.hand == null) {
             throw new IllegalStateException("No hand set for AI with pid " + pid);
         }
