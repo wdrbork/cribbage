@@ -1,16 +1,17 @@
 package dev.wdrbork.cribbage.controllers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import dev.wdrbork.cribbage.logic.cards.Card;
 import dev.wdrbork.cribbage.logic.game.CribbageManager;
@@ -18,35 +19,37 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-@CrossOrigin(origins = "http://localhost:3000")
-@RestController
+@CrossOrigin(origins = GameController.FRONTEND_URL)
+@Controller
 @RequestMapping("api/v1/game")
 public class GameController {
+    public static final String FRONTEND_URL = "http://localhost:3000";
+
     @Autowired
     private CribbageManager game;
 
     /**************************************************************************
     * GAME DATA
     **************************************************************************/
-    @GetMapping("/count")
-    public ResponseEntity<Object> count() {
+    @PostMapping("/getCount")
+    public ResponseEntity<Object> getCount() {
         return new ResponseEntity<>(
             String.valueOf(game.count()), 
             HttpStatus.OK
         );
     }
 
-    @GetMapping("/hands")
+    @PostMapping("/getAllHands")
     public ResponseEntity<Object> getAllHands() {
         return new ResponseEntity<>(game.getAllHands(), HttpStatus.OK);
     }
 
-    @GetMapping("/played_cards")
+    @PostMapping("/getPlayedCards")
     public ResponseEntity<Object> getPlayedCards() {
         return new ResponseEntity<>(game.getPlayedCards(), HttpStatus.OK);
     }
 
-    @GetMapping("/num_players")
+    @PostMapping("/getNumberOfPlayers")
     public ResponseEntity<Object> numPlayers() {
         return new ResponseEntity<>(
             String.valueOf(game.numPlayers()), 
@@ -54,7 +57,7 @@ public class GameController {
         );
     }
 
-    @GetMapping("/last")
+    @PostMapping("/getPreviousPlayer")
     public ResponseEntity<Object> lastToPlayCard() {
         return new ResponseEntity<>(
             String.valueOf(game.lastToPlayCard()), 
@@ -62,7 +65,7 @@ public class GameController {
         );
     }
 
-    @GetMapping("/next")
+    @PostMapping("/getNextPlayer")
     public ResponseEntity<Object> nextToPlayCard() {
         return new ResponseEntity<>(
             game.nextToPlayCard(), 
@@ -70,7 +73,7 @@ public class GameController {
         );
     }
 
-    @GetMapping("/dealer")
+    @PostMapping("/getDealer")
     public ResponseEntity<Object> dealer() {
         return new ResponseEntity<>(
             String.valueOf(game.dealer()), 
@@ -78,7 +81,7 @@ public class GameController {
         );
     }
 
-    @GetMapping("/scores")
+    @PostMapping("/getScores")
     public ResponseEntity<Object> gameScores() {
         return new ResponseEntity<>(
             game.gameScores(), 
@@ -86,11 +89,12 @@ public class GameController {
         );
     }
 
-    @GetMapping("/score/{pid}")
-    public ResponseEntity<Object> playerScore(@PathVariable String pid) {
+    @PostMapping("/getPlayerScore")
+    public ResponseEntity<Object> playerScore(@RequestBody Map<String, Integer> json) {
         try {
+            int pid = json.get("pid");
             return new ResponseEntity<>(
-                String.valueOf(game.getPlayerScore(Integer.valueOf(pid))), 
+                String.valueOf(game.getPlayerScore(pid)), 
                 HttpStatus.OK
             );
         } catch (Exception e) {
@@ -101,11 +105,12 @@ public class GameController {
         }
     }
 
-    @GetMapping("/hand/{pid}")
-    public ResponseEntity<Object> playerHand(@PathVariable String pid) {
+    @PostMapping("/getPlayerHand")
+    public ResponseEntity<Object> playerHand(@RequestBody Map<String, Integer> json) {
         try {
+            int pid = json.get("pid");
             return new ResponseEntity<>(
-                game.getHand(Integer.valueOf(pid)), 
+                game.getHand(pid), 
                 HttpStatus.OK
             );
         } catch (Exception e) {
@@ -116,12 +121,12 @@ public class GameController {
         }
     }
 
-    @GetMapping("/crib")
+    @PostMapping("/getCrib")
     public ResponseEntity<Object> getCrib() {
         return new ResponseEntity<>(game.getCrib(), HttpStatus.OK);
     }
 
-    @GetMapping("/last_card")
+    @PostMapping("/getLastCard")
     public ResponseEntity<Object> lastPlayedCard() {
         return new ResponseEntity<>(game.getLastPlayedCard(), HttpStatus.OK);
     }
@@ -129,15 +134,16 @@ public class GameController {
     /**************************************************************************
     * GAME FLOW
     **************************************************************************/
-    @GetMapping("/dealer_card")
+    @PostMapping("/pickDealerCard")
     public ResponseEntity<Object> pickCardForDealer() {
         return new ResponseEntity<>(game.pickCardForDealer(), HttpStatus.OK);
     }
 
-    @PostMapping("/dealer/{pid}")
-    public ResponseEntity<Object> setDealer(@PathVariable String pid) {
+    @PostMapping("/setDealer")
+    public ResponseEntity<Object> setDealer(@RequestBody Map<String, Integer> json) {
         try {
-            game.setDealer(Integer.valueOf(pid));
+            int pid = json.get("pid");
+            game.setDealer(pid);
             return dealer();
         } catch (Exception e) {
             return new ResponseEntity<>(
@@ -147,7 +153,7 @@ public class GameController {
         }
     }
 
-    @PostMapping("/deal")
+    @PostMapping("/dealHands")
     public ResponseEntity<Object> dealHands() {
         try {
             return new ResponseEntity<>(game.dealHands(), HttpStatus.OK);
@@ -156,21 +162,22 @@ public class GameController {
         }
     }
 
-    @PostMapping("ai/hands")
+    @PostMapping("/selectAIHands")
     public ResponseEntity<Object> selectAIHands() {
         List<Card> cribCards = game.chooseAIPlayingHands();
         return new ResponseEntity<>(cribCards, HttpStatus.OK);
     }
 
-    @PostMapping("/move/{pid}/{suit_id}/{rank_id}")
-    public ResponseEntity<Object> cribCard(@PathVariable String pid, 
-                                           @PathVariable String suit_id, 
-                                           @PathVariable String rank_id) {
+    @PostMapping("/moveCardToCrib")
+    public ResponseEntity<Object> cribCard(@RequestBody Map<String, Integer> json) {
         Card card;
+        int pid = json.get("pid");
+        int suitId = json.get("suitId");
+        int rankId = json.get("rankId");
         try {
             card = new Card(
-                Integer.valueOf(suit_id), 
-                Integer.valueOf(rank_id)
+                Integer.valueOf(suitId), 
+                Integer.valueOf(rankId)
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
@@ -198,7 +205,7 @@ public class GameController {
         }
     }
 
-    @GetMapping("/starter")
+    @PostMapping("/pickStarterCard")
     public ResponseEntity<Object> pickStarterCard() {
         try {
             return new ResponseEntity<>(game.pickStarterCard(), HttpStatus.OK);
@@ -207,15 +214,16 @@ public class GameController {
         }
     }
 
-    @PostMapping("/play/{pid}/{suit_id}/{rank_id}")
-    public ResponseEntity<Object> playCard(@PathVariable String pid, 
-                                           @PathVariable String suit_id,
-                                           @PathVariable String rank_id) {
+    @PostMapping("/playCard")
+    public ResponseEntity<Object> playCard(@RequestBody Map<String, Integer> json) {
         Card card;
+        int pid = json.get("pid");
+        int suitId = json.get("suitId");
+        int rankId = json.get("rankId");
         try {
             card = new Card(
-                Integer.valueOf(suit_id), 
-                Integer.valueOf(rank_id)
+                Integer.valueOf(suitId), 
+                Integer.valueOf(rankId)
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
@@ -226,7 +234,7 @@ public class GameController {
 
         try {
             int[] points = game.playCard(Integer.valueOf(pid), card);
-            return new ResponseEntity<>(new PlayResults(card, points), HttpStatus.OK);
+            return new ResponseEntity<>(new PlayResult(card, points), HttpStatus.OK);
         } catch (NullPointerException e) {
             return new ResponseEntity<>(
                 e.getMessage(), 
@@ -245,13 +253,13 @@ public class GameController {
         }
     }
 
-    @PostMapping("/ai/play/{pid}")
-    public ResponseEntity<Object> playAICard(@PathVariable String pid) {
+    @PostMapping("/playAICard")
+    public ResponseEntity<Object> playAICard(@RequestBody Map<String, Integer> json) {
         try {
-            int truePid = Integer.valueOf(pid);
-            Card card = game.chooseAICard(truePid);
-            int[] points = game.playCard(truePid, card);
-            return new ResponseEntity<>(new PlayResults(card, points), HttpStatus.OK);
+            int pid = json.get("pid");
+            Card card = game.chooseAICard(pid);
+            int[] points = game.playCard(pid, card);
+            return new ResponseEntity<>(new PlayResult(card, points), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(
                 e.getMessage(), 
@@ -260,12 +268,12 @@ public class GameController {
         }
     }
 
-    @GetMapping("/move_possible")
+    @PostMapping("/isMovePossible")
     public ResponseEntity<Object> movePossible() {
         return new ResponseEntity<>(game.movePossible(), HttpStatus.OK);
     }
 
-    @PostMapping("/reset_count")
+    @PostMapping("/resetCount")
     public ResponseEntity<Object> resetCount() {
         game.resetCount();
         return new ResponseEntity<>(
@@ -274,14 +282,15 @@ public class GameController {
         );
     }
 
-    @GetMapping("/round_over")
+    @PostMapping("/isRoundOver")
     public ResponseEntity<Object> roundOver() {
         return new ResponseEntity<>(game.roundOver(), HttpStatus.OK);
     }
 
-    @GetMapping("/hand/score/{pid}")
-    public ResponseEntity<Object> countHand(@PathVariable String pid) {
+    @PostMapping("/countHand")
+    public ResponseEntity<Object> countHand(@RequestBody Map<String, Integer> json) {
         try {
+            int pid = json.get("pid");
             int[] scores = game.countHand(Integer.valueOf(pid));
             return new ResponseEntity<>(String.valueOf(scores), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -292,7 +301,7 @@ public class GameController {
         }
     }
 
-    @GetMapping("/crib/score")
+    @PostMapping("/countCrib")
     public ResponseEntity<Object> countCrib() {
         try {
             int[] scores = game.countCrib();
@@ -305,9 +314,10 @@ public class GameController {
         }
     }
 
-    @GetMapping("/winner/{pid}")
-    public ResponseEntity<Object> winner(@PathVariable String pid) {
+    @PostMapping("/isWinner")
+    public ResponseEntity<Object> winner(@RequestBody Map<String, Integer> json) {
         try {
+            int pid = json.get("pid");
             return new ResponseEntity<>(
                 game.isWinner(Integer.valueOf(pid)), 
                 HttpStatus.OK
@@ -317,30 +327,30 @@ public class GameController {
         }
     }
 
-    @PostMapping("/clear_round")
+    @PostMapping("/clearRound")
     public ResponseEntity<Object> clearRoundState() {
         game.clearRoundState();
         return new ResponseEntity<>("Round state cleared", HttpStatus.OK);
     }
 
-    @PostMapping("/reset_deck")
+    @PostMapping("/resetDeck")
     public ResponseEntity<Object> resetDeck() {
         game.resetDeck();
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/reset_game")
+    @PostMapping("/resetGame")
     public ResponseEntity<Object> resetGame() {
         game = new CribbageManager();
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**************************************************************************
-    * UTILITY CLASS
+    * UTILITY CLASSES
     **************************************************************************/
     @AllArgsConstructor
     @EqualsAndHashCode
-    private class PlayResults {
+    private class PlayResult {
         @Getter
         private Card playedCard;
 
