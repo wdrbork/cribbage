@@ -42,9 +42,11 @@ function PlayRound({
     try {
       const suitValue = cardInfo["suitValue"];
       const rankValue = cardInfo["rankValue"];
-      const promise = await api.post(
-        `game/play/${USER_ID}/${suitValue}/${rankValue}`
-      );
+      const promise = await api.post("game/playCard", {
+        pid: USER_ID,
+        suitId: suitValue,
+        rankId: rankValue,
+      });
       return promise;
     } catch (err) {
       if (attempts === MAX_RETRIES) throw err;
@@ -55,7 +57,9 @@ function PlayRound({
 
   const playAICard = async (attempts = 0) => {
     try {
-      const promise = await api.post(`game/ai/play/${OPP_ID}`);
+      const promise = await api.post("game/playAICard", {
+        pid: OPP_ID,
+      });
       return promise;
     } catch (err) {
       if (attempts === MAX_RETRIES) throw err;
@@ -66,7 +70,7 @@ function PlayRound({
 
   const getNextPlayer = async () => {
     try {
-      const promise = await api.get(`game/next`);
+      const promise = await api.post("game/getNextPlayer");
       return promise;
     } catch (err) {
       console.error(err);
@@ -75,7 +79,7 @@ function PlayRound({
 
   const movePossible = async () => {
     try {
-      const promise = await api.get(`game/move_possible`);
+      const promise = await api.post("game/isMovePossible");
       return promise;
     } catch (err) {
       console.error(err);
@@ -84,7 +88,7 @@ function PlayRound({
 
   const resetCount = async () => {
     try {
-      const promise = await api.post(`game/reset_count`);
+      const promise = await api.post("game/resetCount");
       return promise;
     } catch (err) {
       console.error(err);
@@ -93,7 +97,7 @@ function PlayRound({
 
   const getScores = async () => {
     try {
-      const promise = await api.get("game/scores");
+      const promise = await api.post("game/getScores");
       return promise;
     } catch (err) {
       console.error(err);

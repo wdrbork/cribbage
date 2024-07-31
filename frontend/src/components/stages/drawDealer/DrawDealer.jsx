@@ -24,7 +24,7 @@ function DrawDealer({ setMessage, setDealer, setStage, cardsInPlay }) {
   // API CALLS
   const getDealerCard = async () => {
     try {
-      const promise = await api.get("/game/dealer_card");
+      const promise = await api.post("/game/pickDealerCard");
       return promise;
     } catch (err) {
       console.error(err);
@@ -33,7 +33,9 @@ function DrawDealer({ setMessage, setDealer, setStage, cardsInPlay }) {
 
   const postDealer = async (dealer) => {
     try {
-      const promise = await api.post(`game/dealer/${dealer}`);
+      const promise = await api.post("game/setDealer", {
+        pid: dealer,
+      });
       setDealer(dealer);
       return promise;
     } catch (err) {
@@ -42,7 +44,7 @@ function DrawDealer({ setMessage, setDealer, setStage, cardsInPlay }) {
   };
 
   const resetDeck = async () => {
-    await api.post("/game/reset_deck");
+    await api.post("/game/resetDeck");
   };
 
   // EFFECTS

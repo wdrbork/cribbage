@@ -36,7 +36,7 @@ function Game() {
 
   const dealCards = async () => {
     try {
-      const promise = await api.post("game/deal");
+      const promise = await api.post("game/dealHands");
       return promise;
     } catch (err) {
       console.error(err);
@@ -44,7 +44,7 @@ function Game() {
   };
 
   const resetGame = async () => {
-    await api.post("game/reset_game");
+    await api.post("game/resetGame");
   };
 
   // EFFECTS

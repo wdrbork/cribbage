@@ -29,7 +29,7 @@ function DealCrib({
 
   const getScores = async () => {
     try {
-      const promise = await api.get("game/scores");
+      const promise = await api.post("game/getScores");
       return promise;
     } catch (err) {
       console.error(err);
@@ -38,9 +38,11 @@ function DealCrib({
 
   const moveToCrib = async (card) => {
     try {
-      const promise = await api.post(
-        `game/move/${USER_ID}/${card.suitValue}/${card.rankValue}`
-      );
+      const promise = await api.post("/game/moveCardToCrib", {
+        pid: USER_ID,
+        suitId: card.suitValue,
+        rankId: card.rankValue,
+      });
       return promise;
     } catch (err) {
       console.error(err);
@@ -49,7 +51,7 @@ function DealCrib({
 
   const pickAIHand = async () => {
     try {
-      const promise = await api.post("game/ai/hands");
+      const promise = await api.post("game/selectAIHands");
       return promise;
     } catch (err) {
       console.error(err);
@@ -58,7 +60,7 @@ function DealCrib({
 
   const getStarterCard = async () => {
     try {
-      const promise = await api.get("game/starter");
+      const promise = await api.post("game/pickStarterCard");
       return promise;
     } catch (err) {
       console.error(err);
