@@ -291,7 +291,7 @@ public class GameController {
         try {
             int pid = json.get("pid");
             int[] scores = game.countHand(Integer.valueOf(pid));
-            return new ResponseEntity<>(String.valueOf(scores), HttpStatus.OK);
+            return new ResponseEntity<>(scores, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(
                 e.getMessage(), 
