@@ -146,6 +146,7 @@ function Game() {
             setGameScores={setGameScores}
             setMessage={setMessage}
             setStage={setCurrentStage}
+            displayDeck={displayDeck}
           />
         );
       default:
