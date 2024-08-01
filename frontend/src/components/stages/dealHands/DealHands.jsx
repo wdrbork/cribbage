@@ -101,11 +101,9 @@ function DealCrib({
         await timeout(PROCESS_DELAY_MS);
         setStarterCard(card);
         if (card.rankValue === 1 || card.rankValue === 8) {
-          newMessage = `The starter card is an ${card.rank.toLowerCase()} 
-              of ${card.suit.toLowerCase()}s.`;
+          newMessage = `The starter card is an ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`;
         } else {
-          newMessage = `The starter card is a ${card.rank.toLowerCase()} 
-              of ${card.suit.toLowerCase()}s.`;
+          newMessage = `The starter card is a ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`;
           if (card.rankValue === 11) {
             await timeout(PROCESS_DELAY_MS);
             newMessage += " Dealer gets two points from his heels.";
