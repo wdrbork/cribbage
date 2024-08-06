@@ -46,50 +46,19 @@ function CountHands({
     }
   };
 
-  const countPlayerHand = async () => {
-    getHandScore(USER_ID).then((handResponse) => {
-      const handScores = handResponse.data;
-      console.log(handScores);
-
-      getScores().then((gameScoreResponse) => {
-        setGameScores(gameScoreResponse.data);
-
-        let newMessage = `You earned ${handScores[TOTAL_POINTS]} points from your hand.\n`;
-
-        if (handScores[RUNS] > 0) {
-          newMessage += `\n- ${handScores[RUNS]} points earned from runs`;
-        }
-
-        if (handScores[PAIRS] > 0) {
-          newMessage += `\n- ${handScores[PAIRS]} points earned from pairs`;
-        }
-
-        if (handScores[FIFTEEN] > 0) {
-          newMessage += `\n- ${handScores[FIFTEEN]} points earned from cards that add up to 15`;
-        }
-
-        if (handScores[FLUSH] > 0) {
-          newMessage += `\n- ${handScores[RUNS]} points earned from the flush`;
-        }
-
-        if (handScores[NOBS] > 0) {
-          newMessage += `\n- ${handScores[RUNS]} points earned from nobs`;
-        }
-
-        setMessage(newMessage);
-      });
-    });
-  };
-
-  const countAIHand = async () => {
-    getHandScore(OPP_ID).then((handResponse) => {
+  const countHand = async (pid) => {
+    getHandScore(pid).then((handResponse) => {
       const handScores = handResponse.data;
 
       getScores().then((gameScoreResponse) => {
         setGameScores(gameScoreResponse.data);
 
-        let newMessage = `Your opponent earned 
-              ${handScores[TOTAL_POINTS]} points from their hand.\n`;
+        let newMessage;
+        if (pid === USER_ID) {
+          newMessage = `You earned ${handScores[TOTAL_POINTS]} points from your hand.\n`;
+        } else {
+          newMessage = `Your opponent earned ${handScores[TOTAL_POINTS]} points from their hand.\n`;
+        }
 
         if (handScores[RUNS] > 0) {
           newMessage += `\n- ${handScores[RUNS]} points earned from runs`;
@@ -118,13 +87,13 @@ function CountHands({
 
   const countUpHands = async () => {
     if (dealer === OPP_ID) {
-      countPlayerHand();
+      countHand(USER_ID);
       await timeout(2 * PROCESS_DELAY_MS);
-      countAIHand();
+      countHand(OPP_ID);
     } else {
-      countAIHand();
+      countHand(OPP_ID);
       await timeout(2 * PROCESS_DELAY_MS);
-      countPlayerHand();
+      countHand(USER_ID);
     }
 
     await timeout(2 * PROCESS_DELAY_MS);
