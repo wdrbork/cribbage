@@ -23,6 +23,12 @@ import CountHands from "../stages/countHands";
 const CARDS_PER_SUIT = 13;
 const WINNING_SCORE = 121;
 
+// First index represents the dealer, second index represents the current shown score
+const BUTTON_TEXT = [
+  ["Opponent's score", "Your score", "Your crib", "Next round"],
+  ["Your score, Opponent's score", "Opponent's crib", "Next round"],
+];
+
 function Game() {
   const [currentStage, setCurrentStage] = useState(DRAW_DEALER);
   const [message, setMessage] = useState("");
@@ -31,6 +37,7 @@ function Game() {
   const [hands, setHands] = useState([]);
   const [crib, setCrib] = useState([]);
   const [starterCard, setStarterCard] = useState(null);
+  const [shownScore, setShownScore] = useState(-1);
   const [winner, setWinner] = useState(-1);
   const cardsInPlay = useRef(0);
 
@@ -77,6 +84,8 @@ function Game() {
       } else if (dealer === OPP_ID) {
         setMessage("It is your turn. Please select a card.");
       }
+    } else if (currentStage === COUNT_HANDS) {
+      setShownScore(0);
     }
   }, [currentStage]);
 
@@ -95,6 +104,14 @@ function Game() {
     }
 
     return deckCards;
+  }
+
+  function previousScore() {
+    setShownScore(Math.max(0, shownScore - 1));
+  }
+
+  function nextScore() {
+    setShownScore(Math.min(2, shownScore + 1));
   }
 
   function stageSwitch() {
@@ -160,6 +177,21 @@ function Game() {
       <div className="right-bar">
         <Scoreboard gameScores={gameScores} dealer={dealer} />
         <Message message={message} />
+        {currentStage === COUNT_HANDS && (
+          <div className="score-buttons">
+            <button
+              className={
+                shownScore === 0 ? "left-button hidden" : "left-button"
+              }
+              onClick={previousScore}
+            >
+              {BUTTON_TEXT[dealer][shownScore - 1]}
+            </button>
+            <button className="right-button" onClick={nextScore}>
+              {BUTTON_TEXT[dealer][shownScore + 1]}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

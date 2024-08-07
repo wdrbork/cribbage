@@ -49,3 +49,17 @@
 .crib-container {
   width: 25%;
 }
+
+.score-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.left-button,
+.right-button {
+  height: 40px;
+}
+
+.hidden {
+  visibility: hidden;
+}
