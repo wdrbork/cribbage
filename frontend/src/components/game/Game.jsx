@@ -26,7 +26,7 @@ const WINNING_SCORE = 121;
 // First index represents the dealer, second index represents the current shown score
 const BUTTON_TEXT = [
   ["Opponent's score", "Your score", "Your crib", "Next round"],
-  ["Your score, Opponent's score", "Opponent's crib", "Next round"],
+  ["Your score", "Opponent's score", "Opponent's crib", "Next round"],
 ];
 
 function Game() {
@@ -44,6 +44,15 @@ function Game() {
   const dealCards = async () => {
     try {
       const promise = await api.post("game/dealHands");
+      return promise;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const resetRound = async () => {
+    try {
+      const promise = await api.post("game/clearRound");
       return promise;
     } catch (err) {
       console.error(err);
@@ -111,7 +120,17 @@ function Game() {
   }
 
   function nextScore() {
-    setShownScore(Math.min(2, shownScore + 1));
+    setShownScore(shownScore + 1);
+    if (shownScore + 1 > 2) {
+      resetRound().then(() => {
+        setShownScore(-1);
+        setDealer((dealer + 1) % 2);
+        setHands([]);
+        setCrib([]);
+        setStarterCard(null);
+        setCurrentStage(DEAL_HANDS);
+      });
+    }
   }
 
   function stageSwitch() {
@@ -160,6 +179,7 @@ function Game() {
             dealer={dealer}
             hands={hands}
             crib={crib}
+            shownScore={shownScore}
             setGameScores={setGameScores}
             setMessage={setMessage}
             setStage={setCurrentStage}
