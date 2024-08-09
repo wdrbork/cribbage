@@ -17,13 +17,16 @@ const FIFTEEN = 3;
 const FLUSH = 4;
 const NOBS = 5;
 
+let visitedScores = [false, false, false];
+let scoreMessages = ["", "", ""];
+
 function CountHands({
   dealer,
   hands,
   crib,
+  shownScore,
   setGameScores,
   setMessage,
-  setStage,
   displayDeck,
 }) {
   const getScores = async () => {
@@ -46,63 +49,110 @@ function CountHands({
     }
   };
 
-  const countHand = async (pid) => {
-    getHandScore(pid).then((handResponse) => {
-      const handScores = handResponse.data;
-
-      getScores().then((gameScoreResponse) => {
-        setGameScores(gameScoreResponse.data);
-
-        let newMessage;
-        if (pid === USER_ID) {
-          newMessage = `You earned ${handScores[TOTAL_POINTS]} points from your hand.\n`;
-        } else {
-          newMessage = `Your opponent earned ${handScores[TOTAL_POINTS]} points from their hand.\n`;
-        }
-
-        if (handScores[RUNS] > 0) {
-          newMessage += `\n- ${handScores[RUNS]} points earned from runs`;
-        }
-
-        if (handScores[PAIRS] > 0) {
-          newMessage += `\n- ${handScores[PAIRS]} points earned from pairs`;
-        }
-
-        if (handScores[FIFTEEN] > 0) {
-          newMessage += `\n- ${handScores[FIFTEEN]} points earned from cards that add up to 15`;
-        }
-
-        if (handScores[FLUSH] > 0) {
-          newMessage += `\n- ${handScores[FLUSH]} points earned from the flush`;
-        }
-
-        if (handScores[NOBS] > 0) {
-          newMessage += `\n- ${handScores[NOBS]} points earned from nobs`;
-        }
-
-        setMessage(newMessage);
-      });
-    });
+  const getCribScore = async () => {
+    try {
+      const promise = await api.post("game/countCrib");
+      return promise;
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const countUpHands = async () => {
-    if (dealer === OPP_ID) {
-      countHand(USER_ID);
-      await timeout(2 * PROCESS_DELAY_MS);
-      countHand(OPP_ID);
+  const countHand = async (pid) => {
+    const handResponse = await getHandScore(pid);
+    const handScores = handResponse.data;
+
+    const gameScores = await getScores();
+    setGameScores(gameScores.data);
+
+    let newMessage;
+    if (pid === USER_ID) {
+      newMessage = `You earned ${handScores[TOTAL_POINTS]} points from your hand.\n`;
     } else {
-      countHand(OPP_ID);
-      await timeout(2 * PROCESS_DELAY_MS);
-      countHand(USER_ID);
+      newMessage = `Your opponent earned ${handScores[TOTAL_POINTS]} points from their hand.\n`;
     }
 
-    await timeout(2 * PROCESS_DELAY_MS);
-    setStage(COUNT_CRIB);
+    if (handScores[RUNS] > 0) {
+      newMessage += `\n- ${handScores[RUNS]} points earned from runs`;
+    }
+
+    if (handScores[PAIRS] > 0) {
+      newMessage += `\n- ${handScores[PAIRS]} points earned from pairs`;
+    }
+
+    if (handScores[FIFTEEN] > 0) {
+      newMessage += `\n- ${handScores[FIFTEEN]} points earned from cards that add up to 15`;
+    }
+
+    if (handScores[FLUSH] > 0) {
+      newMessage += `\n- ${handScores[FLUSH]} points earned from the flush`;
+    }
+
+    if (handScores[NOBS] > 0) {
+      newMessage += `\n- ${handScores[NOBS]} point earned from nobs`;
+    }
+
+    scoreMessages[shownScore] = newMessage;
+  };
+
+  const countCrib = async () => {
+    const cribResponse = await getCribScore();
+    const cribScores = cribResponse.data;
+
+    const gameScores = await getScores();
+    setGameScores(gameScores.data);
+
+    let newMessage;
+    if (dealer === USER_ID) {
+      newMessage = `You earned ${cribScores[TOTAL_POINTS]} points from the crib.\n`;
+    } else {
+      newMessage = `Your opponent earned ${cribScores[TOTAL_POINTS]} points from the crib.\n`;
+    }
+
+    if (cribScores[RUNS] > 0) {
+      newMessage += `\n- ${cribScores[RUNS]} points earned from runs`;
+    }
+
+    if (cribScores[PAIRS] > 0) {
+      newMessage += `\n- ${cribScores[PAIRS]} points earned from pairs`;
+    }
+
+    if (cribScores[FIFTEEN] > 0) {
+      newMessage += `\n- ${cribScores[FIFTEEN]} points earned from cards that add up to 15`;
+    }
+
+    if (cribScores[FLUSH] > 0) {
+      newMessage += `\n- ${cribScores[FLUSH]} points earned from the flush`;
+    }
+
+    if (cribScores[NOBS] > 0) {
+      newMessage += `\n- ${cribScores[NOBS]} points earned from nobs`;
+    }
+
+    scoreMessages[shownScore] = newMessage;
   };
 
   useEffect(() => {
-    countUpHands();
-  }, []);
+    if (shownScore === -1) return;
+
+    if (visitedScores[shownScore]) {
+      setMessage(scoreMessages[shownScore]);
+      return;
+    }
+
+    const addHandScore = async () => {
+      if (shownScore === 2) {
+        await countCrib();
+      } else {
+        await countHand((dealer + 1 + shownScore) % 2);
+      }
+      setMessage(scoreMessages[shownScore]);
+    };
+
+    addHandScore();
+
+    visitedScores[shownScore] = true;
+  }, [shownScore]);
 
   return (
     <>
