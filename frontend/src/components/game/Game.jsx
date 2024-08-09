@@ -120,7 +120,6 @@ function Game() {
   }
 
   function nextScore() {
-    setShownScore(shownScore + 1);
     if (shownScore + 1 > 2) {
       resetRound().then(() => {
         setShownScore(-1);
@@ -130,7 +129,11 @@ function Game() {
         setStarterCard(null);
         setCurrentStage(DEAL_HANDS);
       });
+
+      return;
     }
+
+    setShownScore(shownScore + 1);
   }
 
   function stageSwitch() {
