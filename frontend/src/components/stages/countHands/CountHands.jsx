@@ -133,7 +133,11 @@ function CountHands({
   };
 
   useEffect(() => {
-    if (shownScore === -1) return;
+    if (shownScore === -1) {
+      scoreMessages = ["", "", ""];
+      visitedScores = [false, false, false];
+      return;
+    }
 
     if (visitedScores[shownScore]) {
       setMessage(scoreMessages[shownScore]);
