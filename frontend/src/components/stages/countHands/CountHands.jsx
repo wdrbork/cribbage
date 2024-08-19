@@ -158,10 +158,16 @@ function CountHands({
     <>
       <div className="top-row ai-hand">
         <div className="crib-container">
-          {dealer === OPP_ID && <Crib cards={crib} />}
+          {dealer === OPP_ID && shownScore !== 2 && <Crib cards={crib} />}
         </div>
         {hands.length !== 0 && (
-          <Hand pid={OPP_ID} cards={hands[OPP_ID].cards} hidden={false} />
+          <Hand
+            pid={OPP_ID}
+            cards={
+              shownScore === 2 && dealer === OPP_ID ? crib : hands[OPP_ID].cards
+            }
+            hidden={false}
+          />
         )}
       </div>
       <div className="middle-row">
@@ -169,12 +175,16 @@ function CountHands({
       </div>
       <div className="bottom-row user-hand">
         <div className="crib-container">
-          {dealer === USER_ID && <Crib cards={crib} />}
+          {dealer === USER_ID && shownScore !== 2 && <Crib cards={crib} />}
         </div>
         {hands.length !== 0 && (
           <Hand
             pid={USER_ID}
-            cards={hands[USER_ID].cards}
+            cards={
+              shownScore === 2 && dealer === USER_ID
+                ? crib
+                : hands[USER_ID].cards
+            }
             interactable={false}
           />
         )}
