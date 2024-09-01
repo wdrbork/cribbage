@@ -330,9 +330,9 @@ public class CribbageManager {
     public Card pickStarterCard() {
         // All hands and the crib must be finalized before the starter 
         // card is drawn
-        if (!checkStartingHands()) {
-            throw new IllegalArgumentException("Not all hands have been finalized");
-        }
+        // if (!checkStartingHands()) {
+        //     throw new IllegalArgumentException("Not all hands have been finalized");
+        // }
 
         starterCard = deck.pickRandomCard();
 
@@ -403,6 +403,8 @@ public class CribbageManager {
             // System.out.println("Count = " + count);
            throw new NullPointerException("Card is null");
         } else if (pid != nextToPlayCard) {
+            System.out.println(dealerId);
+            System.out.println(nextToPlayCard);
             throw new IllegalArgumentException("Not this player's turn");
         } else if (!canPlayCard(card)) {
             throw new IllegalArgumentException("Card cannot be played");
@@ -731,7 +733,7 @@ public class CribbageManager {
         crib.clearDeck();
         lastToPlayCard = -1;
         rotateDealer();
-        determineNextPlayer();
+        nextToPlayCard = (dealerId + 1) % numPlayers;
     }
 
     /**
