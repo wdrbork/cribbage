@@ -64,6 +64,7 @@ function DealCrib({
       return promise;
     } catch (err) {
       console.error(err);
+      await timeout(200);
       getStarterCard();
     }
   };
