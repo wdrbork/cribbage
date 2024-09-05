@@ -31,6 +31,7 @@ function PlayRound({
 }) {
   const [currentHands, setCurrentHands] = useState(startingHands);
   const [playerTurn, setPlayerTurn] = useState((dealer + 1) % 2);
+  const [interactableHand, setInteractableHand] = useState(dealer !== USER_ID);
   const [count, setCount] = useState(0);
   const [playedCards, setPlayedCards] = useState([]);
   const [oldPlayedCards, setOldPlayedCards] = useState([]);
@@ -167,6 +168,7 @@ function PlayRound({
           setMessage("It is your opponent's turn to select a card.");
           manageAITurn();
         } else if (nextPlayer === USER_ID) {
+          setInteractableHand(true);
           setMessage("It is your turn. Please select a card.");
         }
       }
@@ -255,7 +257,7 @@ function PlayRound({
 
   // INTERACTION
   function onHandCardClick(cardId) {
-    if (playerTurn !== USER_ID) {
+    if (!interactableHand) {
       return;
     }
 
@@ -271,6 +273,8 @@ function PlayRound({
       return;
     }
 
+    setInteractableHand(false);
+
     playCard(card).then(async (response) => {
       let newMessage;
       if (card.rankValue === 1 || card.rankValue === 8) {
@@ -279,6 +283,7 @@ function PlayRound({
         newMessage = `You played a ${card.rank.toLowerCase()} of ${card.suit.toLowerCase()}s.`;
       }
 
+      console.log(response);
       const pointCategories = response.data.pointsEarned;
 
       if (pointCategories[RUNS] > 0) {
