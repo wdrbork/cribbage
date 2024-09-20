@@ -14,6 +14,7 @@ import {
 import Scoreboard from "../scoreboard";
 import Message from "../message";
 import Card from "../card";
+import WinnerModal from "../winnerModal";
 
 import DrawDealer from "../stages/drawDealer";
 import DealCrib from "../stages/dealHands";
@@ -38,7 +39,7 @@ function Game() {
   const [crib, setCrib] = useState([]);
   const [starterCard, setStarterCard] = useState(null);
   const [shownScore, setShownScore] = useState(-1);
-  const [winner, setWinner] = useState(-1);
+  const [winner, setWinner] = useState(0);
   const cardsInPlay = useRef(0);
 
   const dealCards = async () => {
@@ -136,6 +137,19 @@ function Game() {
     setShownScore(shownScore + 1);
   }
 
+  function newGame() {
+    resetGame();
+    setCurrentStage(DRAW_DEALER);
+    setGameScores([0, 0]);
+    setDealer(-1);
+    setHands([]);
+    setCrib([]);
+    setStarterCard(null);
+    setShownScore(-1);
+    setWinner(-1);
+    cardsInPlay.current = 0;
+  }
+
   function stageSwitch() {
     switch (currentStage) {
       case DRAW_DEALER:
@@ -196,6 +210,7 @@ function Game() {
 
   return (
     <div className="Game">
+      <WinnerModal winner={winner} scores={gameScores} onNewGame={newGame} />
       <div className="main-screen">{stageSwitch()}</div>
       <div className="right-bar">
         <Scoreboard gameScores={gameScores} dealer={dealer} />
