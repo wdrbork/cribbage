@@ -17,7 +17,7 @@ import Card from "../card";
 import WinnerModal from "../winnerModal";
 
 import DrawDealer from "../stages/drawDealer";
-import DealCrib from "../stages/dealHands";
+import DealHands from "../stages/dealHands";
 import PlayRound from "../stages/playRound";
 import CountHands from "../stages/countHands";
 
@@ -163,7 +163,7 @@ function Game() {
         );
       case DEAL_HANDS:
         return (
-          <DealCrib
+          <DealHands
             dealer={dealer}
             hands={hands}
             crib={crib}

@@ -11,7 +11,7 @@ import Hand from "../../hand/index.js";
 import Crib from "../../crib/index.js";
 import SendToCrib from "../../sendToCrib/index.js";
 
-function DealCrib({
+function DealHands({
   dealer,
   hands,
   crib,
@@ -224,4 +224,4 @@ function DealCrib({
   );
 }
 
-export default DealCrib;
+export default DealHands;
