@@ -25,7 +25,7 @@ function CountHands({
   hands,
   crib,
   shownScore,
-  setGameScores,
+  updateScores,
   setMessage,
   displayDeck,
 }) {
@@ -62,8 +62,7 @@ function CountHands({
     const handResponse = await getHandScore(pid);
     const handScores = handResponse.data;
 
-    const gameScores = await getScores();
-    setGameScores(gameScores.data);
+    updateScores();
 
     let newMessage;
     if (pid === USER_ID) {
@@ -99,8 +98,7 @@ function CountHands({
     const cribResponse = await getCribScore();
     const cribScores = cribResponse.data;
 
-    const gameScores = await getScores();
-    setGameScores(gameScores.data);
+    updateScores();
 
     let newMessage;
     if (dealer === USER_ID) {

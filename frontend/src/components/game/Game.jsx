@@ -22,7 +22,7 @@ import PlayRound from "../stages/playRound";
 import CountHands from "../stages/countHands";
 
 const CARDS_PER_SUIT = 13;
-const WINNING_SCORE = 121;
+const WINNING_SCORE = 5;
 
 // First index represents the dealer, second index represents the current shown score
 const BUTTON_TEXT = [
@@ -39,13 +39,27 @@ function Game() {
   const [crib, setCrib] = useState([]);
   const [starterCard, setStarterCard] = useState(null);
   const [shownScore, setShownScore] = useState(-1);
-  const [winner, setWinner] = useState(0);
+  const [winner, setWinner] = useState(-1);
   const cardsInPlay = useRef(0);
 
   const dealCards = async () => {
     try {
       const promise = await api.post("game/dealHands");
       return promise;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const updateScores = async () => {
+    try {
+      const promise = await api.post("game/getScores");
+      setGameScores(promise.data);
+      if (promise.data[USER_ID] >= WINNING_SCORE) {
+        setWinner(USER_ID);
+      } else if (promise.data[OPP_ID] >= WINNING_SCORE) {
+        setWinner(OPP_ID);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -140,7 +154,7 @@ function Game() {
   function newGame() {
     resetGame();
     setCurrentStage(DRAW_DEALER);
-    setGameScores([0, 0]);
+    updateScores([0, 0]);
     setDealer(-1);
     setHands([]);
     setCrib([]);
@@ -171,7 +185,7 @@ function Game() {
             setHands={setHands}
             setCrib={setCrib}
             setStarterCard={setStarterCard}
-            setGameScores={setGameScores}
+            updateScores={updateScores}
             setMessage={setMessage}
             setStage={setCurrentStage}
             displayDeck={displayDeck}
@@ -184,7 +198,7 @@ function Game() {
             dealer={dealer}
             startingHands={structuredClone(hands)}
             crib={crib}
-            setGameScores={setGameScores}
+            updateScores={updateScores}
             setMessage={setMessage}
             setStage={setCurrentStage}
             displayDeck={displayDeck}
@@ -197,7 +211,7 @@ function Game() {
             hands={hands}
             crib={crib}
             shownScore={shownScore}
-            setGameScores={setGameScores}
+            updateScores={updateScores}
             setMessage={setMessage}
             setStage={setCurrentStage}
             displayDeck={displayDeck}

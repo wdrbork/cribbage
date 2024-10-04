@@ -19,7 +19,7 @@ function DealHands({
   setHands,
   setCrib,
   setStarterCard,
-  setGameScores,
+  updateScores,
   setMessage,
   setStage,
   displayDeck,
@@ -27,14 +27,14 @@ function DealHands({
 }) {
   const [selectedCards, setSelectedCards] = useState([]);
 
-  const getScores = async () => {
-    try {
-      const promise = await api.post("game/getScores");
-      return promise;
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const getScores = async () => {
+  //   try {
+  //     const promise = await api.post("game/getScores");
+  //     return promise;
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
   const moveToCrib = async (card) => {
     try {
@@ -108,9 +108,7 @@ function DealHands({
           if (card.rankValue === 11) {
             await timeout(PROCESS_DELAY_MS);
             newMessage += " Dealer gets two points from his heels.";
-            getScores().then((response) => {
-              setGameScores(response.data);
-            });
+            updateScores();
           }
         }
         setMessage(newMessage);

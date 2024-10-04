@@ -24,7 +24,7 @@ function PlayRound({
   dealer,
   startingHands,
   crib,
-  setGameScores,
+  updateScores,
   setMessage,
   setStage,
   displayDeck,
@@ -142,17 +142,15 @@ function PlayRound({
       if (!movePossible) {
         if (count !== 31) {
           playerOnGo.current = false;
-          getScores().then(async (response) => {
-            setGameScores(response.data);
-            if (playerTurn === OPP_ID) {
-              setMessage(
-                "Your opponent earns 1 point for playing the last card."
-              );
-            } else {
-              setMessage("You earn 1 point for playing the last card.");
-            }
-            await timeout(PROCESS_DELAY_MS);
-          });
+          await updateScores();
+          if (playerTurn === OPP_ID) {
+            setMessage(
+              "Your opponent earns 1 point for playing the last card."
+            );
+          } else {
+            setMessage("You earn 1 point for playing the last card.");
+          }
+          await timeout(PROCESS_DELAY_MS);
         }
 
         resetCount();
@@ -244,9 +242,7 @@ function PlayRound({
       // }
 
       if (pointCategories[TOTAL_POINTS] > 0) {
-        getScores().then((response) => {
-          setGameScores(response.data);
-        });
+        updateScores();
       }
 
       setMessage(newMessage);
@@ -316,9 +312,7 @@ function PlayRound({
       //   newMessage += `\n\nYou earned 1 point for playing the last card.`;
       // }
 
-      getScores().then((response) => {
-        setGameScores(response.data);
-      });
+      updateScores();
 
       setMessage(newMessage);
 
